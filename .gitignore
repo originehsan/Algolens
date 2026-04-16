@@ -172,9 +172,9 @@ generated/
 # DEBUG & ANALYSIS FILES
 # ════════════════════════════════════════
 analyze_*.txt                  # Analysis output files
-ERROR_ANALYSIS_REPORT.md
- ERROR_SUMMARY_QUICK_REF.md      # Error report files
-ERRORS_DETAILED.csv                  # Error CSV files
+
+     # Error report files
+                  # Error CSV files
 
 *.log
 .buildlog/
@@ -235,3 +235,6 @@ GITHUB_SETUP_SUMMARY.md
 
 CONTEXT.md
 
+ERROR_ANALYSIS_REPORT.md
+ERROR_SUMMARY_QUICK_REF.md 
+ERRORS_DETAILED.csv
