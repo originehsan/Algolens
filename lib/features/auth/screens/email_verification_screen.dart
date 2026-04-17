@@ -44,7 +44,7 @@ class EmailVerificationScreen extends StatelessWidget {
                   SizedBox(height: 20.h),
                   Text(
                     'Check Your Email',
-                    style: AppTextStyles.heading,
+                    style: AppTextStyles.h2,
                     textAlign: TextAlign.center,
                   ),
                   SizedBox(height: 8.h),

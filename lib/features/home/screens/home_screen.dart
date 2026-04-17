@@ -175,7 +175,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ),
             Text(
               handle,
-              style: AppTextStyles.heading,
+              style: AppTextStyles.h2,
             ),
           ],
         ),
@@ -243,7 +243,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               ),
               Text(
                 '${profile.streakDays}d',
-                style: AppTextStyles.mono.copyWith(
+                style: AppTextStyles.metricSmall.copyWith(
                   color: AppColors.success,
                   fontSize: 16.sp,
                 ),
@@ -277,7 +277,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 SizedBox(height: 4.h),
                 Text(
                   '${profile.rating}',
-                  style: AppTextStyles.monoLarge.copyWith(
+                  style: AppTextStyles.metricLarge.copyWith(
                     color: AppColors.primary,
                   ),
                 ),

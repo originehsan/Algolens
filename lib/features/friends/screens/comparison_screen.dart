@@ -180,7 +180,7 @@ class _ComparisonScreenState extends ConsumerState<ComparisonScreen> {
                 ),
                 child: Text(
                   'VS',
-                  style: AppTextStyles.heading.copyWith(
+                  style: AppTextStyles.h2.copyWith(
                     color: AppColors.primary,
                   ),
                 ),
@@ -259,7 +259,7 @@ class _ComparisonScreenState extends ConsumerState<ComparisonScreen> {
                   ),
                   Text(
                     higher,
-                    style: AppTextStyles.heading.copyWith(
+                    style: AppTextStyles.h2.copyWith(
                       color: AppColors.success,
                     ),
                   ),
@@ -292,7 +292,7 @@ class _ComparisonScreenState extends ConsumerState<ComparisonScreen> {
             child: Text(
               value1,
               style: isMonospace
-                  ? AppTextStyles.mono.copyWith(
+                  ? AppTextStyles.metricSmall.copyWith(
                       color: first1Higher
                           ? AppColors.success
                           : AppColors.textSecondary,
@@ -317,7 +317,7 @@ class _ComparisonScreenState extends ConsumerState<ComparisonScreen> {
             child: Text(
               value2,
               style: isMonospace
-                  ? AppTextStyles.mono.copyWith(
+                  ? AppTextStyles.metricSmall.copyWith(
                       color: first2Higher
                           ? AppColors.success
                           : AppColors.textSecondary,

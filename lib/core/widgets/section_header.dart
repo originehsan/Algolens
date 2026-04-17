@@ -25,7 +25,7 @@ class SectionHeader extends StatelessWidget {
       children: [
         Text(
           title,
-          style: AppTextStyles.subheading,
+          style: AppTextStyles.h3,
         ),
         if (trailing != null)
           trailing!

@@ -66,7 +66,7 @@ class _AppButtonState extends State<AppButton> {
         boxShadow: _isPressed
             ? [
                 BoxShadow(
-                  color: AppColors.primary.withOpacity(0.30),
+                  color: AppColors.primary.withValues(alpha: 0.30),
                   blurRadius: 12,
                   spreadRadius: 0,
                   offset: const Offset(0, 4),
@@ -105,12 +105,13 @@ class _AppButtonState extends State<AppButton> {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  Colors.white.withOpacity(0.08),
-                  Colors.white.withOpacity(0.04),
+                  Colors.white.withValues(alpha: 0.08),
+                  Colors.white.withValues(alpha: 0.04),
                 ],
               ),
               border: Border.all(
-                color: (widget.color ?? AppColors.primary).withOpacity(0.70),
+                color:
+                    (widget.color ?? AppColors.primary).withValues(alpha: 0.70),
                 width: 1.5,
               ),
             ),
@@ -127,7 +128,7 @@ class _AppButtonState extends State<AppButton> {
                   : Text(
                       widget.label,
                       style: AppTextStyles.bodyBold.copyWith(
-                        color: widget.color ?? AppColors.primaryLight,
+                        color: widget.color ?? AppColors.primary,
                       ),
                     ),
             ),
@@ -151,12 +152,12 @@ class _AppButtonState extends State<AppButton> {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                (widget.color ?? AppColors.primary).withOpacity(0.85),
-                (widget.color ?? AppColors.primaryDark).withOpacity(0.90),
+                (widget.color ?? AppColors.primary).withValues(alpha: 0.85),
+                (widget.color ?? AppColors.primaryDark).withValues(alpha: 0.90),
               ],
             ),
             border: Border.all(
-              color: AppColors.primaryLight.withOpacity(0.60),
+              color: AppColors.primary.withValues(alpha: 0.60),
               width: 1.5,
             ),
           ),

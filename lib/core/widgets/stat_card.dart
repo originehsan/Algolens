@@ -50,11 +50,11 @@ class StatCard extends StatelessWidget {
           Text(
             value,
             style: isMonospace
-                ? AppTextStyles.monoLarge.copyWith(
+                ? AppTextStyles.metricLarge.copyWith(
                     color: valueColor ?? AppColors.textPrimary,
                     fontSize: 22.sp,
                   )
-                : AppTextStyles.heading.copyWith(
+                : AppTextStyles.h2.copyWith(
                     color: valueColor ?? AppColors.textPrimary,
                   ),
           ),

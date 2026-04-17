@@ -55,7 +55,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         ),
         title: Text(
           'Logout',
-          style: AppTextStyles.heading,
+          style: AppTextStyles.h2,
         ),
         content: Text(
           'Are you sure you want to logout?',
@@ -110,73 +110,73 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             SizedBox(height: 12.h),
 
             // Account card
-            profileAsync
-                .when(
-                  loading: () => ShimmerCard(height: 80.h),
-                  error: (e, _) => GlassCard(
-                    child: Row(
-                      children: [
-                        CircleAvatar(
-                          radius: 24.r,
-                          backgroundColor: AppColors.primary.withValues(alpha: 0.20),
-                          child: Icon(
-                            Icons.person_rounded,
-                            color: AppColors.primary,
-                            size: 24.r,
-                          ),
-                        ),
-                        SizedBox(width: 12.w),
-                        Text(
-                          handle,
-                          style: AppTextStyles.bodyBold,
-                        ),
-                      ],
+            profileAsync.when(
+              loading: () => ShimmerCard(height: 80.h),
+              error: (e, _) => GlassCard(
+                child: Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 24.r,
+                      backgroundColor:
+                          AppColors.primary.withValues(alpha: 0.20),
+                      child: Icon(
+                        Icons.person_rounded,
+                        color: AppColors.primary,
+                        size: 24.r,
+                      ),
                     ),
-                  ),
-                  data: (profile) => GlassCard(
-                    borderColor: AppColors.primary.withValues(alpha: 0.30),
-                    child: Row(
-                      children: [
-                        UserAvatar(
-                          handle: profile.handle,
-                          rank: profile.rank,
-                          size: 48.r,
-                        ),
-                        SizedBox(width: 14.w),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                profile.handle,
-                                style: AppTextStyles.bodyBold,
-                              ),
-                              SizedBox(height: 4.h),
-                              RankChip(
-                                rank: profile.rank,
-                                small: true,
-                              ),
-                            ],
-                          ),
-                        ),
-                        Text(
-                          '${profile.rating}',
-                          style: AppTextStyles.mono.copyWith(
-                            color: AppColors.primary,
-                            fontSize: 18.sp,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ],
+                    SizedBox(width: 12.w),
+                    Text(
+                      handle,
+                      style: AppTextStyles.bodyBold,
                     ),
-                  ),
+                  ],
                 ),
-            SizedBox(height: 20.h) ,
+              ),
+              data: (profile) => GlassCard(
+                borderColor: AppColors.primary.withValues(alpha: 0.30),
+                child: Row(
+                  children: [
+                    UserAvatar(
+                      handle: profile.handle,
+                      rank: profile.rank,
+                      size: 48.r,
+                    ),
+                    SizedBox(width: 14.w),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            profile.handle,
+                            style: AppTextStyles.bodyBold,
+                          ),
+                          SizedBox(height: 4.h),
+                          RankChip(
+                            rank: profile.rank,
+                            small: true,
+                          ),
+                        ],
+                      ),
+                    ),
+                    Text(
+                      '${profile.rating}',
+                      style: AppTextStyles.metricSmall.copyWith(
+                        color: AppColors.primary,
+                        fontSize: 18.sp,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            SizedBox(height: 20.h),
 
             // Notifications section
             Text(
               'Notifications',
-              style: AppTextStyles.subheading,
+              style: AppTextStyles.h3,
             ),
             SizedBox(height: 8.h),
             GlassCard(
@@ -214,7 +214,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             // App info section
             Text(
               'About',
-              style: AppTextStyles.subheading,
+              style: AppTextStyles.h3,
             ),
             SizedBox(height: 8.h),
             GlassCard(
@@ -225,7 +225,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     title: 'App Version',
                     trailing: Text(
                       _appVersion,
-                      style: AppTextStyles.mono.copyWith(
+                      style: AppTextStyles.metricSmall.copyWith(
                         fontSize: 12.sp,
                         color: AppColors.textMuted,
                       ),
@@ -278,7 +278,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             // Coming soon section
             Text(
               'Coming Soon',
-              style: AppTextStyles.subheading,
+              style: AppTextStyles.h3,
             ),
             SizedBox(height: 8.h),
             GlassCard(

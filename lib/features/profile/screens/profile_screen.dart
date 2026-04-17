@@ -85,7 +85,7 @@ class ProfileScreen extends ConsumerWidget {
                           children: [
                             Text(
                               profile.handle,
-                              style: AppTextStyles.heading,
+                              style: AppTextStyles.h2,
                             ),
                             SizedBox(height: 4.h),
                             RankChip(
@@ -96,7 +96,7 @@ class ProfileScreen extends ConsumerWidget {
                               children: [
                                 Text(
                                   '${profile.rating}',
-                                  style: AppTextStyles.monoLarge.copyWith(
+                                  style: AppTextStyles.metricLarge.copyWith(
                                     color: AppColors.primary,
                                     fontSize: 22.sp,
                                   ),
@@ -349,7 +349,7 @@ class ProfileScreen extends ConsumerWidget {
                             ),
                             Text(
                               '${stats.totalSubmissions}',
-                              style: AppTextStyles.mono.copyWith(
+                              style: AppTextStyles.metricSmall.copyWith(
                                 fontSize: 13.sp,
                               ),
                             ),
@@ -436,7 +436,7 @@ class ProfileScreen extends ConsumerWidget {
       children: [
         Text(
           count.toString(),
-          style: AppTextStyles.mono.copyWith(
+          style: AppTextStyles.metricSmall.copyWith(
             color: color,
             fontSize: 16.sp,
             fontWeight: FontWeight.w700,

@@ -14,12 +14,12 @@ class AppTheme {
       colorScheme: const ColorScheme.dark(
         primary: AppColors.primary,
         secondary: AppColors.success,
-        surface: AppColors.bgDark,
+        surface: AppColors.bgBase,
         onSurface: AppColors.textPrimary,
         error: AppColors.danger,
       ),
 
-      scaffoldBackgroundColor: AppColors.bgDark,
+      scaffoldBackgroundColor: AppColors.bgBase,
 
       // Google Fonts Inter globally
       textTheme: GoogleFonts.interTextTheme(

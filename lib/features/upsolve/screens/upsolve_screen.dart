@@ -168,7 +168,6 @@ class _UpsolveScreenState extends ConsumerState<UpsolveScreen> {
 
         // Contest groups
         ...contests.asMap().entries.map((entry) {
-          final contestIndex = entry.key;
           final contest = entry.value;
           final pendingInContest = contest.problems
               .where((p) => !_solvedProblems.contains(
@@ -188,7 +187,6 @@ class _UpsolveScreenState extends ConsumerState<UpsolveScreen> {
               ),
               SizedBox(height: 8.h),
               ...pendingInContest.asMap().entries.map((problemEntry) {
-                final problemIndex = problemEntry.key;
                 final problem = problemEntry.value;
                 final key = '${problem.contestId}_${problem.index}';
 
@@ -197,7 +195,7 @@ class _UpsolveScreenState extends ConsumerState<UpsolveScreen> {
                     bottom: 10.h,
                   ),
                   child: GlassCard(
-                    borderColor: problem.verdictColor.withOpacity(0.40),
+                    borderColor: problem.verdictColor.withValues(alpha: 0.40),
                     child: Row(
                       children: [
                         Expanded(
@@ -220,7 +218,7 @@ class _UpsolveScreenState extends ConsumerState<UpsolveScreen> {
                                     ),
                                     decoration: BoxDecoration(
                                       color: problem.verdictColor
-                                          .withOpacity(0.15),
+                                          .withValues(alpha: 0.15),
                                       borderRadius: BorderRadius.circular(6.r),
                                     ),
                                     child: Text(
@@ -235,7 +233,7 @@ class _UpsolveScreenState extends ConsumerState<UpsolveScreen> {
                                   SizedBox(width: 6.w),
                                   Text(
                                     '${problem.rating}',
-                                    style: AppTextStyles.mono.copyWith(
+                                    style: AppTextStyles.metricSmall.copyWith(
                                       fontSize: 12.sp,
                                       color: AppColors.textMuted,
                                     ),
@@ -255,7 +253,8 @@ class _UpsolveScreenState extends ConsumerState<UpsolveScreen> {
                                           vertical: 2.h,
                                         ),
                                         decoration: BoxDecoration(
-                                          color: Colors.white.withOpacity(0.06),
+                                          color: Colors.white
+                                              .withValues(alpha: 0.06),
                                           borderRadius:
                                               BorderRadius.circular(6.r),
                                         ),
@@ -280,10 +279,12 @@ class _UpsolveScreenState extends ConsumerState<UpsolveScreen> {
                               child: Container(
                                 padding: EdgeInsets.all(8.r),
                                 decoration: BoxDecoration(
-                                  color: AppColors.primary.withOpacity(0.15),
+                                  color:
+                                      AppColors.primary.withValues(alpha: 0.15),
                                   borderRadius: BorderRadius.circular(8.r),
                                   border: Border.all(
-                                    color: AppColors.primary.withOpacity(0.40),
+                                    color: AppColors.primary
+                                        .withValues(alpha: 0.40),
                                   ),
                                 ),
                                 child: Icon(
@@ -364,7 +365,7 @@ class _UpsolveScreenState extends ConsumerState<UpsolveScreen> {
         return Padding(
           padding: EdgeInsets.only(bottom: 10.h),
           child: GlassCard(
-            borderColor: AppColors.success.withOpacity(0.40),
+            borderColor: AppColors.success.withValues(alpha: 0.40),
             child: Row(
               children: [
                 Icon(

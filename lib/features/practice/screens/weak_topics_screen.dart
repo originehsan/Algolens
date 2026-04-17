@@ -113,7 +113,6 @@ class WeakTopicsScreen extends ConsumerWidget {
                 // Topics list
                 ...topics.asMap().entries.map(
                   (entry) {
-                    final index = entry.key;
                     final topic = entry.value;
                     return Padding(
                       padding: EdgeInsets.only(

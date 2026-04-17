@@ -88,7 +88,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                           children: [
                             Text(
                               'Create Account',
-                              style: AppTextStyles.heading,
+                              style: AppTextStyles.h2,
                             ),
                             Text(
                               'Join the community',

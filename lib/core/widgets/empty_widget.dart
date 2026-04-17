@@ -40,7 +40,7 @@ class AppEmptyWidget extends StatelessWidget {
               SizedBox(height: 16.h),
               Text(
                 title,
-                style: AppTextStyles.subheading,
+                style: AppTextStyles.h3,
                 textAlign: TextAlign.center,
               ),
               SizedBox(height: 8.h),

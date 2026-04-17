@@ -16,8 +16,8 @@ class AppDecorations {
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            AppColors.glassHighlight,
-            AppColors.glassHighlight2,
+            AppColors.glassBg1,
+            AppColors.glassBg2,
           ],
         ),
         border: Border.all(

@@ -35,7 +35,7 @@ class PageWrapper extends StatelessWidget {
                 centerTitle: false,
                 title: Text(
                   title!,
-                  style: AppTextStyles.heading,
+                  style: AppTextStyles.h2,
                 ),
                 leading: showBackButton
                     ? IconButton(

@@ -98,7 +98,7 @@ class ProblemRow extends StatelessWidget {
                   ),
                   child: Text(
                     blindMode ? '???' : problem.rating.toString(),
-                    style: AppTextStyles.mono.copyWith(
+                    style: AppTextStyles.metricSmall.copyWith(
                       fontSize: 12.sp,
                       color: blindMode
                           ? AppColors.textMuted

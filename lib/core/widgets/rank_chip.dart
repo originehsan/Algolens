@@ -18,28 +18,28 @@ class RankChip extends StatelessWidget {
     if (lower.contains('legendary grandmaster') ||
         lower.contains('international grandmaster') ||
         lower.contains('grandmaster')) {
-      return AppColors.cfGM;
+      return AppColors.rankGM;
     }
     if (lower.contains('international master')) {
-      return AppColors.cfMaster;
+      return AppColors.rankMaster;
     }
     if (lower.contains('master')) {
-      return AppColors.cfMaster;
+      return AppColors.rankMaster;
     }
     if (lower.contains('candidate master')) {
-      return AppColors.cfCM;
+      return AppColors.rankCM;
     }
     if (lower.contains('expert')) {
-      return AppColors.cfExpert;
+      return AppColors.rankExpert;
     }
     if (lower.contains('specialist')) {
-      return AppColors.cfSpecialist;
+      return AppColors.rankSpecialist;
     }
     if (lower.contains('pupil')) {
-      return AppColors.cfPupil;
+      return AppColors.rankPupil;
     }
     if (lower.contains('newbie')) {
-      return AppColors.cfNewbie;
+      return AppColors.rankNewbie;
     }
     return AppColors.textMuted;
   }
@@ -57,15 +57,15 @@ class RankChip extends StatelessWidget {
         vertical: paddingV,
       ),
       decoration: BoxDecoration(
-        color: rankColor.withOpacity(0.15),
+        color: rankColor.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(20.r),
         border: Border.all(
-          color: rankColor.withOpacity(0.40),
+          color: rankColor.withValues(alpha: 0.40),
           width: 1.0,
         ),
         boxShadow: [
           BoxShadow(
-            color: rankColor.withOpacity(0.20),
+            color: rankColor.withValues(alpha: 0.20),
             blurRadius: 8,
             spreadRadius: 0,
             offset: const Offset(0, 2),

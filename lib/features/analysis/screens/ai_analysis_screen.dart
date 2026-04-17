@@ -99,7 +99,7 @@ class AIAnalysisScreen extends ConsumerWidget {
                           SizedBox(width: 10.w),
                           Text(
                             'AI Recommendation',
-                            style: AppTextStyles.subheading,
+                            style: AppTextStyles.h3,
                           ),
                         ],
                       ),
@@ -124,7 +124,6 @@ class AIAnalysisScreen extends ConsumerWidget {
                 // Problem analysis list
                 ...analysis.problemAnalyses.asMap().entries.map(
                   (entry) {
-                    final index = entry.key;
                     final item = entry.value;
                     return Padding(
                       padding: EdgeInsets.only(
@@ -165,7 +164,7 @@ class AIAnalysisScreen extends ConsumerWidget {
                 ),
                 child: Text(
                   '${item.contestId}${item.problemIndex}',
-                  style: AppTextStyles.mono.copyWith(
+                  style: AppTextStyles.metricSmall.copyWith(
                     fontSize: 11.sp,
                     color: AppColors.primary,
                   ),

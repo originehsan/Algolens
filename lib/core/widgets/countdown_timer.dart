@@ -92,7 +92,7 @@ class _CountdownTimerState extends State<CountdownTimer> {
         Text(
           displayText,
           style: widget.style ??
-              AppTextStyles.mono.copyWith(
+              AppTextStyles.metricSmall.copyWith(
                 color: isLive ? AppColors.danger : AppColors.primary,
                 fontSize: 13.sp,
               ),

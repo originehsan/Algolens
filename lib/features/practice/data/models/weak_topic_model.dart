@@ -40,7 +40,7 @@ class WeakTopic {
       case 'HIGH':
         return AppColors.warning;
       case 'MEDIUM':
-        return AppColors.primaryLight;
+        return AppColors.primary;
       default:
         return AppColors.success;
     }

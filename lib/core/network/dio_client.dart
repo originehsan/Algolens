@@ -1,6 +1,5 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 import 'package:algolens/core/config/env_config.dart';
 import 'package:algolens/core/network/auth_interceptor.dart';
 import 'package:algolens/core/network/mock_interceptor.dart';
@@ -48,19 +47,5 @@ class DioClient {
         dio: dio,
       ),
     );
-
-    // Logger only in development
-    if (EnvConfig.isDevelopment) {
-      dio.interceptors.add(
-        PrettyDioLogger(
-          requestHeader: true,
-          requestBody: true,
-          responseBody: true,
-          responseHeader: false,
-          error: true,
-          compact: true,
-        ),
-      );
-    }
   }
 }

@@ -84,7 +84,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           children: [
                             Text(
                               'Welcome back',
-                              style: AppTextStyles.heading,
+                              style: AppTextStyles.h2,
                             ),
                             Text(
                               'Sign in to continue',

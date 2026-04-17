@@ -149,7 +149,7 @@ class _ContestScreenState extends ConsumerState<ContestScreen> {
               SizedBox(height: 12.h),
               Text(
                 'All Contests',
-                style: AppTextStyles.subheading,
+                style: AppTextStyles.h3,
               ),
               SizedBox(height: 8.h),
               Text(

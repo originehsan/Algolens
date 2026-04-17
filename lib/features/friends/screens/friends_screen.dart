@@ -209,7 +209,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> {
                       children: [
                         Text(
                           '${friend.rating}',
-                          style: AppTextStyles.mono.copyWith(
+                          style: AppTextStyles.metricSmall.copyWith(
                             color: AppColors.primary,
                             fontSize: 18.sp,
                             fontWeight: FontWeight.w700,
@@ -285,7 +285,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> {
                             )
                           : Text(
                               '#${entry.rank}',
-                              style: AppTextStyles.mono.copyWith(
+                              style: AppTextStyles.metricSmall.copyWith(
                                 fontSize: 14.sp,
                                 color: AppColors.textMuted,
                               ),
@@ -344,7 +344,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> {
                     ),
                     Text(
                       '${entry.rating}',
-                      style: AppTextStyles.mono.copyWith(
+                      style: AppTextStyles.metricSmall.copyWith(
                         color: AppColors.primary,
                         fontSize: 18.sp,
                         fontWeight: FontWeight.w700,
