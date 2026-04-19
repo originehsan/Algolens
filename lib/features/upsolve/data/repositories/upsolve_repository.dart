@@ -18,7 +18,7 @@ class UpsolveRepository {
         response.data as Map<String, dynamic>,
       );
     } catch (e) {
-      throw AppException.fromDioException(e);
+      rethrow;
     }
   }
 }

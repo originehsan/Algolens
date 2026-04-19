@@ -21,7 +21,7 @@ class ProfileRepository {
         response.data as Map<String, dynamic>,
       );
     } catch (e) {
-      throw AppException.fromDioException(e);
+      rethrow;
     }
   }
 
@@ -34,7 +34,7 @@ class ProfileRepository {
           .map((item) => RatingPoint.fromJson(item as Map<String, dynamic>))
           .toList();
     } catch (e) {
-      throw AppException.fromDioException(e);
+      rethrow;
     }
   }
 
@@ -47,7 +47,7 @@ class ProfileRepository {
         response.data as Map<String, dynamic>,
       );
     } catch (e) {
-      throw AppException.fromDioException(e);
+      rethrow;
     }
   }
 
@@ -61,7 +61,7 @@ class ProfileRepository {
               ContestHistoryItem.fromJson(item as Map<String, dynamic>))
           .toList();
     } catch (e) {
-      throw AppException.fromDioException(e);
+      rethrow;
     }
   }
 }

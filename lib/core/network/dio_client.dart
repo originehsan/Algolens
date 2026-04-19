@@ -3,6 +3,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:algolens/core/config/env_config.dart';
 import 'package:algolens/core/network/auth_interceptor.dart';
 import 'package:algolens/core/network/mock_interceptor.dart';
+import 'package:algolens/core/network/error_interceptor.dart';
 
 class DioClient {
   static DioClient? _instance;
@@ -47,5 +48,9 @@ class DioClient {
         dio: dio,
       ),
     );
+
+    // ErrorInterceptor must be last
+    // converts all DioException to ApiException
+    dio.interceptors.add(ErrorInterceptor());
   }
 }

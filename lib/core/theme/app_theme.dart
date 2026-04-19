@@ -2,23 +2,43 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:algolens/core/theme/app_colors.dart';
+import 'package:algolens/core/theme/app_text_styles.dart';
+
+/// AlgoLens Theme System
+///
+/// RULES:
+/// → Dark theme ONLY
+/// → No light theme
+/// → Inter font throughout
+/// → Transparent AppBar always
+/// → Page transition: scale + fade
 
 class AppTheme {
   AppTheme._();
+
+  // ──────────────────────────────
+  // DARK THEME
+  // Only theme in AlgoLens
+  // ──────────────────────────────
 
   static ThemeData get dark {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
 
-      colorScheme: const ColorScheme.dark(
+      // Color scheme
+      colorScheme: ColorScheme.dark(
         primary: AppColors.primary,
         secondary: AppColors.success,
         surface: AppColors.bgBase,
         onSurface: AppColors.textPrimary,
         error: AppColors.danger,
+        onPrimary: AppColors.textPrimary,
+        onSecondary: AppColors.textPrimary,
+        onError: AppColors.textPrimary,
       ),
 
+      // Background
       scaffoldBackgroundColor: AppColors.bgBase,
 
       // Google Fonts Inter globally
@@ -29,42 +49,53 @@ class AppTheme {
         displayColor: AppColors.textPrimary,
       ),
 
+      // AppBar — always transparent
       appBarTheme: AppBarTheme(
         backgroundColor: Colors.transparent,
         elevation: 0,
         scrolledUnderElevation: 0,
-        systemOverlayStyle: SystemUiOverlayStyle.light,
-        titleTextStyle: GoogleFonts.inter(
-          fontSize: 18,
-          fontWeight: FontWeight.w600,
-          color: AppColors.textPrimary,
-          letterSpacing: -0.2,
+        centerTitle: false,
+        systemOverlayStyle: SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness: Brightness.light,
+          statusBarBrightness: Brightness.dark,
         ),
-        iconTheme: const IconThemeData(
+        titleTextStyle: AppTextStyles.h2,
+        iconTheme: IconThemeData(
+          color: AppColors.textPrimary,
+          size: 20,
+        ),
+        actionsIconTheme: IconThemeData(
           color: AppColors.textPrimary,
           size: 20,
         ),
       ),
 
+      // Bottom navigation
       bottomNavigationBarTheme: BottomNavigationBarThemeData(
-        backgroundColor: Colors.black.withValues(alpha: 0.60),
+        backgroundColor: AppColors.navBg,
         selectedItemColor: AppColors.primary,
         unselectedItemColor: AppColors.textHint,
         elevation: 0,
         type: BottomNavigationBarType.fixed,
+        selectedLabelStyle: AppTextStyles.tabLabelActive,
+        unselectedLabelStyle: AppTextStyles.tabLabel,
       ),
 
+      // Icons
       iconTheme: IconThemeData(
-        color: Colors.white.withValues(alpha: 0.60),
+        color: AppColors.textMuted,
         size: 20,
       ),
 
-      dividerTheme: const DividerThemeData(
+      // Divider
+      dividerTheme: DividerThemeData(
         color: AppColors.divider,
         thickness: 0.5,
         space: 0,
       ),
 
+      // SnackBar — floating glass style
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
         backgroundColor: Colors.transparent,
@@ -74,21 +105,22 @@ class AppTheme {
         ),
       ),
 
+      // Input decoration
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: Colors.white.withValues(alpha: 0.07),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(
+          borderSide: BorderSide(
             color: AppColors.glassBorder,
-            width: 1,
+            width: 1.0,
           ),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(
+          borderSide: BorderSide(
             color: AppColors.glassBorder,
-            width: 1,
+            width: 1.0,
           ),
         ),
         focusedBorder: OutlineInputBorder(
@@ -98,10 +130,24 @@ class AppTheme {
             width: 1.5,
           ),
         ),
-        hintStyle: GoogleFonts.inter(
-          fontSize: 14,
-          color: Colors.white.withValues(alpha: 0.40),
-          fontWeight: FontWeight.w500,
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(
+            color: AppColors.danger.withValues(alpha: 0.55),
+            width: 1.5,
+          ),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(
+            color: AppColors.danger.withValues(alpha: 0.75),
+            width: 1.5,
+          ),
+        ),
+        hintStyle: AppTextStyles.inputHint,
+        labelStyle: AppTextStyles.body,
+        errorStyle: AppTextStyles.hint.copyWith(
+          color: AppColors.danger,
         ),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,
@@ -109,6 +155,44 @@ class AppTheme {
         ),
       ),
 
+      // Card theme
+      cardTheme: CardThemeData(
+        color: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        clipBehavior: Clip.antiAlias,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+      ),
+
+      // Dialog theme
+      dialogTheme: DialogThemeData(
+        backgroundColor: AppColors.bgCenter,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: BorderSide(
+            color: AppColors.glassBorder,
+            width: 1.0,
+          ),
+        ),
+        titleTextStyle: AppTextStyles.h3,
+        contentTextStyle: AppTextStyles.body,
+      ),
+
+      // Bottom sheet
+      bottomSheetTheme: BottomSheetThemeData(
+        backgroundColor: AppColors.bgCenter,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(24),
+          ),
+        ),
+        dragHandleColor: AppColors.textHint,
+        dragHandleSize: const Size(40, 4),
+      ),
+
+      // Page transitions
       pageTransitionsTheme: PageTransitionsTheme(
         builders: {
           TargetPlatform.android: _AlgoLensPageTransition(),
@@ -119,7 +203,12 @@ class AppTheme {
   }
 }
 
-// Premium scale + fade transition
+// ──────────────────────────────────
+// PAGE TRANSITION
+// Scale 0.96→1.0 + fade
+// easeOutCubic 300ms
+// ──────────────────────────────────
+
 class _AlgoLensPageTransition extends PageTransitionsBuilder {
   @override
   Widget buildTransitions<T>(
@@ -133,6 +222,7 @@ class _AlgoLensPageTransition extends PageTransitionsBuilder {
       parent: animation,
       curve: Curves.easeOutCubic,
     );
+
     return FadeTransition(
       opacity: curved,
       child: ScaleTransition(

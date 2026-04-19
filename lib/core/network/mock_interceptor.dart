@@ -8,13 +8,13 @@ class MockInterceptor extends Interceptor {
     RequestOptions options,
     RequestInterceptorHandler handler,
   ) async {
-    if (!EnvConfig.isDevelopment) {
+    if (!EnvConfig.useMock) {
       handler.next(options);
       return;
     }
 
     // Simulate network delay
-    await Future.delayed(const Duration(milliseconds: 800));
+    await Future.delayed(EnvConfig.mockDelay);
 
     final path = options.path;
     dynamic mockData;

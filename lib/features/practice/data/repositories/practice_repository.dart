@@ -19,7 +19,7 @@ class PracticeRepository {
           .map((item) => WeakTopic.fromJson(item as Map<String, dynamic>))
           .toList();
     } catch (e) {
-      throw AppException.fromDioException(e);
+      rethrow;
     }
   }
 
@@ -32,7 +32,7 @@ class PracticeRepository {
           .map((item) => Problem.fromJson(item as Map<String, dynamic>))
           .toList();
     } catch (e) {
-      throw AppException.fromDioException(e);
+      rethrow;
     }
   }
 }

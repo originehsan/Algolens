@@ -6,24 +6,18 @@ part 'cached_profile.g.dart';
 class CachedProfile {
   Id id = Isar.autoIncrement;
 
-  // Unique handle for lookup
+  /// CF handle as cache key
   @Index(unique: true)
   late String handle;
 
-  // From GET /users/{handle}/profile
-  late int rating;
-  late int maxRating;
-  late String rank;
-  late int problemsSolved;
-  late int contestsParticipated;
-  late int streakDays;
-  late String lastActiveDate;
-  late String avatar;
+  /// Full JSON string of ProfileModel
+  late String jsonData;
 
-  // Cache metadata
+  /// Cache expiry — 5 minutes
   late DateTime cachedAt;
 
-  // Valid for 5 minutes
-  // Matches backend Redis TTL
-  bool get isValid => DateTime.now().difference(cachedAt).inMinutes < 5;
+  /// Returns true if cache is fresh
+  bool get isValid {
+    return DateTime.now().difference(cachedAt).inMinutes < 5;
+  }
 }

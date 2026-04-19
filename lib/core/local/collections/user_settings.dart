@@ -4,39 +4,34 @@ part 'user_settings.g.dart';
 
 @collection
 class UserSettings {
-  Id id = 1;
+  Id id = Isar.autoIncrement;
 
-  // Notification — FREE
+  // Notifications (FREE)
   bool contestAlertsEnabled = true;
   bool streakReminderEnabled = true;
-  bool upsolveReminderEnabled = false;
+  bool upsolveReminderEnabled = true;
 
-  // TTS Voice — FREE
+  // Reminder timing
+  int reminderMinutesBefore = 30;
+
+  // TTS Voice (FREE)
   bool ttsEnabled = false;
   String ttsLanguage = 'en-US';
-  double ttsVolume = 0.80;
+  double ttsVolume = 0.8;
 
   // Premium 🔒
-  // DO NOT enable
-  // Show premium dialog on tap
   bool smsAlertsEnabled = false;
   bool voiceCallEnabled = false;
   bool isPhoneVerified = false;
   String? phoneNumber;
 
-  // Reminder timing
-  // 0-120 minutes before contest
-  int reminderMinutesBefore = 30;
-
   // Home widget
-  bool widgetEnabled = true;
-
-  // Notification permission
-  // Snapchat style
-  bool notificationAsked = false;
-  DateTime? bannerLastShownAt;
+  bool widgetEnabled = false;
 
   // Onboarding
-  // Show slides only once
   bool onboardingCompleted = false;
+
+  // Notification permission
+  bool notificationAsked = false;
+  DateTime? bannerLastShownAt;
 }

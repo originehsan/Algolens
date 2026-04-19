@@ -18,7 +18,7 @@ class ContestRepository {
           .map((item) => Contest.fromJson(item as Map<String, dynamic>))
           .toList();
     } catch (e) {
-      throw AppException.fromDioException(e);
+      rethrow;
     }
   }
 
@@ -36,7 +36,7 @@ class ContestRepository {
       );
       return response.data as Map<String, dynamic>;
     } catch (e) {
-      throw AppException.fromDioException(e);
+      rethrow;
     }
   }
 }

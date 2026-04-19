@@ -19,7 +19,7 @@ class FriendsRepository {
           .map((item) => Friend.fromJson(item as Map<String, dynamic>))
           .toList();
     } catch (e) {
-      throw AppException.fromDioException(e);
+      rethrow;
     }
   }
 
@@ -37,7 +37,7 @@ class FriendsRepository {
       );
       return response.data as String;
     } catch (e) {
-      throw AppException.fromDioException(e);
+      rethrow;
     }
   }
 
@@ -51,7 +51,7 @@ class FriendsRepository {
       );
       return response.data as String;
     } catch (e) {
-      throw AppException.fromDioException(e);
+      rethrow;
     }
   }
 
@@ -65,7 +65,7 @@ class FriendsRepository {
               (item) => LeaderboardEntry.fromJson(item as Map<String, dynamic>))
           .toList();
     } catch (e) {
-      throw AppException.fromDioException(e);
+      rethrow;
     }
   }
 
@@ -83,7 +83,7 @@ class FriendsRepository {
       );
       return response.data as Map<String, dynamic>;
     } catch (e) {
-      throw AppException.fromDioException(e);
+      rethrow;
     }
   }
 }

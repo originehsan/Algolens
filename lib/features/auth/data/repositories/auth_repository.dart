@@ -25,7 +25,7 @@ class AuthRepository {
         'refreshToken': response.data['refreshToken'] as String,
       };
     } catch (e) {
-      throw AppException.fromDioException(e);
+      rethrow;
     }
   }
 
@@ -45,7 +45,7 @@ class AuthRepository {
       );
       return response.data as String;
     } catch (e) {
-      throw AppException.fromDioException(e);
+      rethrow;
     }
   }
 
@@ -57,7 +57,7 @@ class AuthRepository {
       );
       return response.data as String;
     } catch (e) {
-      throw AppException.fromDioException(e);
+      rethrow;
     }
   }
 
@@ -69,7 +69,7 @@ class AuthRepository {
       );
       return response.data['message'] as String;
     } catch (e) {
-      throw AppException.fromDioException(e);
+      rethrow;
     }
   }
 
@@ -81,7 +81,7 @@ class AuthRepository {
       );
       return response.data['message'] as String;
     } catch (e) {
-      throw AppException.fromDioException(e);
+      rethrow;
     }
   }
 
@@ -99,7 +99,7 @@ class AuthRepository {
       );
       return response.data['message'] as String;
     } catch (e) {
-      throw AppException.fromDioException(e);
+      rethrow;
     }
   }
 
@@ -111,7 +111,7 @@ class AuthRepository {
       );
       return response.data as String;
     } catch (e) {
-      throw AppException.fromDioException(e);
+      rethrow;
     }
   }
 }

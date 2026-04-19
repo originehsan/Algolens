@@ -1,138 +1,200 @@
-import 'package:dio/dio.dart';
+/// AlgoLens Exception System
+///
+/// Single source of truth for
+/// all API and app exceptions.
 
-enum AppExceptionType {
-  network,
+// ──────────────────────────────
+// EXCEPTION TYPES
+// Maps to HTTP status codes
+// ──────────────────────────────
+
+enum ApiExceptionType {
+  badRequest,
   unauthorized,
+  sessionExpired,
+  forbidden,
   notFound,
-  serverError,
-  offline,
-  timeout,
+  conflict,
+  unprocessable,
   rateLimited,
-  validationError,
+  serverError,
+  noInternet,
+  timeout,
   unknown,
 }
 
-class AppException implements Exception {
-  final AppExceptionType type;
-  final String message;
-  final int? statusCode;
-
-  const AppException({
-    required this.type,
+class ApiException implements Exception {
+  const ApiException({
     required this.message,
+    required this.type,
     this.statusCode,
   });
 
-  factory AppException.fromDioException(dynamic error) {
-    if (error is DioException) {
-      switch (error.type) {
-        case DioExceptionType.connectionTimeout:
-        case DioExceptionType.sendTimeout:
-        case DioExceptionType.receiveTimeout:
-          return const AppException(
-            type: AppExceptionType.timeout,
-            message: 'Connection timed out. Please try again.',
-          );
+  /// User friendly message
+  /// Show directly in UI
+  /// Comes from API response
+  /// or default message
+  final String message;
 
-        case DioExceptionType.connectionError:
-          return const AppException(
-            type: AppExceptionType.offline,
-            message: 'No internet connection. Please check your network.',
-          );
+  /// Exception category
+  /// Use for UI decisions
+  final ApiExceptionType type;
 
-        case DioExceptionType.badResponse:
-          final statusCode = error.response?.statusCode;
-          switch (statusCode) {
-            case 400:
-              final msg = error.response?.data?['message'] as String? ??
-                  'Invalid request. Please check your input.';
-              return AppException(
-                type: AppExceptionType.validationError,
-                message: msg,
-                statusCode: statusCode,
-              );
-            case 401:
-              return AppException(
-                type: AppExceptionType.unauthorized,
-                message: 'Session expired. Please login again.',
-                statusCode: statusCode,
-              );
-            case 403:
-              final msg = error.response?.data?['message'] as String? ??
-                  'Email not verified. Please verify your email.';
-              return AppException(
-                type: AppExceptionType.unauthorized,
-                message: msg,
-                statusCode: statusCode,
-              );
-            case 404:
-              final msg = error.response?.data?['message'] as String? ??
-                  'Resource not found.';
-              return AppException(
-                type: AppExceptionType.notFound,
-                message: msg,
-                statusCode: statusCode,
-              );
-            case 409:
-              final msg = error.response?.data?['message'] as String? ??
-                  'Resource already exists.';
-              return AppException(
-                type: AppExceptionType.validationError,
-                message: msg,
-                statusCode: statusCode,
-              );
-            case 429:
-              return AppException(
-                type: AppExceptionType.rateLimited,
-                message: 'Too many requests. Please wait and try again.',
-                statusCode: statusCode,
-              );
-            case 500:
-            default:
-              return AppException(
-                type: AppExceptionType.serverError,
-                message: 'Server error. Please try again later.',
-                statusCode: statusCode,
-              );
-          }
+  /// HTTP status code
+  /// null for network errors
+  final int? statusCode;
 
-        default:
-          return const AppException(
-            type: AppExceptionType.unknown,
-            message: 'Something went wrong. Please try again.',
-          );
-      }
-    }
+  // ────────────────────────────
+  // HELPER GETTERS
+  // Use in UI for decisions
+  // ────────────────────────────
 
-    return const AppException(
-      type: AppExceptionType.unknown,
-      message: 'Something went wrong. Please try again.',
-    );
-  }
+  /// Network error?
+  /// → Show offline banner
+  /// → Show retry button
+  bool get isNetworkError =>
+      type == ApiExceptionType.noInternet || type == ApiExceptionType.timeout;
 
-  String get userMessage {
-    switch (type) {
-      case AppExceptionType.network:
-        return 'Network error. Please check your connection.';
-      case AppExceptionType.unauthorized:
-        return 'Session expired. Please login again.';
-      case AppExceptionType.notFound:
-        return 'Not found. Please check your input.';
-      case AppExceptionType.serverError:
-        return 'Server error. Please try again later.';
-      case AppExceptionType.offline:
-        return 'No internet connection.';
-      case AppExceptionType.timeout:
-        return 'Connection timed out. Please try again.';
-      case AppExceptionType.rateLimited:
-        return 'Too many requests. Please wait.';
-      case AppExceptionType.validationError:
-        return message;
-      case AppExceptionType.unknown:
-        return 'Something went wrong. Please try again.';
-    }
-  }
+  /// Session expired?
+  /// → Force logout
+  /// → Navigate to /login
+  bool get isSessionExpired => type == ApiExceptionType.sessionExpired;
+
+  /// Email not verified?
+  /// → Show verify email message
+  /// → Show resend button
+  /// → POST /auth/resend-verification
+  bool get isEmailNotVerified =>
+      type == ApiExceptionType.forbidden && statusCode == 403;
+
+  /// Rate limited?
+  /// → Show wait message
+  /// → Disable retry button
+  bool get isRateLimited => type == ApiExceptionType.rateLimited;
+
+  /// Conflict/duplicate?
+  /// → Show "already exists"
+  /// → Email already registered
+  /// → Friend already added
+  bool get isConflict => type == ApiExceptionType.conflict;
+
+  /// Not found?
+  /// → Handle not on CF
+  /// → Resource missing
+  bool get isNotFound => type == ApiExceptionType.notFound;
+
+  /// Server error?
+  /// → Show generic error
+  /// → Suggest retry later
+  bool get isServerError => type == ApiExceptionType.serverError;
+
+  /// Can retry?
+  /// → Show retry button
+  bool get canRetry =>
+      type != ApiExceptionType.sessionExpired &&
+      type != ApiExceptionType.forbidden;
 
   @override
-  String toString() => 'AppException: $message';
+  String toString() => 'ApiException('
+      'type: $type, '
+      'statusCode: $statusCode, '
+      'message: $message'
+      ')';
+}
+
+// ──────────────────────────────
+// DEFAULT MESSAGES
+// User friendly per status code
+// Used when API message missing
+// ──────────────────────────────
+
+class ApiMessages {
+  ApiMessages._();
+
+  static String forStatus(
+    int? statusCode,
+  ) {
+    switch (statusCode) {
+      case 400:
+        return 'Invalid request. '
+            'Please check your input.';
+      case 401:
+        return 'Session expired. '
+            'Please login again.';
+      case 403:
+        return 'Email not verified. '
+            'Please check your inbox.';
+      case 404:
+        return 'Not found.';
+      case 409:
+        return 'Already exists.';
+      case 422:
+        return 'Could not process '
+            'your request.';
+      case 429:
+        return 'Too many requests. '
+            'Please wait and try again.';
+      case 500:
+        return 'Server error. '
+            'Please try again later.';
+      default:
+        return 'Something went wrong. '
+            'Please try again.';
+    }
+  }
+
+  static ApiExceptionType typeFor(
+    int? statusCode,
+  ) {
+    switch (statusCode) {
+      case 400:
+        return ApiExceptionType.badRequest;
+      case 401:
+        return ApiExceptionType.unauthorized;
+      case 403:
+        return ApiExceptionType.forbidden;
+      case 404:
+        return ApiExceptionType.notFound;
+      case 409:
+        return ApiExceptionType.conflict;
+      case 422:
+        return ApiExceptionType.unprocessable;
+      case 429:
+        return ApiExceptionType.rateLimited;
+      case 500:
+        return ApiExceptionType.serverError;
+      default:
+        return ApiExceptionType.unknown;
+    }
+  }
+
+  // Common messages
+  static const String noInternet = 'No internet connection. '
+      'Check your network.';
+
+  static const String timeout = 'Connection timeout. '
+      'Check your internet.';
+
+  static const String sessionExpired = 'Session expired. '
+      'Please login again.';
+
+  static const String unknown = 'Something went wrong. '
+      'Please try again.';
+
+  // Auth specific messages
+  static const String emailNotVerified = 'Email not verified. '
+      'Please check your inbox.';
+
+  static const String invalidCredentials = 'Invalid email or password.';
+
+  static const String emailExists = 'Email already registered. '
+      'Please login instead.';
+
+  static const String friendExists = 'Already in your friends list.';
+
+  static const String handleNotFound = 'Handle not found on Codeforces. '
+      'Please check and try again.';
+
+  static const String rateLimited = 'Too many requests. '
+      'Please wait before trying again.';
 }

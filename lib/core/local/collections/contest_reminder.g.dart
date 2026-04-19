@@ -27,38 +27,23 @@ const ContestReminderSchema = CollectionSchema(
       name: r'contestName',
       type: IsarType.string,
     ),
-    r'contestStartTimeSeconds': PropertySchema(
-      id: 2,
-      name: r'contestStartTimeSeconds',
-      type: IsarType.long,
-    ),
-    r'firesAt': PropertySchema(
-      id: 3,
-      name: r'firesAt',
-      type: IsarType.dateTime,
-    ),
-    r'hasFired': PropertySchema(
-      id: 4,
-      name: r'hasFired',
-      type: IsarType.bool,
-    ),
     r'isActive': PropertySchema(
-      id: 5,
+      id: 2,
       name: r'isActive',
       type: IsarType.bool,
     ),
     r'minutesBefore': PropertySchema(
-      id: 6,
+      id: 3,
       name: r'minutesBefore',
       type: IsarType.long,
     ),
     r'notificationId': PropertySchema(
-      id: 7,
+      id: 4,
       name: r'notificationId',
       type: IsarType.long,
     ),
     r'scheduledAt': PropertySchema(
-      id: 8,
+      id: 5,
       name: r'scheduledAt',
       type: IsarType.dateTime,
     )
@@ -109,13 +94,10 @@ void _contestReminderSerialize(
 ) {
   writer.writeLong(offsets[0], object.contestId);
   writer.writeString(offsets[1], object.contestName);
-  writer.writeLong(offsets[2], object.contestStartTimeSeconds);
-  writer.writeDateTime(offsets[3], object.firesAt);
-  writer.writeBool(offsets[4], object.hasFired);
-  writer.writeBool(offsets[5], object.isActive);
-  writer.writeLong(offsets[6], object.minutesBefore);
-  writer.writeLong(offsets[7], object.notificationId);
-  writer.writeDateTime(offsets[8], object.scheduledAt);
+  writer.writeBool(offsets[2], object.isActive);
+  writer.writeLong(offsets[3], object.minutesBefore);
+  writer.writeLong(offsets[4], object.notificationId);
+  writer.writeDateTime(offsets[5], object.scheduledAt);
 }
 
 ContestReminder _contestReminderDeserialize(
@@ -127,12 +109,11 @@ ContestReminder _contestReminderDeserialize(
   final object = ContestReminder();
   object.contestId = reader.readLong(offsets[0]);
   object.contestName = reader.readString(offsets[1]);
-  object.contestStartTimeSeconds = reader.readLong(offsets[2]);
   object.id = id;
-  object.isActive = reader.readBool(offsets[5]);
-  object.minutesBefore = reader.readLong(offsets[6]);
-  object.notificationId = reader.readLong(offsets[7]);
-  object.scheduledAt = reader.readDateTime(offsets[8]);
+  object.isActive = reader.readBool(offsets[2]);
+  object.minutesBefore = reader.readLong(offsets[3]);
+  object.notificationId = reader.readLong(offsets[4]);
+  object.scheduledAt = reader.readDateTime(offsets[5]);
   return object;
 }
 
@@ -148,18 +129,12 @@ P _contestReminderDeserializeProp<P>(
     case 1:
       return (reader.readString(offset)) as P;
     case 2:
-      return (reader.readLong(offset)) as P;
+      return (reader.readBool(offset)) as P;
     case 3:
-      return (reader.readDateTime(offset)) as P;
+      return (reader.readLong(offset)) as P;
     case 4:
-      return (reader.readBool(offset)) as P;
+      return (reader.readLong(offset)) as P;
     case 5:
-      return (reader.readBool(offset)) as P;
-    case 6:
-      return (reader.readLong(offset)) as P;
-    case 7:
-      return (reader.readLong(offset)) as P;
-    case 8:
       return (reader.readDateTime(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -555,128 +530,6 @@ extension ContestReminderQueryFilter
   }
 
   QueryBuilder<ContestReminder, ContestReminder, QAfterFilterCondition>
-      contestStartTimeSecondsEqualTo(int value) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'contestStartTimeSeconds',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<ContestReminder, ContestReminder, QAfterFilterCondition>
-      contestStartTimeSecondsGreaterThan(
-    int value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'contestStartTimeSeconds',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<ContestReminder, ContestReminder, QAfterFilterCondition>
-      contestStartTimeSecondsLessThan(
-    int value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'contestStartTimeSeconds',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<ContestReminder, ContestReminder, QAfterFilterCondition>
-      contestStartTimeSecondsBetween(
-    int lower,
-    int upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'contestStartTimeSeconds',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
-    });
-  }
-
-  QueryBuilder<ContestReminder, ContestReminder, QAfterFilterCondition>
-      firesAtEqualTo(DateTime value) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'firesAt',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<ContestReminder, ContestReminder, QAfterFilterCondition>
-      firesAtGreaterThan(
-    DateTime value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'firesAt',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<ContestReminder, ContestReminder, QAfterFilterCondition>
-      firesAtLessThan(
-    DateTime value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'firesAt',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<ContestReminder, ContestReminder, QAfterFilterCondition>
-      firesAtBetween(
-    DateTime lower,
-    DateTime upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'firesAt',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
-    });
-  }
-
-  QueryBuilder<ContestReminder, ContestReminder, QAfterFilterCondition>
-      hasFiredEqualTo(bool value) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'hasFired',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<ContestReminder, ContestReminder, QAfterFilterCondition>
       idEqualTo(Id value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
@@ -948,47 +801,6 @@ extension ContestReminderQuerySortBy
   }
 
   QueryBuilder<ContestReminder, ContestReminder, QAfterSortBy>
-      sortByContestStartTimeSeconds() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'contestStartTimeSeconds', Sort.asc);
-    });
-  }
-
-  QueryBuilder<ContestReminder, ContestReminder, QAfterSortBy>
-      sortByContestStartTimeSecondsDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'contestStartTimeSeconds', Sort.desc);
-    });
-  }
-
-  QueryBuilder<ContestReminder, ContestReminder, QAfterSortBy> sortByFiresAt() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'firesAt', Sort.asc);
-    });
-  }
-
-  QueryBuilder<ContestReminder, ContestReminder, QAfterSortBy>
-      sortByFiresAtDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'firesAt', Sort.desc);
-    });
-  }
-
-  QueryBuilder<ContestReminder, ContestReminder, QAfterSortBy>
-      sortByHasFired() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'hasFired', Sort.asc);
-    });
-  }
-
-  QueryBuilder<ContestReminder, ContestReminder, QAfterSortBy>
-      sortByHasFiredDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'hasFired', Sort.desc);
-    });
-  }
-
-  QueryBuilder<ContestReminder, ContestReminder, QAfterSortBy>
       sortByIsActive() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'isActive', Sort.asc);
@@ -1072,47 +884,6 @@ extension ContestReminderQuerySortThenBy
       thenByContestNameDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'contestName', Sort.desc);
-    });
-  }
-
-  QueryBuilder<ContestReminder, ContestReminder, QAfterSortBy>
-      thenByContestStartTimeSeconds() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'contestStartTimeSeconds', Sort.asc);
-    });
-  }
-
-  QueryBuilder<ContestReminder, ContestReminder, QAfterSortBy>
-      thenByContestStartTimeSecondsDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'contestStartTimeSeconds', Sort.desc);
-    });
-  }
-
-  QueryBuilder<ContestReminder, ContestReminder, QAfterSortBy> thenByFiresAt() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'firesAt', Sort.asc);
-    });
-  }
-
-  QueryBuilder<ContestReminder, ContestReminder, QAfterSortBy>
-      thenByFiresAtDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'firesAt', Sort.desc);
-    });
-  }
-
-  QueryBuilder<ContestReminder, ContestReminder, QAfterSortBy>
-      thenByHasFired() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'hasFired', Sort.asc);
-    });
-  }
-
-  QueryBuilder<ContestReminder, ContestReminder, QAfterSortBy>
-      thenByHasFiredDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'hasFired', Sort.desc);
     });
   }
 
@@ -1202,27 +973,6 @@ extension ContestReminderQueryWhereDistinct
   }
 
   QueryBuilder<ContestReminder, ContestReminder, QDistinct>
-      distinctByContestStartTimeSeconds() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'contestStartTimeSeconds');
-    });
-  }
-
-  QueryBuilder<ContestReminder, ContestReminder, QDistinct>
-      distinctByFiresAt() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'firesAt');
-    });
-  }
-
-  QueryBuilder<ContestReminder, ContestReminder, QDistinct>
-      distinctByHasFired() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'hasFired');
-    });
-  }
-
-  QueryBuilder<ContestReminder, ContestReminder, QDistinct>
       distinctByIsActive() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'isActive');
@@ -1269,25 +1019,6 @@ extension ContestReminderQueryProperty
       contestNameProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'contestName');
-    });
-  }
-
-  QueryBuilder<ContestReminder, int, QQueryOperations>
-      contestStartTimeSecondsProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'contestStartTimeSeconds');
-    });
-  }
-
-  QueryBuilder<ContestReminder, DateTime, QQueryOperations> firesAtProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'firesAt');
-    });
-  }
-
-  QueryBuilder<ContestReminder, bool, QQueryOperations> hasFiredProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'hasFired');
     });
   }
 

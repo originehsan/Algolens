@@ -94,9 +94,9 @@ class AuthInterceptor extends Interceptor {
         handler.next(
           DioException(
             requestOptions: err.requestOptions,
-            error: const AppException(
-              type: AppExceptionType.unauthorized,
+            error: const ApiException(
               message: 'Session expired. Please login again.',
+              type: ApiExceptionType.sessionExpired,
             ),
           ),
         );
