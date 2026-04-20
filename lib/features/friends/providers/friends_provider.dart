@@ -1,10 +1,12 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:algolens/core/network/dio_client.dart';
 import 'package:algolens/features/friends/data/repositories/friends_repository.dart';
 import 'package:algolens/features/friends/data/models/friend_model.dart';
 import 'package:algolens/features/friends/data/models/leaderboard_model.dart';
 
 final friendsRepositoryProvider = Provider<FriendsRepository>((ref) {
-  return FriendsRepository();
+  final dioClient = ref.watch(dioClientProvider);
+  return FriendsRepository(dioClient);
 });
 
 final friendsProvider =

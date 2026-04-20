@@ -1,9 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:algolens/core/network/dio_client.dart';
 import 'package:algolens/features/contests/data/repositories/contest_repository.dart';
 import 'package:algolens/features/contests/data/models/contest_model.dart';
 
 final contestRepositoryProvider = Provider<ContestRepository>((ref) {
-  return ContestRepository();
+  final dioClient = ref.watch(dioClientProvider);
+  return ContestRepository(dioClient);
 });
 
 final upcomingContestsProvider = FutureProvider<List<Contest>>((ref) async {

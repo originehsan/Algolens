@@ -6,16 +6,15 @@ import 'package:algolens/features/analysis/data/models/analysis_model.dart';
 class AnalysisRepository {
   final DioClient _dioClient;
 
-  AnalysisRepository({DioClient? dioClient})
-      : _dioClient = dioClient ?? DioClient.instance;
+  AnalysisRepository(this._dioClient);
 
   Future<AiAnalysisResponse> getAiAnalysis(String handle) async {
     try {
-      final response = await _dioClient.dio.get(
+      final response = await _dioClient.get(
         ApiEndpoints.aiAnalysis(handle),
       );
       return AiAnalysisResponse.fromJson(
-        response.data as Map<String, dynamic>,
+        response as Map<String, dynamic>,
       );
     } catch (e) {
       rethrow;

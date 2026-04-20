@@ -40,7 +40,8 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> {
     if (_searchController.text.isEmpty) return;
     setState(() => _isAdding = true);
     try {
-      await FriendsRepository().addFriend(
+      final repo = ref.read(friendsRepositoryProvider);
+      await repo.addFriend(
         userHandle: handle,
         friendHandle: _searchController.text.trim(),
       );

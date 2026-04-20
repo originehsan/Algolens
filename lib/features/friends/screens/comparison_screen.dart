@@ -10,7 +10,7 @@ import 'package:algolens/core/widgets/app_button.dart';
 import 'package:algolens/core/widgets/rank_chip.dart';
 import 'package:algolens/core/widgets/user_avatar.dart';
 import 'package:algolens/core/widgets/loading_shimmer.dart';
-import 'package:algolens/features/friends/data/repositories/friends_repository.dart';
+import 'package:algolens/features/friends/providers/friends_provider.dart';
 
 class ComparisonScreen extends ConsumerStatefulWidget {
   const ComparisonScreen({super.key});
@@ -41,7 +41,8 @@ class _ComparisonScreenState extends ConsumerState<ComparisonScreen> {
       _comparisonData = null;
     });
     try {
-      final data = await FriendsRepository().compareRating(
+      final repo = ref.read(friendsRepositoryProvider);
+      final data = await repo.compareRating(
         handle1: _handle1Controller.text.trim(),
         handle2: _handle2Controller.text.trim(),
       );

@@ -1,9 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:algolens/core/network/dio_client.dart';
 import 'package:algolens/features/upsolve/data/repositories/upsolve_repository.dart';
 import 'package:algolens/features/upsolve/data/models/upsolve_model.dart';
 
 final upsolveRepositoryProvider = Provider<UpsolveRepository>((ref) {
-  return UpsolveRepository();
+  final dioClient = ref.watch(dioClientProvider);
+  return UpsolveRepository(dioClient);
 });
 
 final upsolveProvider =

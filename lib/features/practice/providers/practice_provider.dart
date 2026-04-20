@@ -1,10 +1,12 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:algolens/core/network/dio_client.dart';
 import 'package:algolens/features/practice/data/repositories/practice_repository.dart';
 import 'package:algolens/features/practice/data/models/weak_topic_model.dart';
 import 'package:algolens/features/practice/data/models/problem_model.dart';
 
 final practiceRepositoryProvider = Provider<PracticeRepository>((ref) {
-  return PracticeRepository();
+  final dioClient = ref.watch(dioClientProvider);
+  return PracticeRepository(dioClient);
 });
 
 final weakTopicsProvider =

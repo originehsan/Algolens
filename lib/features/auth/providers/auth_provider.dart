@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:algolens/core/storage/secure_storage.dart';
+import 'package:algolens/core/network/dio_client.dart';
 import 'package:algolens/features/auth/data/repositories/auth_repository.dart';
 
 class AuthState {
@@ -130,7 +131,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
 }
 
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
-  return AuthRepository();
+  final dioClient = ref.watch(dioClientProvider);
+  return AuthRepository(dioClient);
 });
 
 final authStateProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {

@@ -6,12 +6,9 @@ import 'package:algolens/features/profile/data/models/rating_graph_model.dart';
 import 'package:algolens/features/profile/data/models/submission_stats_model.dart';
 import 'package:algolens/features/profile/data/models/contest_history_model.dart';
 
-final dioClientProvider = Provider<DioClient>((ref) {
-  return DioClient.instance;
-});
-
 final profileRepositoryProvider = Provider<ProfileRepository>((ref) {
-  return ProfileRepository();
+  final dioClient = ref.watch(dioClientProvider);
+  return ProfileRepository(dioClient);
 });
 
 final profileProvider =

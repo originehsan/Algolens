@@ -6,15 +6,14 @@ import 'package:algolens/features/contests/data/models/contest_model.dart';
 class ContestRepository {
   final DioClient _dioClient;
 
-  ContestRepository({DioClient? dioClient})
-      : _dioClient = dioClient ?? DioClient.instance;
+  ContestRepository(this._dioClient);
 
   Future<List<Contest>> getUpcomingContests() async {
     try {
-      final response = await _dioClient.dio.get(
+      final response = await _dioClient.get(
         ApiEndpoints.upcomingContests,
       );
-      return (response.data as List)
+      return (response as List)
           .map((item) => Contest.fromJson(item as Map<String, dynamic>))
           .toList();
     } catch (e) {
@@ -27,14 +26,14 @@ class ContestRepository {
     int size = 20,
   }) async {
     try {
-      final response = await _dioClient.dio.get(
+      final response = await _dioClient.get(
         ApiEndpoints.allContests,
         queryParameters: {
           'page': page,
           'size': size,
         },
       );
-      return response.data as Map<String, dynamic>;
+      return response as Map<String, dynamic>;
     } catch (e) {
       rethrow;
     }

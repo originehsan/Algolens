@@ -7,15 +7,14 @@ import 'package:algolens/features/friends/data/models/leaderboard_model.dart';
 class FriendsRepository {
   final DioClient _dioClient;
 
-  FriendsRepository({DioClient? dioClient})
-      : _dioClient = dioClient ?? DioClient.instance;
+  FriendsRepository(this._dioClient);
 
   Future<List<Friend>> getFriends(String handle) async {
     try {
-      final response = await _dioClient.dio.get(
+      final response = await _dioClient.get(
         ApiEndpoints.getFriends(handle),
       );
-      return (response.data as List)
+      return (response as List)
           .map((item) => Friend.fromJson(item as Map<String, dynamic>))
           .toList();
     } catch (e) {
@@ -28,14 +27,14 @@ class FriendsRepository {
     required String friendHandle,
   }) async {
     try {
-      final response = await _dioClient.dio.post(
+      final response = await _dioClient.post(
         ApiEndpoints.addFriend,
-        data: {
+        body: {
           'userHandle': userHandle,
           'friendHandle': friendHandle,
         },
       );
-      return response.data as String;
+      return response as String;
     } catch (e) {
       rethrow;
     }
@@ -46,10 +45,10 @@ class FriendsRepository {
     required String friendHandle,
   }) async {
     try {
-      final response = await _dioClient.dio.delete(
+      final response = await _dioClient.delete(
         ApiEndpoints.removeFriend(userHandle, friendHandle),
       );
-      return response.data as String;
+      return response as String;
     } catch (e) {
       rethrow;
     }
@@ -57,10 +56,10 @@ class FriendsRepository {
 
   Future<List<LeaderboardEntry>> getLeaderboard(String handle) async {
     try {
-      final response = await _dioClient.dio.get(
-        ApiEndpoints.friendsLeaderboard(handle),
+      final response = await _dioClient.get(
+        ApiEndpoints.leaderboard(handle),
       );
-      return (response.data as List)
+      return (response as List)
           .map(
               (item) => LeaderboardEntry.fromJson(item as Map<String, dynamic>))
           .toList();
@@ -74,14 +73,14 @@ class FriendsRepository {
     required String handle2,
   }) async {
     try {
-      final response = await _dioClient.dio.get(
+      final response = await _dioClient.get(
         ApiEndpoints.compareRating,
         queryParameters: {
           'handle1': handle1,
           'handle2': handle2,
         },
       );
-      return response.data as Map<String, dynamic>;
+      return response as Map<String, dynamic>;
     } catch (e) {
       rethrow;
     }

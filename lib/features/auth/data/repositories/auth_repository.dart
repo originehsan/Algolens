@@ -1,28 +1,26 @@
 import 'package:algolens/core/network/dio_client.dart';
 import 'package:algolens/core/network/api_endpoints.dart';
-import 'package:algolens/core/errors/app_exceptions.dart';
 
 class AuthRepository {
   final DioClient _dioClient;
 
-  AuthRepository({DioClient? dioClient})
-      : _dioClient = dioClient ?? DioClient.instance;
+  AuthRepository(this._dioClient);
 
   Future<Map<String, String>> login({
     required String email,
     required String password,
   }) async {
     try {
-      final response = await _dioClient.dio.post(
+      final response = await _dioClient.post(
         ApiEndpoints.login,
-        data: {
+        body: {
           'email': email,
           'password': password,
         },
       );
       return {
-        'accessToken': response.data['accessToken'] as String,
-        'refreshToken': response.data['refreshToken'] as String,
+        'accessToken': response['accessToken'] as String,
+        'refreshToken': response['refreshToken'] as String,
       };
     } catch (e) {
       rethrow;
@@ -35,27 +33,15 @@ class AuthRepository {
     required String password,
   }) async {
     try {
-      final response = await _dioClient.dio.post(
+      final response = await _dioClient.post(
         ApiEndpoints.register,
-        data: {
+        body: {
           'name': name,
           'email': email,
           'password': password,
         },
       );
-      return response.data as String;
-    } catch (e) {
-      rethrow;
-    }
-  }
-
-  Future<String> verifyEmail(String token) async {
-    try {
-      final response = await _dioClient.dio.get(
-        ApiEndpoints.verifyEmail,
-        queryParameters: {'token': token},
-      );
-      return response.data as String;
+      return response as String;
     } catch (e) {
       rethrow;
     }
@@ -63,11 +49,11 @@ class AuthRepository {
 
   Future<String> forgotPassword(String email) async {
     try {
-      final response = await _dioClient.dio.post(
+      final response = await _dioClient.post(
         ApiEndpoints.forgotPassword,
-        data: {'email': email},
+        body: {'email': email},
       );
-      return response.data['message'] as String;
+      return response['message'] as String;
     } catch (e) {
       rethrow;
     }
@@ -75,11 +61,11 @@ class AuthRepository {
 
   Future<String> verifyResetToken(String token) async {
     try {
-      final response = await _dioClient.dio.post(
+      final response = await _dioClient.post(
         ApiEndpoints.verifyResetToken,
-        data: {'token': token},
+        body: {'token': token},
       );
-      return response.data['message'] as String;
+      return response['message'] as String;
     } catch (e) {
       rethrow;
     }
@@ -90,14 +76,14 @@ class AuthRepository {
     required String newPassword,
   }) async {
     try {
-      final response = await _dioClient.dio.post(
+      final response = await _dioClient.post(
         ApiEndpoints.resetPassword,
-        data: {
+        body: {
           'otp': otp,
           'newPassword': newPassword,
         },
       );
-      return response.data['message'] as String;
+      return response['message'] as String;
     } catch (e) {
       rethrow;
     }
@@ -105,11 +91,11 @@ class AuthRepository {
 
   Future<String> logout(String refreshToken) async {
     try {
-      final response = await _dioClient.dio.post(
+      final response = await _dioClient.post(
         ApiEndpoints.logout,
-        data: {'refreshToken': refreshToken},
+        body: {'refreshToken': refreshToken},
       );
-      return response.data as String;
+      return response as String;
     } catch (e) {
       rethrow;
     }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:algolens/core/theme/app_colors.dart';
@@ -7,16 +8,17 @@ import 'package:algolens/core/widgets/page_wrapper.dart';
 import 'package:algolens/core/widgets/glass_card.dart';
 import 'package:algolens/core/widgets/app_text_field.dart';
 import 'package:algolens/core/widgets/app_button.dart';
-import 'package:algolens/features/auth/data/repositories/auth_repository.dart';
+import 'package:algolens/features/auth/providers/auth_provider.dart';
 
-class ResetPasswordScreen extends StatefulWidget {
+class ResetPasswordScreen extends ConsumerStatefulWidget {
   const ResetPasswordScreen({super.key});
 
   @override
-  State<ResetPasswordScreen> createState() => _ResetPasswordScreenState();
+  ConsumerState<ResetPasswordScreen> createState() =>
+      _ResetPasswordScreenState();
 }
 
-class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
+class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
   final _formKey = GlobalKey<FormState>();
   final _otpController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -35,7 +37,8 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _isLoading = true);
     try {
-      await AuthRepository().resetPassword(
+      final repo = ref.read(authRepositoryProvider);
+      await repo.resetPassword(
         otp: _otpController.text.trim(),
         newPassword: _passwordController.text,
       );

@@ -1,6 +1,5 @@
 import 'package:algolens/core/network/dio_client.dart';
 import 'package:algolens/core/network/api_endpoints.dart';
-import 'package:algolens/core/errors/app_exceptions.dart';
 import 'package:algolens/features/profile/data/models/profile_model.dart';
 import 'package:algolens/features/profile/data/models/rating_graph_model.dart';
 import 'package:algolens/features/profile/data/models/submission_stats_model.dart';
@@ -9,16 +8,15 @@ import 'package:algolens/features/profile/data/models/contest_history_model.dart
 class ProfileRepository {
   final DioClient _dioClient;
 
-  ProfileRepository({DioClient? dioClient})
-      : _dioClient = dioClient ?? DioClient.instance;
+  ProfileRepository(this._dioClient);
 
   Future<UserProfile> getProfile(String handle) async {
     try {
-      final response = await _dioClient.dio.get(
-        ApiEndpoints.userProfile(handle),
+      final response = await _dioClient.get(
+        ApiEndpoints.profile(handle),
       );
       return UserProfile.fromJson(
-        response.data as Map<String, dynamic>,
+        response as Map<String, dynamic>,
       );
     } catch (e) {
       rethrow;
@@ -27,11 +25,11 @@ class ProfileRepository {
 
   Future<List<RatingPoint>> getRatingGraph(String handle) async {
     try {
-      final response = await _dioClient.dio.get(
+      final response = await _dioClient.get(
         ApiEndpoints.ratingGraph(handle),
       );
-      return (response.data as List)
-          .map((item) => RatingPoint.fromJson(item as Map<String, dynamic>))
+      return (response as List)
+          .map((json) => RatingPoint.fromJson(json as Map<String, dynamic>))
           .toList();
     } catch (e) {
       rethrow;
@@ -40,11 +38,11 @@ class ProfileRepository {
 
   Future<SubmissionStats> getSubmissionStats(String handle) async {
     try {
-      final response = await _dioClient.dio.get(
+      final response = await _dioClient.get(
         ApiEndpoints.submissionStats(handle),
       );
       return SubmissionStats.fromJson(
-        response.data as Map<String, dynamic>,
+        response as Map<String, dynamic>,
       );
     } catch (e) {
       rethrow;
@@ -53,12 +51,12 @@ class ProfileRepository {
 
   Future<List<ContestHistoryItem>> getContestHistory(String handle) async {
     try {
-      final response = await _dioClient.dio.get(
+      final response = await _dioClient.get(
         ApiEndpoints.contestHistory(handle),
       );
-      return (response.data as List)
-          .map((item) =>
-              ContestHistoryItem.fromJson(item as Map<String, dynamic>))
+      return (response as List)
+          .map((json) =>
+              ContestHistoryItem.fromJson(json as Map<String, dynamic>))
           .toList();
     } catch (e) {
       rethrow;
