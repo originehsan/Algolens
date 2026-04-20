@@ -134,7 +134,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ),
               ),
               data: (profile) => GlassCard(
-                borderColor: AppColors.primary.withValues(alpha: 0.30),
+                type: GlassCardType.primary,
                 child: Row(
                   children: [
                     UserAvatar(

@@ -78,7 +78,7 @@ class AIAnalysisScreen extends ConsumerWidget {
 
                 // Overall recommendation card
                 GlassCard(
-                  borderColor: AppColors.primary.withValues(alpha: 0.40),
+                  type: GlassCardType.primary,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [

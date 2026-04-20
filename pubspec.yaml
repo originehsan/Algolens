@@ -84,6 +84,9 @@ dependencies:
   # Network Status
   connectivity_plus: ^6.0.3
 
+  # Permissions
+  permission_handler: ^11.4.0
+
   # Network Image Cache
   cached_network_image: ^3.3.1
 

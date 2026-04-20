@@ -146,7 +146,7 @@ class _ComparisonScreenState extends ConsumerState<ComparisonScreen> {
       children: [
         // Header comparison
         GlassCard(
-          borderColor: AppColors.primary.withValues(alpha: 0.40),
+          type: GlassCardType.primary,
           child: Row(
             children: [
               Expanded(
@@ -243,7 +243,7 @@ class _ComparisonScreenState extends ConsumerState<ComparisonScreen> {
 
         // Winner card
         GlassCard(
-          borderColor: AppColors.success.withValues(alpha: 0.40),
+          type: GlassCardType.success,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [

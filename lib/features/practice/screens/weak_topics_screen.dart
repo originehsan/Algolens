@@ -65,7 +65,7 @@ class WeakTopicsScreen extends ConsumerWidget {
 
                 // Summary card
                 GlassCard(
-                  borderColor: AppColors.warning.withValues(alpha: 0.40),
+                  type: GlassCardType.warning,
                   child: Row(
                     children: [
                       Container(
@@ -168,9 +168,20 @@ class WeakTopicsScreen extends ConsumerWidget {
     );
   }
 
+  GlassCardType _getCardTypeForSeverity(Color severityColor) {
+    if (severityColor == AppColors.success) {
+      return GlassCardType.success;
+    } else if (severityColor == AppColors.danger) {
+      return GlassCardType.danger;
+    } else if (severityColor == AppColors.warning) {
+      return GlassCardType.warning;
+    }
+    return GlassCardType.defaultCard;
+  }
+
   Widget _buildTopicCard(WeakTopic topic) {
     return GlassCard(
-      borderColor: topic.severityColor.withValues(alpha: 0.40),
+      type: _getCardTypeForSeverity(topic.severityColor),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

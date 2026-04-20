@@ -37,6 +37,17 @@ class _UpsolveScreenState extends ConsumerState<UpsolveScreen> {
     }
   }
 
+  GlassCardType _getCardTypeForVerdict(Color verdictColor) {
+    if (verdictColor == AppColors.success) {
+      return GlassCardType.success;
+    } else if (verdictColor == AppColors.danger) {
+      return GlassCardType.danger;
+    } else if (verdictColor == AppColors.warning) {
+      return GlassCardType.warning;
+    }
+    return GlassCardType.defaultCard;
+  }
+
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authStateProvider);
@@ -195,7 +206,9 @@ class _UpsolveScreenState extends ConsumerState<UpsolveScreen> {
                     bottom: 10.h,
                   ),
                   child: GlassCard(
-                    borderColor: problem.verdictColor.withValues(alpha: 0.40),
+                    type: _getCardTypeForVerdict(
+                      problem.verdictColor,
+                    ),
                     child: Row(
                       children: [
                         Expanded(
@@ -365,7 +378,7 @@ class _UpsolveScreenState extends ConsumerState<UpsolveScreen> {
         return Padding(
           padding: EdgeInsets.only(bottom: 10.h),
           child: GlassCard(
-            borderColor: AppColors.success.withValues(alpha: 0.40),
+            type: GlassCardType.success,
             child: Row(
               children: [
                 Icon(

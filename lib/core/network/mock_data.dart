@@ -1,465 +1,549 @@
-class MockData {
+import 'package:algolens/core/network/api_endpoints.dart';
+
+// ──────────────────────────────
+// MOCK DATA
+// Fake responses for all endpoints
+// ──────────────────────────────
+
+/// Static mock responses
+///
+/// Rules:
+/// → Exact shape as real API
+/// → Realistic fake data
+/// → Used by MockInterceptor
+/// → Never used in production
+abstract class MockData {
   MockData._();
 
-  static Map<String, dynamic> get loginResponse => {
-        'accessToken': 'mock_access_token_12345',
-        'refreshToken': 'mock_refresh_token_67890',
-      };
+  // ────────────────────────────
+  // AUTH
+  // ────────────────────────────
 
-  static Map<String, dynamic> get profileResponse => {
-        'handle': 'ehsan_cf',
-        'rating': 1487,
-        'maxRating': 1523,
-        'rank': 'specialist',
-        'problemsSolved': 347,
-        'contestsParticipated': 34,
-        'streakDays': 12,
-        'lastActiveDate': '2026-04-14',
-        'avatar': '',
-      };
+  static const Map<String, dynamic> loginResponse = {
+    'accessToken': 'mock_access_token_xyz',
+    'refreshToken': 'mock_refresh_token_xyz',
+  };
 
-  static List<Map<String, dynamic>> get contestHistoryResponse => [
-        {
-          'contestId': 1987,
-          'contestName': 'Codeforces Round 987 Div 2',
-          'rank': 1247,
-          'oldRating': 1423,
-          'newRating': 1487,
-          'ratingChange': 64,
-        },
-        {
-          'contestId': 1985,
-          'contestName': 'Codeforces Round 985 Div 2',
-          'rank': 1456,
-          'oldRating': 1459,
-          'newRating': 1423,
-          'ratingChange': -36,
-        },
-        {
-          'contestId': 1982,
-          'contestName': 'CF Educational Round 161',
-          'rank': 987,
-          'oldRating': 1417,
-          'newRating': 1459,
-          'ratingChange': 42,
-        },
-        {
-          'contestId': 1980,
-          'contestName': 'Codeforces Round 980 Div 2',
-          'rank': 1823,
-          'oldRating': 1400,
-          'newRating': 1417,
-          'ratingChange': 17,
-        },
-        {
-          'contestId': 1975,
-          'contestName': 'Codeforces Round 975 Div 2',
-          'rank': 2341,
-          'oldRating': 1350,
-          'newRating': 1400,
-          'ratingChange': 50,
-        },
-      ];
+  static const Map<String, dynamic> messageResponse = {
+    'message': 'Success',
+  };
 
-  static List<Map<String, dynamic>> get ratingGraphResponse => [
-        {
-          'contestId': 1950,
-          'contestName': 'CF Round 950 Div 2',
-          'rating': 1200,
-          'date': '2025-01-15',
-        },
-        {
-          'contestId': 1955,
-          'contestName': 'CF Round 955 Div 2',
-          'rating': 1280,
-          'date': '2025-02-01',
-        },
-        {
-          'contestId': 1960,
-          'contestName': 'CF Round 960 Div 2',
-          'rating': 1350,
-          'date': '2025-02-20',
-        },
-        {
-          'contestId': 1965,
-          'contestName': 'CF Round 965 Div 2',
-          'rating': 1320,
-          'date': '2025-03-05',
-        },
-        {
-          'contestId': 1970,
-          'contestName': 'CF Round 970 Div 2',
-          'rating': 1400,
-          'date': '2025-03-20',
-        },
-        {
-          'contestId': 1975,
-          'contestName': 'CF Round 975 Div 2',
-          'rating': 1350,
-          'date': '2025-04-01',
-        },
-        {
-          'contestId': 1980,
-          'contestName': 'CF Round 980 Div 2',
-          'rating': 1417,
-          'date': '2025-04-15',
-        },
-        {
-          'contestId': 1985,
-          'contestName': 'CF Round 985 Div 2',
-          'rating': 1423,
-          'date': '2025-05-01',
-        },
-        {
-          'contestId': 1987,
-          'contestName': 'CF Round 987 Div 2',
-          'rating': 1487,
-          'date': '2025-05-15',
-        },
-      ];
+  static const Map<String, dynamic> refreshResponse = {
+    'accessToken': 'mock_access_token_refreshed',
+    'refreshToken': 'mock_refresh_token_refreshed',
+  };
 
-  static Map<String, dynamic> get submissionStatsResponse => {
-        'totalSubmissions': 892,
-        'solvedProblems': 347,
-        'unSolvedProblems': 523,
-        'verdictsCount': {
-          'ACCEPTED': 347,
-          'WRONG_ANSWER': 298,
-          'TIME_LIMIT_EXCEEDED': 145,
-          'MEMORY_LIMIT_EXCEEDED': 52,
-          'COMPILATION_ERROR': 31,
-          'RUNTIME_ERROR': 19,
-        },
-      };
+  // ────────────────────────────
+  // PROFILE
+  // ────────────────────────────
 
-  static List<Map<String, dynamic>> get upcomingContestsResponse => [
-        {
-          'contestId': 1990,
-          'name': 'Codeforces Round 990 Div 2',
-          'type': 'CF',
-          'durationSeconds': 7200,
-          'startTimeSeconds': 1744999200,
-          'relativeTimeSeconds': -86400,
-        },
-        {
-          'contestId': 1991,
-          'name': 'Educational Codeforces Round 162',
-          'type': 'ICPC',
-          'durationSeconds': 7200,
-          'startTimeSeconds': 1745085600,
-          'relativeTimeSeconds': -172800,
-        },
-        {
-          'contestId': 1992,
-          'name': 'Codeforces Round 992 Div 1',
-          'type': 'CF',
-          'durationSeconds': 7200,
-          'startTimeSeconds': 1745172000,
-          'relativeTimeSeconds': -259200,
-        },
-        {
-          'contestId': 1993,
-          'name': 'Codeforces Round 993 Div 2',
-          'type': 'CF',
-          'durationSeconds': 7200,
-          'startTimeSeconds': 1745258400,
-          'relativeTimeSeconds': -345600,
-        },
-        {
-          'contestId': 1994,
-          'name': 'Codeforces Round 994 Div 1 + Div 2',
-          'type': 'CF',
-          'durationSeconds': 9000,
-          'startTimeSeconds': 1745344800,
-          'relativeTimeSeconds': -432000,
-        },
-      ];
+  static const Map<String, dynamic> profileResponse = {
+    'handle': 'tourist',
+    'rating': 3979,
+    'maxRating': 4006,
+    'rank': 'legendary grandmaster',
+    'maxRank': 'legendary grandmaster',
+    'problemsSolved': 1842,
+    'contestsParticipated': 312,
+    'streakDays': 14,
+    'lastActiveDate': '2024-12-01T00:00:00.000Z',
+    'avatar': 'https://userpic.codeforces.org/422/title/tourist.jpg',
+  };
 
-  static Map<String, dynamic> get allContestsResponse => {
-        'content': [
-          {
-            'contestId': 1987,
-            'name': 'Codeforces Round 987 Div 2',
-            'type': 'CF',
-            'durationSeconds': 7200,
-            'startTimeSeconds': 1712869200,
-            'relativeTimeSeconds': 1296000,
-          },
-          {
-            'contestId': 1985,
-            'name': 'Codeforces Round 985 Div 2',
-            'type': 'CF',
-            'durationSeconds': 7200,
-            'startTimeSeconds': 1712264400,
-            'relativeTimeSeconds': 1900800,
-          },
-          {
-            'contestId': 1982,
-            'name': 'CF Educational Round 161',
-            'type': 'ICPC',
-            'durationSeconds': 7200,
-            'startTimeSeconds': 1711659600,
-            'relativeTimeSeconds': 2505600,
-          },
-        ],
-        'page': {
-          'size': 20,
-          'number': 0,
-          'totalElements': 1987,
-          'totalPages': 100,
-        },
-      };
+  static const List<Map<String, dynamic>> ratingGraphResponse = [
+    {
+      'contestId': 1991,
+      'contestName': 'Codeforces Round 957 (Div. 1)',
+      'rating': 3979,
+      'date': '2024-07-15T14:35:00.000Z',
+    },
+    {
+      'contestId': 1981,
+      'contestName': 'Codeforces Round 950 (Div. 1)',
+      'rating': 3962,
+      'date': '2024-06-10T14:35:00.000Z',
+    },
+    {
+      'contestId': 1960,
+      'contestName': 'Codeforces Round 940 (Div. 1)',
+      'rating': 3944,
+      'date': '2024-05-05T14:35:00.000Z',
+    },
+    {
+      'contestId': 1935,
+      'contestName': 'Codeforces Round 928 (Div. 1)',
+      'rating': 3921,
+      'date': '2024-03-20T14:35:00.000Z',
+    },
+    {
+      'contestId': 1910,
+      'contestName': 'Codeforces Round 915 (Div. 1)',
+      'rating': 3898,
+      'date': '2024-02-10T14:35:00.000Z',
+    },
+  ];
 
-  static List<Map<String, dynamic>> get weakTopicsResponse => [
-        {
-          'tag': 'divide and conquer',
-          'totalAttempts': 23,
-          'solvedCount': 4,
-          'unsolvedCount': 19,
-          'acRate': 17.4,
-        },
-        {
-          'tag': 'suffix array',
-          'totalAttempts': 15,
-          'solvedCount': 3,
-          'unsolvedCount': 12,
-          'acRate': 20.0,
-        },
-        {
-          'tag': 'square root decomposition',
-          'totalAttempts': 28,
-          'solvedCount': 8,
-          'unsolvedCount': 20,
-          'acRate': 28.6,
-        },
-        {
-          'tag': 'segment tree',
-          'totalAttempts': 34,
-          'solvedCount': 12,
-          'unsolvedCount': 22,
-          'acRate': 35.3,
-        },
-        {
-          'tag': 'heavy light decomposition',
-          'totalAttempts': 19,
-          'solvedCount': 8,
-          'unsolvedCount': 11,
-          'acRate': 42.1,
-        },
-      ];
+  static const Map<String, dynamic> submissionStatsResponse = {
+    'totalSubmissions': 4821,
+    'solvedProblems': 1842,
+    'unSolvedProblems': 312,
+    'verdictsCount': {
+      'OK': 1842,
+      'WRONG_ANSWER': 198,
+      'TIME_LIMIT_EXCEEDED': 67,
+      'MEMORY_LIMIT_EXCEEDED': 23,
+      'RUNTIME_ERROR': 24,
+    },
+  };
 
-  static List<Map<String, dynamic>> get recommendationsResponse => [
-        {
-          'contestId': 1853,
-          'index': 'C',
-          'name': 'Prefix Sum Optimization',
-          'rating': 1600,
-          'tags': ['divide and conquer', 'prefix sums'],
-        },
-        {
-          'contestId': 1800,
-          'index': 'D',
-          'name': 'Segment Tree Basics',
-          'rating': 1800,
-          'tags': ['segment tree', 'data structures'],
-        },
-        {
-          'contestId': 1750,
-          'index': 'E',
-          'name': 'Suffix Array Construction',
-          'rating': 2100,
-          'tags': ['suffix array', 'strings'],
-        },
-        {
-          'contestId': 1720,
-          'index': 'C',
-          'name': 'Square Root Trick',
-          'rating': 1900,
-          'tags': ['square root decomposition'],
-        },
-        {
-          'contestId': 1700,
-          'index': 'D',
-          'name': 'HLD Implementation',
-          'rating': 2400,
-          'tags': ['heavy light decomposition', 'trees'],
-        },
-        {
-          'contestId': 1680,
-          'index': 'B',
-          'name': 'Divide and Conquer DP',
-          'rating': 2200,
-          'tags': ['divide and conquer', 'dp'],
-        },
-      ];
+  static const List<Map<String, dynamic>> contestHistoryResponse = [
+    {
+      'contestId': 1991,
+      'contestName': 'Codeforces Round 957 (Div. 1)',
+      'rank': 1,
+      'oldRating': 3962,
+      'newRating': 3979,
+      'ratingChange': 17,
+    },
+    {
+      'contestId': 1981,
+      'contestName': 'Codeforces Round 950 (Div. 1)',
+      'rank': 2,
+      'oldRating': 3944,
+      'newRating': 3962,
+      'ratingChange': 18,
+    },
+    {
+      'contestId': 1960,
+      'contestName': 'Codeforces Round 940 (Div. 1)',
+      'rank': 1,
+      'oldRating': 3921,
+      'newRating': 3944,
+      'ratingChange': 23,
+    },
+  ];
 
-  static Map<String, dynamic> get upsolveResponse => {
-        '1987': [
-          {
-            'contestId': 1987,
-            'index': 'D',
-            'name': 'Yet Another Problem',
-            'rating': 2000,
-            'tags': ['binary search', 'greedy', 'sorting'],
-            'bestVerdict': 'WRONG_ANSWER',
-            'url': 'https://codeforces.com/contest/1987/problem/D',
-          },
-          {
-            'contestId': 1987,
-            'index': 'E',
-            'name': 'Complex Algorithm',
-            'rating': 2400,
-            'tags': ['divide and conquer', 'segment tree'],
-            'bestVerdict': 'TIME_LIMIT_EXCEEDED',
-            'url': 'https://codeforces.com/contest/1987/problem/E',
-          },
-        ],
-        '1985': [
-          {
-            'contestId': 1985,
-            'index': 'D',
-            'name': 'Array Reconstruction',
-            'rating': 1800,
-            'tags': ['dp', 'greedy'],
-            'bestVerdict': 'WRONG_ANSWER',
-            'url': 'https://codeforces.com/contest/1985/problem/D',
-          },
-          {
-            'contestId': 1985,
-            'index': 'E',
-            'name': 'Graph Connectivity',
-            'rating': 2200,
-            'tags': ['graphs', 'dsu'],
-            'bestVerdict': 'TIME_LIMIT_EXCEEDED',
-            'url': 'https://codeforces.com/contest/1985/problem/E',
-          },
-        ],
-      };
+  // ────────────────────────────
+  // CONTESTS
+  // ────────────────────────────
 
-  static Map<String, dynamic> get compareRatingResponse => {
-        'handle1': 'ehsan_cf',
-        'handle2': 'tourist',
-        'rating1': 1487,
-        'rating2': 3950,
-        'ratingDelta': 2463,
-        'higherRatedHandle': 'tourist',
-        'maxRating1': 1523,
-        'maxRating2': 3957,
-        'rank1': 'specialist',
-        'rank2': 'legendary grandmaster',
-        'contestsParticipated1': 34,
-        'contestsParticipated2': 450,
-      };
+  static const List<Map<String, dynamic>> upcomingContestsResponse = [
+    {
+      'contestId': 2050,
+      'name': 'Codeforces Round 992 (Div. 2)',
+      'type': 'CF',
+      'durationSeconds': 7200,
+      'startTimeSeconds': 1735200000,
+      'relativeTimeSeconds': -86400,
+    },
+    {
+      'contestId': 2051,
+      'name': 'Educational Codeforces Round 175',
+      'type': 'ICPC',
+      'durationSeconds': 7200,
+      'startTimeSeconds': 1735286400,
+      'relativeTimeSeconds': -172800,
+    },
+    {
+      'contestId': 2052,
+      'name': 'Codeforces Round 993 (Div. 1)',
+      'type': 'CF',
+      'durationSeconds': 9000,
+      'startTimeSeconds': 1735372800,
+      'relativeTimeSeconds': -259200,
+    },
+  ];
 
-  static List<Map<String, dynamic>> get friendsListResponse => [
-        {
-          'handle': 'arjun_cf',
-          'rating': 1650,
-          'maxRating': 1720,
-          'rank': 'specialist',
-          'avatar': '',
-          'contestsParticipated': 41,
-        },
-        {
-          'handle': 'rahul_cp',
-          'rating': 1820,
-          'maxRating': 1890,
-          'rank': 'expert',
-          'avatar': '',
-          'contestsParticipated': 52,
-        },
-        {
-          'handle': 'priya_codes',
-          'rating': 2100,
-          'maxRating': 2150,
-          'rank': 'candidate master',
-          'avatar': '',
-          'contestsParticipated': 67,
-        },
-        {
-          'handle': 'vikram_cf',
-          'rating': 1350,
-          'maxRating': 1400,
-          'rank': 'pupil',
-          'avatar': '',
-          'contestsParticipated': 28,
-        },
-      ];
+  static const Map<String, dynamic> allContestsResponse = {
+    'contests': [
+      {
+        'contestId': 1991,
+        'name': 'Codeforces Round 957 (Div. 1)',
+        'type': 'CF',
+        'durationSeconds': 9000,
+        'startTimeSeconds': 1721051700,
+        'relativeTimeSeconds': 999999,
+      },
+      {
+        'contestId': 1981,
+        'name': 'Codeforces Round 950 (Div. 1)',
+        'type': 'CF',
+        'durationSeconds': 9000,
+        'startTimeSeconds': 1717942500,
+        'relativeTimeSeconds': 999999,
+      },
+    ],
+    'total': 2,
+    'page': 1,
+    'size': 20,
+  };
 
-  static List<Map<String, dynamic>> get friendsLeaderboardResponse => [
-        {
-          'rank': 1,
-          'handle': 'priya_codes',
-          'rating': 2100,
-          'tier': 'candidate master',
-          'maxRating': 2150,
-        },
-        {
-          'rank': 2,
-          'handle': 'rahul_cp',
-          'rating': 1820,
-          'tier': 'expert',
-          'maxRating': 1890,
-        },
-        {
-          'rank': 3,
-          'handle': 'ehsan_cf',
-          'rating': 1487,
-          'tier': 'specialist',
-          'maxRating': 1523,
-        },
-        {
-          'rank': 4,
-          'handle': 'arjun_cf',
-          'rating': 1650,
-          'tier': 'specialist',
-          'maxRating': 1720,
-        },
-        {
-          'rank': 5,
-          'handle': 'vikram_cf',
-          'rating': 1350,
-          'tier': 'pupil',
-          'maxRating': 1400,
-        },
-      ];
+  // ────────────────────────────
+  // FRIENDS
+  // ────────────────────────────
 
-  static Map<String, dynamic> get aiAnalysisResponse => {
-        'problemAnalyses': [
-          {
-            'contestId': 1987,
-            'problemIndex': 'D',
-            'problemName': 'Yet Another Problem',
-            'likelyIssue':
-                'Implementation complexity leading to off-by-one errors in indexing logic',
-            'conceptToStudy':
-                'Careful boundary handling in iterative approaches and segment trees',
-            'actionableTip':
-                'Use 0-based indexing consistently and add assertions for boundary conditions',
-          },
-          {
-            'contestId': 1987,
-            'problemIndex': 'E',
-            'problemName': 'Complex Algorithm',
-            'likelyIssue':
-                'TLE caused by inefficient traversal with O(n squared) complexity',
-            'conceptToStudy':
-                'Binary Lifting and Divide and Conquer optimization techniques',
-            'actionableTip':
-                'Precompute using binary lifting to reduce query complexity to O(log n)',
-          },
-          {
-            'contestId': 1985,
-            'problemIndex': 'D',
-            'problemName': 'Array Reconstruction',
-            'likelyIssue':
-                'Greedy approach not correctly identifying optimal substructure',
-            'conceptToStudy': 'Dynamic programming with greedy preprocessing',
-            'actionableTip':
-                'Sort by value first then apply greedy selection with DP verification',
-          },
-        ],
-        'overallRecommendation':
-            'Focus on mastering Segment Trees and Divide and Conquer techniques. Practice problems in the 1800 to 2200 range targeting these topics. Your implementations are correct but need optimization for time complexity.',
-      };
+  static const List<Map<String, dynamic>> friendsResponse = [
+    {
+      'handle': 'Petr',
+      'rating': 3547,
+      'maxRating': 3602,
+      'rank': 'legendary grandmaster',
+      'avatar': 'https://userpic.codeforces.org/44651/title/Petr.jpg',
+      'contestsParticipated': 198,
+    },
+    {
+      'handle': 'Um_nik',
+      'rating': 3439,
+      'maxRating': 3523,
+      'rank': 'legendary grandmaster',
+      'avatar': 'https://userpic.codeforces.org/631572/title/Um_nik.jpg',
+      'contestsParticipated': 156,
+    },
+    {
+      'handle': 'jiangly',
+      'rating': 3827,
+      'maxRating': 3859,
+      'rank': 'legendary grandmaster',
+      'avatar': 'https://userpic.codeforces.org/1133887/title/jiangly.jpg',
+      'contestsParticipated': 234,
+    },
+  ];
+
+  static const List<Map<String, dynamic>> leaderboardResponse = [
+    {
+      'rank': 1,
+      'handle': 'tourist',
+      'rating': 3979,
+      'maxRating': 4006,
+      'tier': 'legendary grandmaster',
+    },
+    {
+      'rank': 2,
+      'handle': 'jiangly',
+      'rating': 3827,
+      'maxRating': 3859,
+      'tier': 'legendary grandmaster',
+    },
+    {
+      'rank': 3,
+      'handle': 'Petr',
+      'rating': 3547,
+      'maxRating': 3602,
+      'tier': 'legendary grandmaster',
+    },
+    {
+      'rank': 4,
+      'handle': 'Um_nik',
+      'rating': 3439,
+      'maxRating': 3523,
+      'tier': 'legendary grandmaster',
+    },
+  ];
+
+  static const List<Map<String, dynamic>> unsolvedByMeResponse = [
+    {
+      'contestId': 1991,
+      'index': 'F',
+      'name': 'Cyclic Cover',
+      'rating': 3200,
+      'tags': ['graphs', 'dfs and similar', 'trees'],
+    },
+    {
+      'contestId': 1981,
+      'index': 'G',
+      'name': 'Strange Beauty',
+      'rating': 2900,
+      'tags': ['dp', 'number theory'],
+    },
+  ];
+
+  static const Map<String, dynamic> streakCompareResponse = {
+    'streaks': [
+      {
+        'handle': 'tourist',
+        'streakDays': 14,
+      },
+      {
+        'handle': 'Petr',
+        'streakDays': 7,
+      },
+      {
+        'handle': 'Um_nik',
+        'streakDays': 21,
+      },
+    ],
+  };
+
+  static const Map<String, dynamic> contestOverlapResponse = {
+    'contestId': 1991,
+    'participants': [
+      {
+        'handle': 'tourist',
+        'rank': 1,
+        'ratingChange': 17,
+      },
+      {
+        'handle': 'Petr',
+        'rank': 4,
+        'ratingChange': 12,
+      },
+    ],
+  };
+
+  // ────────────────────────────
+  // COMPARE
+  // ────────────────────────────
+
+  static const Map<String, dynamic> compareRatingResponse = {
+    'handle1': 'tourist',
+    'handle2': 'Petr',
+    'rating1': 3979,
+    'rating2': 3547,
+    'maxRating1': 4006,
+    'maxRating2': 3602,
+    'contestsParticipated1': 312,
+    'contestsParticipated2': 198,
+    'problemsSolved1': 1842,
+    'problemsSolved2': 1456,
+  };
+
+  static const Map<String, dynamic> findSubmissionResponse = {
+    'found': true,
+    'handle': 'tourist',
+    'contestId': 1991,
+    'problemIndex': 'A',
+    'verdict': 'OK',
+    'submittedAt': '2024-07-15T15:10:00.000Z',
+  };
+
+  // ────────────────────────────
+  // INSIGHTS
+  // ────────────────────────────
+
+  static const List<Map<String, dynamic>> weakTopicsResponse = [
+    {
+      'tag': 'dp',
+      'totalAttempts': 42,
+      'solvedCount': 18,
+      'unsolvedCount': 24,
+      'acRate': 0.43,
+      'severity': 'critical',
+    },
+    {
+      'tag': 'graphs',
+      'totalAttempts': 31,
+      'solvedCount': 16,
+      'unsolvedCount': 15,
+      'acRate': 0.52,
+      'severity': 'high',
+    },
+    {
+      'tag': 'number theory',
+      'totalAttempts': 28,
+      'solvedCount': 17,
+      'unsolvedCount': 11,
+      'acRate': 0.61,
+      'severity': 'moderate',
+    },
+  ];
+
+  static const List<Map<String, dynamic>> recommendationsResponse = [
+    {
+      'contestId': 1234,
+      'index': 'C',
+      'name': 'Knapsack',
+      'rating': 1800,
+      'tags': ['dp', 'greedy'],
+    },
+    {
+      'contestId': 1456,
+      'index': 'D',
+      'name': 'Tree Queries',
+      'rating': 2000,
+      'tags': ['trees', 'dfs and similar'],
+    },
+    {
+      'contestId': 1678,
+      'index': 'C',
+      'name': 'Graph Coloring',
+      'rating': 1900,
+      'tags': ['graphs', 'greedy'],
+    },
+  ];
+
+  static const Map<String, dynamic> upsolveResponse = {
+    '1991': [
+      {
+        'contestId': 1991,
+        'index': 'D',
+        'name': 'Minimize the Difference',
+        'rating': 1800,
+        'tags': ['dp', 'greedy'],
+        'bestVerdict': 'WRONG_ANSWER',
+        'url': 'https://codeforces.com/contest/1991/problem/D',
+      },
+      {
+        'contestId': 1991,
+        'index': 'E',
+        'name': 'Permutation of Rows',
+        'rating': 2200,
+        'tags': ['constructive algorithms', 'greedy'],
+        'bestVerdict': 'TIME_LIMIT_EXCEEDED',
+        'url': 'https://codeforces.com/contest/1991/problem/E',
+      },
+    ],
+    '1981': [
+      {
+        'contestId': 1981,
+        'index': 'C',
+        'name': 'ada and the Game',
+        'rating': 1600,
+        'tags': ['binary search', 'greedy'],
+        'bestVerdict': 'WRONG_ANSWER',
+        'url': 'https://codeforces.com/contest/1981/problem/C',
+      },
+    ],
+  };
+
+  // ────────────────────────────
+  // ANALYSIS (AI — Groq)
+  // ────────────────────────────
+
+  static const Map<String, dynamic> analysisResponse = {
+    'overallRecommendation':
+        'Focus on dynamic programming fundamentals. Your weak spots are state transition design and memoization. Practice Div.2 D-level DP problems daily for 2 weeks.',
+    'problemAnalyses': [
+      {
+        'contestId': 1991,
+        'problemIndex': 'D',
+        'problemName': 'Minimize the Difference',
+        'likelyIssue':
+            'Incorrect greedy ordering — not sorting before applying prefix minimums',
+        'conceptToStudy': 'Prefix minimum arrays + greedy invariants',
+        'actionableTip':
+            'Sort input first, then apply prefix min. Try CF 1399C as a warm-up.',
+      },
+      {
+        'contestId': 1991,
+        'problemIndex': 'E',
+        'problemName': 'Permutation of Rows',
+        'likelyIssue': 'TLE due to O(n²) simulation instead of O(n log n) sort',
+        'conceptToStudy': 'Constructive + sorting to avoid brute force',
+        'actionableTip':
+            'Think about what the final arrangement must look like before simulating.',
+      },
+    ],
+  };
+
+  // ────────────────────────────
+  // ENDPOINT → DATA MAP
+  // Used by MockInterceptor
+  // ────────────────────────────
+
+  /// Returns mock data for a
+  /// given request path
+  ///
+  /// Matches by path prefix
+  /// to handle dynamic routes
+  static dynamic getResponse(
+    String path,
+    String method,
+  ) {
+    // AUTH
+    if (path.contains(ApiEndpoints.login)) return loginResponse;
+
+    if (path.contains(ApiEndpoints.register)) return messageResponse;
+
+    if (path.contains(ApiEndpoints.refresh)) return refreshResponse;
+
+    if (path.contains(ApiEndpoints.logout)) return messageResponse;
+
+    if (path.contains(ApiEndpoints.forgotPassword)) return messageResponse;
+
+    if (path.contains(ApiEndpoints.verifyResetToken)) return messageResponse;
+
+    if (path.contains(ApiEndpoints.resetPassword)) return messageResponse;
+
+    if (path.contains(ApiEndpoints.resendVerification)) return messageResponse;
+
+    // PROFILE
+    if (path.contains('/rating-graph')) {
+      return ratingGraphResponse;
+    }
+
+    if (path.contains('/submission-stats')) return submissionStatsResponse;
+
+    if (path.contains('/contest-history')) return contestHistoryResponse;
+
+    if (path.contains('/profile')) {
+      return profileResponse;
+    }
+
+    // CONTESTS
+    if (path.contains(ApiEndpoints.upcomingContests)) {
+      return upcomingContestsResponse;
+    }
+
+    if (path == ApiEndpoints.allContests) {
+      return allContestsResponse;
+    }
+
+    // FRIENDS
+    if (path.contains(ApiEndpoints.addFriend)) return messageResponse;
+
+    if (path.contains('/remove/')) {
+      return messageResponse;
+    }
+
+    if (path.contains('/unsolved-by-me')) return unsolvedByMeResponse;
+
+    if (path.contains('/streak-compare')) return streakCompareResponse;
+
+    if (path.contains('/contest-overlap')) return contestOverlapResponse;
+
+    if (path.contains('/leaderboard')) {
+      return leaderboardResponse;
+    }
+
+    if (path.contains('/friends/')) {
+      return friendsResponse;
+    }
+
+    // COMPARE
+    if (path.contains(ApiEndpoints.compareRating)) {
+      return compareRatingResponse;
+    }
+
+    if (path.contains(ApiEndpoints.findSubmission)) {
+      return findSubmissionResponse;
+    }
+
+    // INSIGHTS
+    if (path.contains('/weak-topics')) {
+      return weakTopicsResponse;
+    }
+
+    if (path.contains('/recommendations')) {
+      return recommendationsResponse;
+    }
+
+    if (path.contains('/upsolve') && !path.contains('/analysis')) {
+      return upsolveResponse;
+    }
+
+    // ANALYSIS
+    if (path.contains('/analysis/')) {
+      return analysisResponse;
+    }
+
+    // VERIFICATION
+    if (path.contains('/verification/')) {
+      return messageResponse;
+    }
+
+    /// Unknown endpoint
+    return <String, dynamic>{
+      'message': 'Mock not found',
+    };
+  }
 }

@@ -25,7 +25,7 @@ class AppErrorWidget extends StatelessWidget {
           horizontal: 24.w,
         ),
         child: GlassCard(
-          borderColor: AppColors.danger.withValues(alpha: 0.40),
+          type: GlassCardType.danger,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [

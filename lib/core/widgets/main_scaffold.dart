@@ -17,13 +17,13 @@ class MainScaffold extends ConsumerWidget {
     int index,
     String route,
   ) {
-    ref.read(mainNavigationIndexProvider.notifier).state = index;
+    ref.read(bottomNavIndexProvider.notifier).state = index;
     context.go(route);
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final currentIndex = ref.watch(mainNavigationIndexProvider);
+    final currentIndex = ref.watch(bottomNavIndexProvider);
     return Scaffold(
       body: child,
       bottomNavigationBar: SalomonBottomBar(
@@ -33,8 +33,7 @@ class MainScaffold extends ConsumerWidget {
             '/home',
             '/contests',
             '/practice',
-            '/upsolve',
-            '/profile',
+            '/friends',
           ];
           _handleNavigation(context, ref, index, routes[index]);
         },
@@ -58,14 +57,8 @@ class MainScaffold extends ConsumerWidget {
             unselectedColor: AppColors.textMuted,
           ),
           SalomonBottomBarItem(
-            icon: const Icon(Icons.queue_outlined),
-            title: const Text('Upsolve'),
-            selectedColor: AppColors.primary,
-            unselectedColor: AppColors.textMuted,
-          ),
-          SalomonBottomBarItem(
-            icon: const Icon(Icons.person_outlined),
-            title: const Text('Profile'),
+            icon: const Icon(Icons.people_outlined),
+            title: const Text('Friends'),
             selectedColor: AppColors.primary,
             unselectedColor: AppColors.textMuted,
           ),

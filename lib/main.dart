@@ -35,11 +35,13 @@ Future<void> main() async {
   );
 }
 
-class AlgoLensApp extends StatelessWidget {
+class AlgoLensApp extends ConsumerWidget {
   const AlgoLensApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final router = ref.watch(routerProvider);
+
     return ScreenUtilInit(
       designSize: const Size(390, 844),
       minTextAdapt: true,
@@ -49,7 +51,7 @@ class AlgoLensApp extends StatelessWidget {
           title: 'AlgoLens',
           debugShowCheckedModeBanner: false,
           theme: AppTheme.dark,
-          routerConfig: appRouter,
+          routerConfig: router,
         );
       },
     );

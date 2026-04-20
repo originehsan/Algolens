@@ -18,14 +18,14 @@ class ContestCard extends StatelessWidget {
     this.isReminderSet = false,
   });
 
-  Color _getBorderColor() {
+  GlassCardType _getCardType() {
     switch (contest.suitabilityLabel) {
       case 'Good Match':
-        return AppColors.success.withOpacity(0.40);
+        return GlassCardType.success;
       case 'Too Hard':
-        return AppColors.danger.withOpacity(0.40);
+        return GlassCardType.danger;
       default:
-        return AppColors.warning.withOpacity(0.40);
+        return GlassCardType.warning;
     }
   }
 
@@ -45,7 +45,7 @@ class ContestCard extends StatelessWidget {
     final suitabilityColor = _getSuitabilityColor();
 
     return GlassCard(
-      borderColor: _getBorderColor(),
+      type: _getCardType(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

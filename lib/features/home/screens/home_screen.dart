@@ -261,7 +261,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   Widget _buildRatingCard(dynamic profile) {
     return GlassCard(
-      borderColor: AppColors.primary.withOpacity(0.40),
+      type: GlassCardType.primary,
       child: Row(
         children: [
           Expanded(

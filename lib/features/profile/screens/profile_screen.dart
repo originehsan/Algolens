@@ -70,7 +70,7 @@ class ProfileScreen extends ConsumerWidget {
                   ),
                 ),
                 data: (profile) => GlassCard(
-                  borderColor: AppColors.primary.withValues(alpha: 0.40),
+                  type: GlassCardType.primary,
                   child: Row(
                     children: [
                       UserAvatar(

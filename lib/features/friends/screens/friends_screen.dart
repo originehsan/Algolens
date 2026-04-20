@@ -265,9 +265,9 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> {
             return Padding(
               padding: EdgeInsets.only(bottom: 10.h),
               child: GlassCard(
-                borderColor: isCurrentUser
-                    ? AppColors.primary.withValues(alpha: 0.50)
-                    : null,
+                type: isCurrentUser
+                    ? GlassCardType.primary
+                    : GlassCardType.defaultCard,
                 child: Row(
                   children: [
                     // Rank number
