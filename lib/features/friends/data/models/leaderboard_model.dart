@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:algolens/core/widgets/rank_chip.dart';
+import 'package:algolens/core/theme/app_colors.dart';
 
 class LeaderboardEntry {
   final int rank;
@@ -26,7 +26,7 @@ class LeaderboardEntry {
     );
   }
 
-  Color get rankColor => RankChip.getRankColor(tier);
+  Color get rankColor => AppColors.rankColor(tier);
 
   bool get isCurrentUser => handle == 'ehsan_cf';
 }

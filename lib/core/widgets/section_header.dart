@@ -3,19 +3,38 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:algolens/core/theme/app_colors.dart';
 import 'package:algolens/core/theme/app_text_styles.dart';
 
-class SectionHeader extends StatelessWidget {
-  final String title;
-  final String? actionLabel;
-  final VoidCallback? onActionTap;
-  final Widget? trailing;
+// ──────────────────────────────
+// SECTION HEADER
+// Title + optional See All
+// ──────────────────────────────
 
+/// Section header widget
+///
+/// Used at top of every
+/// content section
+///
+/// Usage:
+/// SectionHeader(
+///   title: 'Upcoming Contests',
+/// )
+///
+/// SectionHeader(
+///   title: 'Friends',
+///   actionLabel: 'See all',
+///   onAction: () => context
+///     .push(RoutePaths.friends),
+/// )
+class SectionHeader extends StatelessWidget {
   const SectionHeader({
     super.key,
     required this.title,
     this.actionLabel,
-    this.onActionTap,
-    this.trailing,
+    this.onAction,
   });
+
+  final String title;
+  final String? actionLabel;
+  final VoidCallback? onAction;
 
   @override
   Widget build(BuildContext context) {
@@ -23,15 +42,23 @@ class SectionHeader extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
+        // ──────────────────────
+        // TITLE
+        // ──────────────────────
+
         Text(
           title,
           style: AppTextStyles.h3,
         ),
-        if (trailing != null)
-          trailing!
-        else if (actionLabel != null)
+
+        // ──────────────────────
+        // SEE ALL ACTION
+        // Only if provided
+        // ──────────────────────
+
+        if (actionLabel != null && onAction != null)
           GestureDetector(
-            onTap: onActionTap,
+            onTap: onAction,
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -39,6 +66,7 @@ class SectionHeader extends StatelessWidget {
                   actionLabel!,
                   style: AppTextStyles.caption.copyWith(
                     color: AppColors.primary,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
                 SizedBox(width: 2.w),

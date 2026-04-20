@@ -13,7 +13,6 @@ class OnboardingScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return PageWrapper(
-      showOfflineBanner: false,
       child: Padding(
         padding: EdgeInsets.symmetric(horizontal: 20.w),
         child: Column(
@@ -87,7 +86,7 @@ class OnboardingScreen extends StatelessWidget {
               children: [
                 AppButton(
                   label: 'Get Started',
-                  onPressed: () => context.go('/register'),
+                  onTap: () => context.go('/register'),
                 ).animate().fadeIn(
                       delay: 800.ms,
                       duration: 400.ms,
@@ -95,8 +94,8 @@ class OnboardingScreen extends StatelessWidget {
                 SizedBox(height: 12.h),
                 AppButton(
                   label: 'Login',
-                  isOutline: true,
-                  onPressed: () => context.go('/login'),
+                  type: AppButtonType.outline,
+                  onTap: () => context.go('/login'),
                 ).animate().fadeIn(
                       delay: 900.ms,
                       duration: 400.ms,

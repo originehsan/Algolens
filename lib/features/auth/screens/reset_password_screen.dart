@@ -98,54 +98,24 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                     ),
                     SizedBox(height: 24.h),
                     AppTextField(
-                      hint: 'Enter OTP',
+                      label: 'Enter OTP',
                       controller: _otpController,
                       keyboardType: TextInputType.number,
-                      prefixIcon: const Icon(
-                        Icons.pin_outlined,
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'OTP is required';
-                        }
-                        if (value.length != 6) {
-                          return 'OTP must be 6 digits';
-                        }
-                        return null;
-                      },
+                      prefixIcon: Icons.pin_outlined,
                     ),
                     SizedBox(height: 14.h),
                     AppTextField(
-                      hint: 'New Password',
+                      label: 'New Password',
                       controller: _passwordController,
                       isPassword: true,
-                      prefixIcon: const Icon(
-                        Icons.lock_outlined,
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Password is required';
-                        }
-                        if (value.length < 8) {
-                          return 'Minimum 8 characters';
-                        }
-                        return null;
-                      },
+                      prefixIcon: Icons.lock_outlined,
                     ),
                     SizedBox(height: 14.h),
                     AppTextField(
-                      hint: 'Confirm Password',
+                      label: 'Confirm Password',
                       controller: _confirmController,
                       isPassword: true,
-                      prefixIcon: const Icon(
-                        Icons.lock_outlined,
-                      ),
-                      validator: (value) {
-                        if (value != _passwordController.text) {
-                          return 'Passwords do not match';
-                        }
-                        return null;
-                      },
+                      prefixIcon: Icons.lock_outlined,
                     ),
                   ],
                 ),
@@ -153,7 +123,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
               SizedBox(height: 24.h),
               AppButton(
                 label: 'Reset Password',
-                onPressed: _handleReset,
+                onTap: _handleReset,
                 isLoading: _isLoading,
               ),
             ],

@@ -148,27 +148,28 @@ class ProfileScreen extends ConsumerWidget {
                   children: [
                     Expanded(
                       child: StatCard(
-                        label: 'Solved',
+                        icon: Icons.check_circle_rounded,
+                        iconColor: AppColors.success,
                         value: '${profile.problemsSolved}',
-                        valueColor: AppColors.success,
-                        isMonospace: true,
+                        label: 'Solved',
                       ),
                     ),
                     SizedBox(width: 10.w),
                     Expanded(
                       child: StatCard(
-                        label: 'Contests',
+                        icon: Icons.emoji_events_rounded,
+                        iconColor: AppColors.primary,
                         value: '${profile.contestsParticipated}',
-                        isMonospace: true,
+                        label: 'Contests',
                       ),
                     ),
                     SizedBox(width: 10.w),
                     Expanded(
                       child: StatCard(
-                        label: 'Streak',
+                        icon: Icons.local_fire_department_rounded,
+                        iconColor: AppColors.warning,
                         value: '${profile.streakDays}d',
-                        valueColor: AppColors.warning,
-                        isMonospace: true,
+                        label: 'Streak',
                       ),
                     ),
                   ],
@@ -372,16 +373,16 @@ class ProfileScreen extends ConsumerWidget {
                   Expanded(
                     child: AppButton(
                       label: 'Friends',
-                      onPressed: () => context.push('/friends'),
-                      isOutline: true,
+                      onTap: () => context.push('/friends'),
+                      type: AppButtonType.outline,
                     ),
                   ),
                   SizedBox(width: 12.w),
                   Expanded(
                     child: AppButton(
                       label: 'Compare',
-                      onPressed: () => context.push('/comparison'),
-                      isOutline: true,
+                      onTap: () => context.push('/comparison'),
+                      type: AppButtonType.outline,
                     ),
                   ),
                 ],
@@ -389,7 +390,7 @@ class ProfileScreen extends ConsumerWidget {
               SizedBox(height: 12.h),
               AppButton(
                 label: 'Get AI Analysis',
-                onPressed: () => context.push('/analysis'),
+                onTap: () => context.push('/analysis'),
               ),
               SizedBox(height: 20.h),
 

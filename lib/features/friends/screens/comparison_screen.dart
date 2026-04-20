@@ -82,11 +82,9 @@ class _ComparisonScreenState extends ConsumerState<ComparisonScreen> {
               child: Column(
                 children: [
                   AppTextField(
-                    hint: 'First CF handle',
+                    label: 'First CF handle',
                     controller: _handle1Controller,
-                    prefixIcon: const Icon(
-                      Icons.person_outlined,
-                    ),
+                    prefixIcon: Icons.person_outlined,
                   ),
                   SizedBox(height: 12.h),
                   Row(
@@ -101,16 +99,14 @@ class _ComparisonScreenState extends ConsumerState<ComparisonScreen> {
                   ),
                   SizedBox(height: 12.h),
                   AppTextField(
-                    hint: 'Second CF handle',
+                    label: 'Second CF handle',
                     controller: _handle2Controller,
-                    prefixIcon: const Icon(
-                      Icons.person_outlined,
-                    ),
+                    prefixIcon: Icons.person_outlined,
                   ),
                   SizedBox(height: 16.h),
                   AppButton(
                     label: 'Compare',
-                    onPressed: _compare,
+                    onTap: _compare,
                     isLoading: _isLoading,
                   ),
                 ],
@@ -165,7 +161,7 @@ class _ComparisonScreenState extends ConsumerState<ComparisonScreen> {
                     ),
                     RankChip(
                       rank: rank1,
-                      small: true,
+                      compact: true,
                     ),
                   ],
                 ),
@@ -202,7 +198,7 @@ class _ComparisonScreenState extends ConsumerState<ComparisonScreen> {
                     ),
                     RankChip(
                       rank: rank2,
-                      small: true,
+                      compact: true,
                     ),
                   ],
                 ),

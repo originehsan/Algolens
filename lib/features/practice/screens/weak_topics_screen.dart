@@ -104,7 +104,7 @@ class WeakTopicsScreen extends ConsumerWidget {
                 SectionHeader(
                   title: 'Your Weak Areas',
                   actionLabel: 'Practice',
-                  onActionTap: () => context.push(
+                  onAction: () => context.push(
                     '/practice/recommendations',
                   ),
                 ),
@@ -128,7 +128,7 @@ class WeakTopicsScreen extends ConsumerWidget {
                 SizedBox(height: 16.h),
                 AppButton(
                   label: 'Practice Weak Topics',
-                  onPressed: () => context.push(
+                  onTap: () => context.push(
                     '/practice/recommendations',
                   ),
                 ),

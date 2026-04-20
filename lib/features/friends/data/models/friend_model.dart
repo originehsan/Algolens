@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:algolens/core/widgets/rank_chip.dart';
+import 'package:algolens/core/theme/app_colors.dart';
 
 class Friend {
   final String handle;
@@ -29,5 +29,5 @@ class Friend {
     );
   }
 
-  Color get rankColor => RankChip.getRankColor(rank);
+  Color get rankColor => AppColors.rankColor(rank);
 }

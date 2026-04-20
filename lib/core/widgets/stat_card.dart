@@ -4,71 +4,132 @@ import 'package:algolens/core/theme/app_colors.dart';
 import 'package:algolens/core/theme/app_text_styles.dart';
 import 'package:algolens/core/widgets/glass_card.dart';
 
-class StatCard extends StatelessWidget {
-  final String label;
-  final String value;
-  final Color? valueColor;
-  final String? sublabel;
-  final bool isMonospace;
-  final IconData? icon;
+// ──────────────────────────────
+// STAT CARD
+// Small metric display card
+// ──────────────────────────────
 
+/// Small metric card widget
+///
+/// Shows:
+/// → Icon with color
+/// → Value (large number)
+/// → Label (small text)
+///
+/// Used in home screen
+/// stats row (3 cards):
+/// → Problems Solved
+/// → Contests
+/// → Streak Days
+///
+/// Usage:
+/// StatCard(
+///   icon: Icons.check_circle_rounded,
+///   iconColor: AppColors.success,
+///   value: '1842',
+///   label: 'Solved',
+/// )
+class StatCard extends StatelessWidget {
   const StatCard({
     super.key,
-    required this.label,
+    required this.icon,
+    required this.iconColor,
     required this.value,
-    this.valueColor,
-    this.sublabel,
-    this.isMonospace = false,
-    this.icon,
+    required this.label,
+    this.onTap,
   });
+
+  final IconData icon;
+  final Color iconColor;
+  final String value;
+  final String label;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     return GlassCard(
-      padding: EdgeInsets.all(14.r),
+      padding: EdgeInsets.symmetric(
+        horizontal: 12.w,
+        vertical: 14.h,
+      ),
+      onTap: onTap,
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              if (icon != null) ...[
-                Icon(
-                  icon,
-                  color: valueColor ?? AppColors.textMuted,
-                  size: 14.r,
-                ),
-                SizedBox(width: 4.w),
-              ],
-              Text(
-                label,
-                style: AppTextStyles.caption,
-              ),
-            ],
-          ),
-          SizedBox(height: 6.h),
-          Text(
-            value,
-            style: isMonospace
-                ? AppTextStyles.metricLarge.copyWith(
-                    color: valueColor ?? AppColors.textPrimary,
-                    fontSize: 22.sp,
-                  )
-                : AppTextStyles.h2.copyWith(
-                    color: valueColor ?? AppColors.textPrimary,
-                  ),
-          ),
-          if (sublabel != null) ...[
-            SizedBox(height: 2.h),
-            Text(
-              sublabel!,
-              style: AppTextStyles.caption.copyWith(
-                color: AppColors.textHint,
+          // ──────────────────
+          // ICON
+          // ──────────────────
+
+          Container(
+            width: 32.r,
+            height: 32.r,
+            decoration: BoxDecoration(
+              color: iconColor.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(
+                8.r,
               ),
             ),
-          ],
+            child: Icon(
+              icon,
+              color: iconColor,
+              size: 16.r,
+            ),
+          ),
+
+          SizedBox(height: 10.h),
+
+          // ──────────────────
+          // VALUE
+          // Large bold number
+          // ──────────────────
+
+          Text(
+            value,
+            style: AppTextStyles.h2.copyWith(
+              color: Colors.white.withValues(
+                alpha: 0.95,
+              ),
+            ),
+          ),
+
+          SizedBox(height: 2.h),
+
+          // ──────────────────
+          // LABEL
+          // Small descriptor
+          // ──────────────────
+
+          Text(
+            label,
+            style: AppTextStyles.caption.copyWith(
+              color: Colors.white.withValues(
+                alpha: 0.55,
+              ),
+            ),
+          ),
         ],
       ),
+    );
+  }
+}
+
+// ──────────────────────────────
+// STAT CARD SHIMMER
+// Loading placeholder
+// ──────────────────────────────
+
+/// Shimmer placeholder for StatCard
+///
+/// Usage:
+/// StatCardShimmer()
+class StatCardShimmer extends StatelessWidget {
+  const StatCardShimmer({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return GlassCardShimmer(
+      height: 100.h,
     );
   }
 }

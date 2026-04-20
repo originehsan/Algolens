@@ -3,93 +3,101 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:algolens/core/theme/app_colors.dart';
 import 'package:algolens/core/theme/app_text_styles.dart';
 
-class RankChip extends StatelessWidget {
-  final String rank;
-  final bool small;
+// ──────────────────────────────
+// RANK CHIP
+// Rank badge pill widget
+// ──────────────────────────────
 
+/// Compact rank badge
+///
+/// Color derived from rank string
+/// via AppColors.rankColor()
+///
+/// Used on:
+/// → Profile screen header
+/// → Friends list items
+/// → Leaderboard rows
+///
+/// Usage:
+/// RankChip(
+///   rank: 'specialist',
+/// )
+///
+/// RankChip(
+///   rank: 'legendary grandmaster',
+///   compact: true,
+/// )
+class RankChip extends StatelessWidget {
   const RankChip({
     super.key,
     required this.rank,
-    this.small = false,
+    this.compact = false,
   });
 
-  static Color getRankColor(String rank) {
-    final lower = rank.toLowerCase();
-    if (lower.contains('legendary grandmaster') ||
-        lower.contains('international grandmaster') ||
-        lower.contains('grandmaster')) {
-      return AppColors.rankGM;
-    }
-    if (lower.contains('international master')) {
-      return AppColors.rankMaster;
-    }
-    if (lower.contains('master')) {
-      return AppColors.rankMaster;
-    }
-    if (lower.contains('candidate master')) {
-      return AppColors.rankCM;
-    }
-    if (lower.contains('expert')) {
-      return AppColors.rankExpert;
-    }
-    if (lower.contains('specialist')) {
-      return AppColors.rankSpecialist;
-    }
-    if (lower.contains('pupil')) {
-      return AppColors.rankPupil;
-    }
-    if (lower.contains('newbie')) {
-      return AppColors.rankNewbie;
-    }
-    return AppColors.textMuted;
+  final String rank;
+
+  /// compact = true shows
+  /// abbreviated rank label
+  final bool compact;
+
+  // ────────────────────────────
+  // RANK COLOR
+  // From AppColors
+  // ────────────────────────────
+
+  Color get _color => AppColors.rankColor(rank);
+
+  // ────────────────────────────
+  // DISPLAY LABEL
+  // Full or abbreviated
+  // ────────────────────────────
+
+  String get _label {
+    if (!compact) return rank;
+    return switch (rank.toLowerCase()) {
+      'legendary grandmaster' => 'LGM',
+      'international grandmaster' => 'IGM',
+      'grandmaster' => 'GM',
+      'international master' => 'IM',
+      'master' => 'Master',
+      'candidate master' => 'CM',
+      'expert' => 'Expert',
+      'specialist' => 'Specialist',
+      'pupil' => 'Pupil',
+      'newbie' => 'Newbie',
+      _ => rank,
+    };
   }
 
   @override
   Widget build(BuildContext context) {
-    final rankColor = getRankColor(rank);
-    final fontSize = small ? 10.sp : 12.sp;
-    final paddingH = small ? 8.w : 10.w;
-    final paddingV = small ? 2.h : 4.h;
-
     return Container(
       padding: EdgeInsets.symmetric(
-        horizontal: paddingH,
-        vertical: paddingV,
+        horizontal: compact ? 6.w : 10.w,
+        vertical: compact ? 2.h : 4.h,
       ),
       decoration: BoxDecoration(
-        color: rankColor.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(20.r),
+        color: _color.withValues(
+          alpha: 0.15,
+        ),
+        borderRadius: BorderRadius.circular(
+          20.r,
+        ),
         border: Border.all(
-          color: rankColor.withValues(alpha: 0.40),
+          color: _color.withValues(
+            alpha: 0.35,
+          ),
           width: 1.0,
         ),
-        boxShadow: [
-          BoxShadow(
-            color: rankColor.withValues(alpha: 0.20),
-            blurRadius: 8,
-            spreadRadius: 0,
-            offset: const Offset(0, 2),
-          ),
-        ],
       ),
       child: Text(
-        _capitalizeRank(rank),
+        _label,
         style: AppTextStyles.caption.copyWith(
-          fontSize: fontSize,
-          color: rankColor,
+          color: _color,
           fontWeight: FontWeight.w600,
+          fontSize: compact ? 10.sp : 11.sp,
         ),
       ),
     );
-  }
-
-  String _capitalizeRank(String rank) {
-    if (rank.isEmpty) return rank;
-    return rank
-        .split(' ')
-        .map((word) => word.isEmpty
-            ? word
-            : word[0].toUpperCase() + word.substring(1).toLowerCase())
-        .join(' ');
   }
 }

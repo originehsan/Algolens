@@ -94,13 +94,11 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> {
               children: [
                 Expanded(
                   child: AppTextField(
-                    hint: 'Add friend by CF handle',
+                    label: 'Add friend by CF handle',
                     controller: _searchController,
-                    prefixIcon: const Icon(
-                      Icons.person_search_outlined,
-                    ),
+                    prefixIcon: Icons.person_search_outlined,
                     textInputAction: TextInputAction.done,
-                    onEditingComplete: () => _addFriend(
+                    onSubmitted: (_) => _addFriend(
                       handle,
                       _searchController.text,
                     ),
@@ -109,7 +107,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> {
                 SizedBox(width: 10.w),
                 AppButton(
                   label: 'Add',
-                  onPressed: () => _addFriend(
+                  onTap: () => _addFriend(
                     handle,
                     _searchController.text,
                   ),
@@ -130,8 +128,8 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> {
                 'Friends',
                 'Leaderboard',
               ],
-              selectedIndex: _selectedTab,
-              onTabSelected: (index) => setState(
+              currentIndex: _selectedTab,
+              onChanged: (index) => setState(
                 () => _selectedTab = index,
               ),
             ),
@@ -195,7 +193,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> {
                           SizedBox(height: 4.h),
                           RankChip(
                             rank: friend.rank,
-                            small: true,
+                            compact: true,
                           ),
                           SizedBox(height: 2.h),
                           Text(
@@ -338,7 +336,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> {
                           ),
                           RankChip(
                             rank: entry.tier,
-                            small: true,
+                            compact: true,
                           ),
                         ],
                       ),

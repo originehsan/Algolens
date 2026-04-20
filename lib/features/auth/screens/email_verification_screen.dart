@@ -73,8 +73,8 @@ class EmailVerificationScreen extends StatelessWidget {
             SizedBox(height: 24.h),
             AppButton(
               label: 'Back to Login',
-              onPressed: () => context.go('/login'),
-              isOutline: true,
+              onTap: () => context.go('/login'),
+              type: AppButtonType.outline,
             ),
           ],
         ),

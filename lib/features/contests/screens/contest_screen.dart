@@ -41,8 +41,8 @@ class _ContestScreenState extends ConsumerState<ContestScreen> {
                 'All',
                 'Live',
               ],
-              selectedIndex: _selectedTab,
-              onTabSelected: (index) {
+              currentIndex: _selectedTab,
+              onChanged: (index) {
                 setState(
                   () => _selectedTab = index,
                 );

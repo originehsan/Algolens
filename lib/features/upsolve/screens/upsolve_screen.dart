@@ -65,8 +65,8 @@ class _UpsolveScreenState extends ConsumerState<UpsolveScreen> {
             ),
             child: SegmentedTab(
               tabs: const ['Pending', 'Solved'],
-              selectedIndex: _selectedTab,
-              onTabSelected: (index) => setState(
+              currentIndex: _selectedTab,
+              onChanged: (index) => setState(
                 () => _selectedTab = index,
               ),
             ),

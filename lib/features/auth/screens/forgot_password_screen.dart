@@ -88,12 +88,10 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                   ),
                   SizedBox(height: 24.h),
                   AppTextField(
-                    hint: 'Email Address',
+                    label: 'Email Address',
                     controller: _emailController,
                     keyboardType: TextInputType.emailAddress,
-                    prefixIcon: const Icon(
-                      Icons.email_outlined,
-                    ),
+                    prefixIcon: Icons.email_outlined,
                   ),
                 ],
               ),
@@ -101,7 +99,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
             SizedBox(height: 24.h),
             AppButton(
               label: 'Send Reset OTP',
-              onPressed: _handleSubmit,
+              onTap: _handleSubmit,
               isLoading: _isLoading,
             ),
           ],

@@ -154,7 +154,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           SizedBox(height: 4.h),
                           RankChip(
                             rank: profile.rank,
-                            small: true,
+                            compact: true,
                           ),
                         ],
                       ),
@@ -312,9 +312,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             // Logout button
             AppButton(
               label: 'Logout',
-              onPressed: _handleLogout,
-              isOutline: true,
-              color: AppColors.danger,
+              onTap: _handleLogout,
+              type: AppButtonType.outline,
             ),
             SizedBox(height: 100.h),
           ],

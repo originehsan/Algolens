@@ -53,8 +53,8 @@ class AppEmptyWidget extends StatelessWidget {
                 SizedBox(height: 24.h),
                 AppButton(
                   label: buttonLabel!,
-                  onPressed: onButtonTap,
-                  isOutline: true,
+                  onTap: onButtonTap,
+                  type: AppButtonType.outline,
                 ),
               ],
             ],

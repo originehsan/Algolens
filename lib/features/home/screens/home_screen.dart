@@ -119,7 +119,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               SectionHeader(
                 title: 'Upcoming Contests',
                 actionLabel: 'See All',
-                onActionTap: () => context.push('/contests/all'),
+                onAction: () => context.push('/contests/all'),
               ),
               SizedBox(height: 12.h),
               contestsAsync.when(
@@ -311,10 +311,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       children: [
         Expanded(
           child: StatCard(
-            label: 'Problems Solved',
+            icon: Icons.check_circle_rounded,
+            iconColor: AppColors.success,
             value: '${profile.problemsSolved}',
-            valueColor: AppColors.success,
-            isMonospace: true,
+            label: 'Problems Solved',
           )
               .animate()
               .fadeIn(delay: 200.ms, duration: 400.ms)
@@ -323,9 +323,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         SizedBox(width: 12.w),
         Expanded(
           child: StatCard(
-            label: 'Contests',
+            icon: Icons.emoji_events_rounded,
+            iconColor: AppColors.primary,
             value: '${profile.contestsParticipated}',
-            isMonospace: true,
+            label: 'Contests',
           )
               .animate()
               .fadeIn(delay: 300.ms, duration: 400.ms)

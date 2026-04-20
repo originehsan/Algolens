@@ -49,8 +49,8 @@ class AppErrorWidget extends StatelessWidget {
               SizedBox(height: 24.h),
               AppButton(
                 label: retryLabel,
-                onPressed: onRetry,
-                isOutline: true,
+                onTap: onRetry,
+                type: AppButtonType.outline,
               ),
             ],
           ),

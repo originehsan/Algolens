@@ -100,57 +100,24 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     ),
                     SizedBox(height: 24.h),
                     AppTextField(
-                      hint: 'Full Name',
+                      label: 'Full Name',
                       controller: _nameController,
                       keyboardType: TextInputType.name,
-                      prefixIcon: const Icon(
-                        Icons.person_outlined,
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Name is required';
-                        }
-                        if (value.length < 2) {
-                          return 'Name must be at least 2 characters';
-                        }
-                        return null;
-                      },
+                      prefixIcon: Icons.person_outlined,
                     ),
                     SizedBox(height: 14.h),
                     AppTextField(
-                      hint: 'Email Address',
+                      label: 'Email Address',
                       controller: _emailController,
                       keyboardType: TextInputType.emailAddress,
-                      prefixIcon: const Icon(
-                        Icons.email_outlined,
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Email is required';
-                        }
-                        if (!value.contains('@')) {
-                          return 'Enter a valid email';
-                        }
-                        return null;
-                      },
+                      prefixIcon: Icons.email_outlined,
                     ),
                     SizedBox(height: 14.h),
                     AppTextField(
-                      hint: 'Password',
+                      label: 'Password',
                       controller: _passwordController,
                       isPassword: true,
-                      prefixIcon: const Icon(
-                        Icons.lock_outlined,
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Password is required';
-                        }
-                        if (value.length < 8) {
-                          return 'Password must be at least 8 characters';
-                        }
-                        return null;
-                      },
+                      prefixIcon: Icons.lock_outlined,
                     ),
                   ],
                 ),

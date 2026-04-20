@@ -29,7 +29,7 @@ class AuthBottomLayout extends StatelessWidget {
       children: [
         AppButton(
           label: primaryButtonLabel,
-          onPressed: onPrimaryPressed,
+          onTap: onPrimaryPressed,
           isLoading: isLoading,
         ),
         SizedBox(height: 16.h),

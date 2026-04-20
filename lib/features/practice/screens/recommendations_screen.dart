@@ -135,8 +135,8 @@ class _RecommendationsScreenState extends ConsumerState<RecommendationsScreen> {
                         scrollDirection: Axis.horizontal,
                         child: SegmentedTab(
                           tabs: tabs.length > 5 ? tabs.take(5).toList() : tabs,
-                          selectedIndex: _selectedTopicIndex,
-                          onTabSelected: (index) {
+                          currentIndex: _selectedTopicIndex,
+                          onChanged: (index) {
                             setState(() {
                               _selectedTopicIndex = index;
                             });
