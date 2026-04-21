@@ -1,38 +1,38 @@
 # ════════════════════════════════════════
-# SECURITY — DO NOT COMMIT
+# SECURITY
 # ════════════════════════════════════════
-.env                           # API keys, secrets, sensitive config
-.env.local                     # Local environment overrides
-.env.*.local                   # Environment-specific secrets
-*.pem                          # SSL certificates, private keys
-*.key                          # Private keys
-*.jks                          # Android keystore
-*.keystore                     # Android keystore
-.signing/                      # Code signing files
-secrets/                       # Any secrets directory
-local.properties               # Android SDK paths, local machine config
-firebase.json                  # Firebase config with credentials
-google-services.json           # Google Services (keep locally only)
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+*.jks
+*.keystore
+.signing/
+secrets/
+local.properties
+google-services.json
+firebase.json
 
 # ════════════════════════════════════════
-# BUILD & GRADLE — GENERATED FILES
+# BUILD & GENERATED
 # ════════════════════════════════════════
-build/                         # Build output
-dist/                          # Distribution files
-.dart_tool/                    # Dart tool cache
-.gradle/                       # Gradle cache (LARGE, should not commit)
-.m2/                           # Maven cache
-.gradle/wrapper/               # Gradle wrapper
-android/.gradle                # Android gradle cache
-android/build/                 # Android build
-android/app/build/             # Android app build
+build/
+dist/
+.dart_tool/
+.gradle/
+.gradle/wrapper/
+.m2/
+android/.gradle
+android/build/
+android/app/build/
 android/app/debug/
 android/app/profile/
 android/app/release/
-android/local.gradle           # Local gradle config
-ios/build/                     # iOS build
-ios/Pods/                      # CocoaPods dependencies
-ios/Podfile.lock               # CocoaPods lock (optional - some prefer to commit)
+android/local.gradle
+ios/build/
+ios/Pods/
+ios/Podfile.lock
 ios/.symlinks/
 macos/build/
 macos/Flutter/Flutter-Release.xcconfig
@@ -40,67 +40,34 @@ web/build/
 windows/build/
 
 # ════════════════════════════════════════
-# IDE & EDITOR
+# FLUTTER
 # ════════════════════════════════════════
-.idea/                         # JetBrains IDEs
-.vscode/settings.json          # VS Code workspace settings (optional)
-.vscode/launch.json            # VS Code launch config
-*.swp                          # Vim swap files
-*.swo
-*~
-*.sublime-*                    # Sublime Text
-*.iml                          # IntelliJ module files
-*.ipr
-*.iws
-.DS_Store                      # macOS
-Thumbs.db                       # Windows
-.metadata
-
-# ════════════════════════════════════════
-# FLUTTER CACHE & GENERATED
-# ════════════════════════════════════════
-**/doc/api/
-**/ios/Flutter/.last_build_id
 .flutter-plugins
 .flutter-plugins-dependencies
 .pub-cache/
 .pub/
-pubspec.lock                   # OPTIONAL: Uncomment if using different versions locally
-                               # But BETTER to commit for reproducibility
+**/doc/api/
+**/ios/Flutter/.last_build_id
 
 # ════════════════════════════════════════
-# GENERATED CODE — KEEP THESE
+# IDE
 # ════════════════════════════════════════
-# ✓ lib/core/local/isar_collections.g.dart (KEEP)
-# ✓ lib/**/*.g.dart (KEEP - build_runner output needed for app to run)
-# ✗ Do NOT add *.g.dart here - we need them!
+.idea/
+.vscode/settings.json
+.vscode/launch.json
+*.swp
+*.swo
+*~
+*.sublime-*
+*.iml
+*.ipr
+*.iws
+.metadata
+.atom/
+.swiftpm/
 
 # ════════════════════════════════════════
-# DEBUG & ANALYSIS FILES
-# ════════════════════════════════════════
-analyze_current.txt            # Analysis output files
-analyze_errors.txt
-analyze_output.txt
-ERROR_ANALYSIS_REPORT.md       # Error analysis from previous runs
-ERROR_SUMMARY_QUICK_REF.md     # Error summary
-ERRORS_DETAILED.csv            # Error details
-*.log
-.buildlog/
-
-# ════════════════════════════════════════
-# SYMBOLICATION & OBFUSCATION
-# ════════════════════════════════════════
-app.*.symbols
-app.*.map.json
-
-# ════════════════════════════════════════
-# DART COVERAGE
-# ════════════════════════════════════════
-coverage/
-coverage.lcov
-
-# ════════════════════════════════════════
-# OS FILES
+# OS
 # ════════════════════════════════════════
 .DS_Store
 .DS_Store?
@@ -112,72 +79,21 @@ Thumbs.db
 Desktop.ini
 
 # ════════════════════════════════════════
-# VERSION CONTROL
-# ════════════════════════════════════════
-.git/
-.svn/
-.hg/
-.history
-migrate_working_dir/
-
-# ════════════════════════════════════════
-# MISC
+# DART & MISC
 # ════════════════════════════════════════
 *.class
 *.pyc
-*.swo
-atom/
-.atom/
-.build/
-.dart_tool/
-.history
-.svn/
-.swiftpm/
-           # JetBrains IDEs
-.vscode/settings.json          # VS Code workspace settings (optional)
-.vscode/launch.json            # VS Code launch config
-*.swp                          # Vim swap files
-*.swo
-*~
-*.sublime-*                    # Sublime Text
-*.iml                          # IntelliJ module files
-*.ipr
-*.iws
-.DS_Store                      # macOS
-Thumbs.db                       # Windows
-.metadata
-
-# ════════════════════════════════════════
-# FLUTTER CACHE & GENERATED
-# ════════════════════════════════════════
-**/doc/api/
-**/ios/Flutter/.last_build_id
-.flutter-plugins
-.flutter-plugins-dependencies
-.pub-cache/
-.pub/
-pubspec.lock                   # OPTIONAL: Uncomment if using different versions locally
-                               # But BETTER to commit for reproducibility
-
-# ════════════════════════════════════════
-# GENERATED CODE
-# ════════════════════════════════════════
-*.g.dart                       # Code generated by build_runner
-*.config.dart                  # Generated config
-*.freezed.dart                 # Freezed code generation
-lib/generated/                 # Any generated code folder
-generated/
-
-# ════════════════════════════════════════
-# DEBUG & ANALYSIS FILES
-# ════════════════════════════════════════
-analyze_*.txt                  # Analysis output files
-
-     # Error report files
-                  # Error CSV files
-
 *.log
 .buildlog/
+coverage/
+coverage.lcov
+app.*.symbols
+app.*.map.json
+migrate_working_dir/
+.history
+.svn/
+.hg/
+.git/
 
 # ════════════════════════════════════════
 # SYMBOLICATION & OBFUSCATION
@@ -186,56 +102,16 @@ app.*.symbols
 app.*.map.json
 
 # ════════════════════════════════════════
-# DART COVERAGE
+# PROJECT SPECIFIC
 # ════════════════════════════════════════
-coverage/
-coverage.lcov
-
-# ════════════════════════════════════════
-# OS FILES
-# ════════════════════════════════════════
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
-Desktop.ini
-
-# ════════════════════════════════════════
-# VERSION CONTROL
-# ════════════════════════════════════════
-.git/
-.svn/
-.hg/
-.history
-migrate_working_dir/
-
-# ════════════════════════════════════════
-# MISC
-# ════════════════════════════════════════
-*.class
-*.pyc
-*.swo
-atom/
-.atom/
-.build/
-.dart_tool/
-.history
-.svn/
-.swiftpm/
-
-#GITHUB SETUP FILE
+CONTEXT.md
 GITHUB_PUSH_CHECKLIST.md
 GITHUB_SETUP_SUMMARY.md
-
-
-#CONTEXT FILE
-
-CONTEXT.md
-
+HIVE_MIGRATION_FINAL_REPORT.md
+HIVE_MIGRATION_VERIFICATION_REPORT.md
 ERROR_ANALYSIS_REPORT.md
-ERROR_SUMMARY_QUICK_REF.md 
+ERROR_SUMMARY_QUICK_REF.md
 ERRORS_DETAILED.csv
-.env
+analyze_current.txt
+analyze_errors.txt
+analyze_output.txt

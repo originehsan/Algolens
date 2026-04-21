@@ -22,10 +22,7 @@ import 'package:algolens/core/theme/app_colors.dart';
 ///   child: YourScreen(),
 /// )
 class AppBackground extends StatelessWidget {
-  const AppBackground({
-    super.key,
-    required this.child,
-  });
+  const AppBackground({super.key, required this.child});
 
   final Widget child;
 
@@ -37,18 +34,12 @@ class AppBackground extends StatelessWidget {
         // BASE LAYER
         // Deep navy fill
         // ──────────────────────
-
-        Positioned.fill(
-          child: ColoredBox(
-            color: AppColors.bgBase,
-          ),
-        ),
+        Positioned.fill(child: const ColoredBox(color: AppColors.bgBase)),
 
         // ──────────────────────
         // ORB 1 — TOP RIGHT
         // Large blue ambient glow
         // ──────────────────────
-
         Positioned(
           top: -120.h,
           right: -100.w,
@@ -62,7 +53,6 @@ class AppBackground extends StatelessWidget {
         // ORB 2 — BOTTOM LEFT
         // Smaller blue accent orb
         // ──────────────────────
-
         Positioned(
           bottom: -140.h,
           left: -80.w,
@@ -76,10 +66,7 @@ class AppBackground extends StatelessWidget {
         // CONTENT LAYER
         // Child renders on top
         // ──────────────────────
-
-        Positioned.fill(
-          child: child,
-        ),
+        Positioned.fill(child: child),
       ],
     );
   }
@@ -96,10 +83,7 @@ class AppBackground extends StatelessWidget {
 /// color → transparent
 /// Creates depth effect
 class _GlowOrb extends StatelessWidget {
-  const _GlowOrb({
-    required this.size,
-    required this.color,
-  });
+  const _GlowOrb({required this.size, required this.color});
 
   final double size;
   final Color color;
@@ -113,12 +97,7 @@ class _GlowOrb extends StatelessWidget {
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           gradient: RadialGradient(
-            colors: [
-              color,
-              color.withValues(
-                alpha: 0.0,
-              ),
-            ],
+            colors: [color, color.withValues(alpha: 0.0)],
             stops: const [0.0, 1.0],
           ),
         ),

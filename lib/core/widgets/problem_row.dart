@@ -51,24 +51,13 @@ class ProblemRow extends StatelessWidget {
                   runSpacing: 4.h,
                   children: blindMode
                       ? [
-                          _buildChip(
-                            '?',
-                            AppColors.textMuted,
-                          ),
-                          _buildChip(
-                            '?',
-                            AppColors.textMuted,
-                          ),
+                          _buildChip('?', AppColors.textMuted),
+                          _buildChip('?', AppColors.textMuted),
                         ]
                       : problem.tags
-                          .take(3)
-                          .map(
-                            (tag) => _buildChip(
-                              tag,
-                              AppColors.textMuted,
-                            ),
-                          )
-                          .toList(),
+                            .take(3)
+                            .map((tag) => _buildChip(tag, AppColors.textMuted))
+                            .toList(),
                 ),
               ],
             ),
@@ -79,20 +68,20 @@ class ProblemRow extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 8.w,
-                    vertical: 4.h,
-                  ),
+                  padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
                   decoration: BoxDecoration(
                     color: blindMode
-                        ? AppColors.textMuted.withOpacity(0.10)
-                        : _getDifficultyColor(problem.rating).withOpacity(0.15),
+                        ? AppColors.textMuted.withValues(alpha: 0.10)
+                        : _getDifficultyColor(
+                            problem.rating,
+                          ).withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(8.r),
                     border: Border.all(
                       color: blindMode
-                          ? AppColors.textMuted.withOpacity(0.20)
-                          : _getDifficultyColor(problem.rating)
-                              .withOpacity(0.40),
+                          ? AppColors.textMuted.withValues(alpha: 0.20)
+                          : _getDifficultyColor(
+                              problem.rating,
+                            ).withValues(alpha: 0.40),
                       width: 1.0,
                     ),
                   ),
@@ -116,17 +105,11 @@ class ProblemRow extends StatelessWidget {
 
   Widget _buildChip(String label, Color color) {
     return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: 7.w,
-        vertical: 2.h,
-      ),
+      padding: EdgeInsets.symmetric(horizontal: 7.w, vertical: 2.h),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.10),
+        color: color.withValues(alpha: 0.10),
         borderRadius: BorderRadius.circular(6.r),
-        border: Border.all(
-          color: color.withOpacity(0.20),
-          width: 1.0,
-        ),
+        border: Border.all(color: color.withValues(alpha: 0.20), width: 1.0),
       ),
       child: Text(
         label,

@@ -54,15 +54,12 @@ class ContestCard extends StatelessWidget {
             children: [
               // Contest type badge
               Container(
-                padding: EdgeInsets.symmetric(
-                  horizontal: 8.w,
-                  vertical: 3.h,
-                ),
+                padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 3.h),
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.15),
+                  color: AppColors.primary.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(6.r),
                   border: Border.all(
-                    color: AppColors.primary.withOpacity(0.30),
+                    color: AppColors.primary.withValues(alpha: 0.30),
                     width: 1.0,
                   ),
                 ),
@@ -83,13 +80,13 @@ class ContestCard extends StatelessWidget {
                   padding: EdgeInsets.all(6.r),
                   decoration: BoxDecoration(
                     color: isReminderSet
-                        ? AppColors.success.withOpacity(0.15)
-                        : Colors.white.withOpacity(0.05),
+                        ? AppColors.success.withValues(alpha: 0.15)
+                        : Colors.white.withValues(alpha: 0.05),
                     borderRadius: BorderRadius.circular(8.r),
                     border: Border.all(
                       color: isReminderSet
-                          ? AppColors.success.withOpacity(0.40)
-                          : Colors.white.withOpacity(0.15),
+                          ? AppColors.success.withValues(alpha: 0.40)
+                          : Colors.white.withValues(alpha: 0.15),
                       width: 1.0,
                     ),
                   ),
@@ -97,8 +94,9 @@ class ContestCard extends StatelessWidget {
                     isReminderSet
                         ? Icons.notifications_active_rounded
                         : Icons.notifications_none_rounded,
-                    color:
-                        isReminderSet ? AppColors.success : AppColors.textMuted,
+                    color: isReminderSet
+                        ? AppColors.success
+                        : AppColors.textMuted,
                     size: 16.r,
                   ),
                 ),
@@ -117,19 +115,10 @@ class ContestCard extends StatelessWidget {
           // Countdown timer
           Row(
             children: [
-              Icon(
-                Icons.timer_outlined,
-                color: AppColors.primary,
-                size: 14.r,
-              ),
+              Icon(Icons.timer_outlined, color: AppColors.primary, size: 14.r),
               SizedBox(width: 4.w),
-              Text(
-                'Starts in ',
-                style: AppTextStyles.caption,
-              ),
-              CountdownTimer(
-                startTimeSeconds: contest.startTimeSeconds,
-              ),
+              Text('Starts in ', style: AppTextStyles.caption),
+              CountdownTimer(startTimeSeconds: contest.startTimeSeconds),
             ],
           ),
           SizedBox(height: 8.h),
@@ -138,15 +127,12 @@ class ContestCard extends StatelessWidget {
             children: [
               // Suitability badge
               Container(
-                padding: EdgeInsets.symmetric(
-                  horizontal: 8.w,
-                  vertical: 3.h,
-                ),
+                padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 3.h),
                 decoration: BoxDecoration(
-                  color: suitabilityColor.withOpacity(0.15),
+                  color: suitabilityColor.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(20.r),
                   border: Border.all(
-                    color: suitabilityColor.withOpacity(0.40),
+                    color: suitabilityColor.withValues(alpha: 0.40),
                     width: 1.0,
                   ),
                 ),
@@ -167,10 +153,7 @@ class ContestCard extends StatelessWidget {
                 size: 12.r,
               ),
               SizedBox(width: 3.w),
-              Text(
-                contest.formattedDuration,
-                style: AppTextStyles.caption,
-              ),
+              Text(contest.formattedDuration, style: AppTextStyles.caption),
             ],
           ),
         ],

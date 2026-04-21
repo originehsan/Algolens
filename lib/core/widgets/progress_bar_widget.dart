@@ -32,10 +32,7 @@ class ProgressBarWidget extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                label!,
-                style: AppTextStyles.caption,
-              ),
+              Text(label!, style: AppTextStyles.caption),
               if (showPercentageText)
                 Text(
                   '${clampedPercentage.toStringAsFixed(1)}%',
@@ -52,7 +49,7 @@ class ProgressBarWidget extends StatelessWidget {
           lineHeight: height ?? 6.h,
           percent: percentDecimal,
           progressColor: color,
-          backgroundColor: Colors.white.withOpacity(0.10),
+          backgroundColor: Colors.white.withValues(alpha: 0.10),
           barRadius: Radius.circular(4.r),
           padding: EdgeInsets.zero,
           animation: true,
@@ -86,10 +83,7 @@ class ProgressBarRow extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              leftLabel,
-              style: AppTextStyles.caption,
-            ),
+            Text(leftLabel, style: AppTextStyles.caption),
             Text(
               rightLabel,
               style: AppTextStyles.caption.copyWith(
@@ -100,10 +94,7 @@ class ProgressBarRow extends StatelessWidget {
           ],
         ),
         SizedBox(height: 4.h),
-        ProgressBarWidget(
-          percentage: percentage,
-          color: color,
-        ),
+        ProgressBarWidget(percentage: percentage, color: color),
       ],
     );
   }

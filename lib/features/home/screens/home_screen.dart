@@ -56,9 +56,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         backgroundColor: AppColors.bgMid,
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
-          padding: EdgeInsets.symmetric(
-            horizontal: 20.w,
-          ),
+          padding: EdgeInsets.symmetric(horizontal: 20.w),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -70,14 +68,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
               // SECTION 2 — Profile Summary
               profileAsync.when(
-                loading: () => ShimmerCard(
-                  height: 90.h,
-                ),
+                loading: () => ShimmerCard(height: 90.h),
                 error: (e, _) => AppErrorWidget(
                   message: e.toString(),
-                  onRetry: () => ref.refresh(
-                    profileProvider(handle),
-                  ),
+                  onRetry: () => ref.refresh(profileProvider(handle)),
                 ),
                 data: (profile) => _buildProfileCard(profile),
               ),
@@ -85,9 +79,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
               // SECTION 3 — Rating Card
               profileAsync.when(
-                loading: () => ShimmerCard(
-                  height: 80.h,
-                ),
+                loading: () => ShimmerCard(height: 80.h),
                 error: (e, _) => const SizedBox.shrink(),
                 data: (profile) => _buildRatingCard(profile),
               ),
@@ -97,17 +89,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               profileAsync.when(
                 loading: () => Row(
                   children: [
-                    Expanded(
-                      child: ShimmerCard(
-                        height: 70.h,
-                      ),
-                    ),
+                    Expanded(child: ShimmerCard(height: 70.h)),
                     SizedBox(width: 12.w),
-                    Expanded(
-                      child: ShimmerCard(
-                        height: 70.h,
-                      ),
-                    ),
+                    Expanded(child: ShimmerCard(height: 70.h)),
                   ],
                 ),
                 error: (e, _) => const SizedBox.shrink(),
@@ -123,23 +107,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               ),
               SizedBox(height: 12.h),
               contestsAsync.when(
-                loading: () => ShimmerCard(
-                  height: 180.h,
-                ),
+                loading: () => ShimmerCard(height: 180.h),
                 error: (e, _) => AppErrorWidget(
                   message: e.toString(),
-                  onRetry: () => ref.invalidate(
-                    upcomingContestsProvider,
-                  ),
+                  onRetry: () => ref.invalidate(upcomingContestsProvider),
                 ),
                 data: (contests) => _buildContestSwiper(contests),
               ),
               SizedBox(height: 20.h),
 
               // SECTION 6 — Quick Actions
-              const SectionHeader(
-                title: 'Quick Actions',
-              ),
+              const SectionHeader(title: 'Quick Actions'),
               SizedBox(height: 12.h),
               _buildQuickActions(context),
               SizedBox(height: 100.h),
@@ -164,25 +142,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   TypewriterAnimatedText(
                     _getGreeting(),
                     textStyle: AppTextStyles.caption,
-                    speed: const Duration(
-                      milliseconds: 80,
-                    ),
+                    speed: const Duration(milliseconds: 80),
                   ),
                 ],
                 totalRepeatCount: 1,
                 displayFullTextOnTap: true,
               ),
             ),
-            Text(
-              handle,
-              style: AppTextStyles.h2,
-            ),
+            Text(handle, style: AppTextStyles.h2),
           ],
         ),
         profileAsync.when(
           loading: () => CircleAvatar(
             radius: 20.r,
-            backgroundColor: AppColors.primary.withOpacity(0.20),
+            backgroundColor: AppColors.primary.withValues(alpha: 0.20),
             child: Icon(
               Icons.person_outline_rounded,
               color: AppColors.primary,
@@ -191,7 +164,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ),
           error: (e, _) => CircleAvatar(
             radius: 20.r,
-            backgroundColor: AppColors.primary.withOpacity(0.20),
+            backgroundColor: AppColors.primary.withValues(alpha: 0.20),
           ),
           data: (profile) => GestureDetector(
             onTap: () => context.push('/profile'),
@@ -210,20 +183,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     return GlassCard(
       child: Row(
         children: [
-          UserAvatar(
-            handle: profile.handle,
-            rank: profile.rank,
-            size: 52.r,
-          ),
+          UserAvatar(handle: profile.handle, rank: profile.rank, size: 52.r),
           SizedBox(width: 14.w),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  profile.handle,
-                  style: AppTextStyles.bodyBold,
-                ),
+                Text(profile.handle, style: AppTextStyles.bodyBold),
                 SizedBox(height: 4.h),
                 RankChip(rank: profile.rank),
                 SizedBox(height: 4.h),
@@ -237,10 +203,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Text(
-                '🔥',
-                style: TextStyle(fontSize: 16.sp),
-              ),
+              Text('🔥', style: TextStyle(fontSize: 16.sp)),
               Text(
                 '${profile.streakDays}d',
                 style: AppTextStyles.metricSmall.copyWith(
@@ -248,10 +211,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   fontSize: 16.sp,
                 ),
               ),
-              Text(
-                'streak',
-                style: AppTextStyles.caption,
-              ),
+              Text('streak', style: AppTextStyles.caption),
             ],
           ),
         ],
@@ -270,9 +230,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               children: [
                 Text(
                   'CF RATING',
-                  style: AppTextStyles.caption.copyWith(
-                    letterSpacing: 1.0,
-                  ),
+                  style: AppTextStyles.caption.copyWith(letterSpacing: 1.0),
                 ),
                 SizedBox(height: 4.h),
                 Text(
@@ -281,10 +239,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     color: AppColors.primary,
                   ),
                 ),
-                Text(
-                  'Max: ${profile.maxRating}',
-                  style: AppTextStyles.caption,
-                ),
+                Text('Max: ${profile.maxRating}', style: AppTextStyles.caption),
               ],
             ),
           ),
@@ -310,27 +265,29 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     return Row(
       children: [
         Expanded(
-          child: StatCard(
-            icon: Icons.check_circle_rounded,
-            iconColor: AppColors.success,
-            value: '${profile.problemsSolved}',
-            label: 'Problems Solved',
-          )
-              .animate()
-              .fadeIn(delay: 200.ms, duration: 400.ms)
-              .slideX(begin: -0.1, end: 0, delay: 200.ms),
+          child:
+              StatCard(
+                    icon: Icons.check_circle_rounded,
+                    iconColor: AppColors.success,
+                    value: '${profile.problemsSolved}',
+                    label: 'Problems Solved',
+                  )
+                  .animate()
+                  .fadeIn(delay: 200.ms, duration: 400.ms)
+                  .slideX(begin: -0.1, end: 0, delay: 200.ms),
         ),
         SizedBox(width: 12.w),
         Expanded(
-          child: StatCard(
-            icon: Icons.emoji_events_rounded,
-            iconColor: AppColors.primary,
-            value: '${profile.contestsParticipated}',
-            label: 'Contests',
-          )
-              .animate()
-              .fadeIn(delay: 300.ms, duration: 400.ms)
-              .slideX(begin: 0.1, end: 0, delay: 300.ms),
+          child:
+              StatCard(
+                    icon: Icons.emoji_events_rounded,
+                    iconColor: AppColors.primary,
+                    value: '${profile.contestsParticipated}',
+                    label: 'Contests',
+                  )
+                  .animate()
+                  .fadeIn(delay: 300.ms, duration: 400.ms)
+                  .slideX(begin: 0.1, end: 0, delay: 300.ms),
         ),
       ],
     );
@@ -340,10 +297,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     if (contests.isEmpty) {
       return GlassCard(
         child: Center(
-          child: Text(
-            'No upcoming contests',
-            style: AppTextStyles.body,
-          ),
+          child: Text('No upcoming contests', style: AppTextStyles.body),
         ),
       );
     }
@@ -374,9 +328,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   _reminderSet.add(index);
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text(
-                        'Reminder set for ${contests[index].name}',
-                      ),
+                      content: Text('Reminder set for ${contests[index].name}'),
                       backgroundColor: AppColors.success,
                     ),
                   );
@@ -403,14 +355,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   size: 28.r,
                 ),
                 SizedBox(height: 8.h),
-                Text(
-                  'Practice',
-                  style: AppTextStyles.bodyBold,
-                ),
-                Text(
-                  'Weak topics',
-                  style: AppTextStyles.caption,
-                ),
+                Text('Practice', style: AppTextStyles.bodyBold),
+                Text('Weak topics', style: AppTextStyles.caption),
               ],
             ),
           ),
@@ -421,20 +367,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             onTap: () => context.push('/upsolve'),
             child: Column(
               children: [
-                Icon(
-                  Icons.queue_rounded,
-                  color: AppColors.primary,
-                  size: 28.r,
-                ),
+                Icon(Icons.queue_rounded, color: AppColors.primary, size: 28.r),
                 SizedBox(height: 8.h),
-                Text(
-                  'Upsolve',
-                  style: AppTextStyles.bodyBold,
-                ),
-                Text(
-                  'Unsolved problems',
-                  style: AppTextStyles.caption,
-                ),
+                Text('Upsolve', style: AppTextStyles.bodyBold),
+                Text('Unsolved problems', style: AppTextStyles.caption),
               ],
             ),
           ),
@@ -451,14 +387,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   size: 28.r,
                 ),
                 SizedBox(height: 8.h),
-                Text(
-                  'AI Analysis',
-                  style: AppTextStyles.bodyBold,
-                ),
-                Text(
-                  'Get insights',
-                  style: AppTextStyles.caption,
-                ),
+                Text('AI Analysis', style: AppTextStyles.bodyBold),
+                Text('Get insights', style: AppTextStyles.caption),
               ],
             ),
           ),

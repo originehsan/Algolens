@@ -23,24 +23,27 @@ class OnboardingScreen extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   ShaderMask(
-                    shaderCallback: (bounds) => const LinearGradient(
-                      colors: [
-                        Color(0xFF2563EB),
-                        Color(0xFF3B82F6),
-                        Color(0xFF60A5FA),
-                        Color(0xFF3B82F6),
-                        Color(0xFF2563EB),
-                      ],
-                    ).createShader(bounds),
-                    child: Text(
-                      'AlgoLens',
-                      style: AppTextStyles.display.copyWith(
-                        color: Colors.white,
-                        fontSize: 36.sp,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ).animate().fadeIn(duration: 600.ms).slideY(
+                        shaderCallback: (bounds) => const LinearGradient(
+                          colors: [
+                            Color(0xFF2563EB),
+                            Color(0xFF3B82F6),
+                            Color(0xFF60A5FA),
+                            Color(0xFF3B82F6),
+                            Color(0xFF2563EB),
+                          ],
+                        ).createShader(bounds),
+                        child: Text(
+                          'AlgoLens',
+                          style: AppTextStyles.display.copyWith(
+                            color: Colors.white,
+                            fontSize: 36.sp,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      )
+                      .animate()
+                      .fadeIn(duration: 600.ms)
+                      .slideY(
                         begin: 0.3,
                         end: 0,
                         duration: 600.ms,
@@ -51,10 +54,7 @@ class OnboardingScreen extends StatelessWidget {
                     'Competitive Programming\nAnalytics Platform',
                     style: AppTextStyles.body,
                     textAlign: TextAlign.center,
-                  ).animate().fadeIn(
-                        delay: 200.ms,
-                        duration: 600.ms,
-                      ),
+                  ).animate().fadeIn(delay: 200.ms, duration: 600.ms),
                   SizedBox(height: 24.h),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -63,10 +63,7 @@ class OnboardingScreen extends StatelessWidget {
                       SizedBox(width: 8.w),
                       _featurePill('Analyze Weak Topics'),
                     ],
-                  ).animate().fadeIn(
-                        delay: 400.ms,
-                        duration: 600.ms,
-                      ),
+                  ).animate().fadeIn(delay: 400.ms, duration: 600.ms),
                   SizedBox(height: 8.h),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -75,10 +72,7 @@ class OnboardingScreen extends StatelessWidget {
                       SizedBox(width: 8.w),
                       _featurePill('Friend Compare'),
                     ],
-                  ).animate().fadeIn(
-                        delay: 600.ms,
-                        duration: 600.ms,
-                      ),
+                  ).animate().fadeIn(delay: 600.ms, duration: 600.ms),
                 ],
               ),
             ),
@@ -87,19 +81,13 @@ class OnboardingScreen extends StatelessWidget {
                 AppButton(
                   label: 'Get Started',
                   onTap: () => context.go('/register'),
-                ).animate().fadeIn(
-                      delay: 800.ms,
-                      duration: 400.ms,
-                    ),
+                ).animate().fadeIn(delay: 800.ms, duration: 400.ms),
                 SizedBox(height: 12.h),
                 AppButton(
                   label: 'Login',
                   type: AppButtonType.outline,
                   onTap: () => context.go('/login'),
-                ).animate().fadeIn(
-                      delay: 900.ms,
-                      duration: 400.ms,
-                    ),
+                ).animate().fadeIn(delay: 900.ms, duration: 400.ms),
                 SizedBox(height: 40.h),
               ],
             ),
@@ -111,15 +99,12 @@ class OnboardingScreen extends StatelessWidget {
 
   Widget _featurePill(String label) {
     return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: 12.w,
-        vertical: 6.h,
-      ),
+      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
       decoration: BoxDecoration(
-        color: AppColors.primary.withOpacity(0.10),
+        color: AppColors.primary.withValues(alpha: 0.10),
         borderRadius: BorderRadius.circular(20.r),
         border: Border.all(
-          color: AppColors.primary.withOpacity(0.25),
+          color: AppColors.primary.withValues(alpha: 0.25),
           width: 1.0,
         ),
       ),
