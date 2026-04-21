@@ -16,7 +16,6 @@ import 'package:algolens/core/widgets/error_widget.dart';
 import 'package:algolens/core/widgets/empty_widget.dart';
 import 'package:algolens/features/auth/providers/auth_provider.dart';
 import 'package:algolens/features/friends/providers/friends_provider.dart';
-import 'package:algolens/features/friends/data/repositories/friends_repository.dart';
 
 class FriendsScreen extends ConsumerStatefulWidget {
   const FriendsScreen({super.key});

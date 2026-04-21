@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:algolens/core/network/api_endpoints.dart';
 import 'package:algolens/core/storage/secure_storage.dart';
+import 'package:algolens/core/local/hive_service.dart';
 
 // ──────────────────────────────
 // AUTH INTERCEPTOR
@@ -105,6 +106,7 @@ class AuthInterceptor extends Interceptor {
         /// No refresh token
         /// Force logout
         await SecureStorage.clearTokens();
+        await HiveService.clearOnLogout();
         handler.next(err);
         return;
       }
@@ -130,6 +132,7 @@ class AuthInterceptor extends Interceptor {
 
       if (newAccess == null) {
         await SecureStorage.clearTokens();
+        await HiveService.clearOnLogout();
         handler.next(err);
         return;
       }
@@ -166,6 +169,7 @@ class AuthInterceptor extends Interceptor {
       /// Refresh failed
       /// Force logout everything
       await SecureStorage.clearTokens();
+      await HiveService.clearOnLogout();
 
       /// Fail all queued requests
       for (final pending in _queue) {

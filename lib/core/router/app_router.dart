@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:algolens/core/storage/secure_storage.dart';
+import 'package:algolens/features/auth/screens/splash_screen.dart';
 
 // ──────────────────────────────
 // ROUTE NAMES
@@ -106,50 +106,13 @@ abstract class AppRouter {
 
       // ────────────────────────
       // AUTH REDIRECT
-      // Runs on every navigation
+      // Simplified - splash handles auth
       // ────────────────────────
 
-      redirect: (context, state) async {
-        final token = await SecureStorage.getAccessToken();
-        final cfHandle = await SecureStorage.getCfHandle();
-
-        final isLoggedIn = token != null;
-        final hasCfHandle = cfHandle != null && cfHandle.isNotEmpty;
-
-        final path = state.matchedLocation;
-
-        /// Public routes — no guard
-        const publicRoutes = [
-          RoutePaths.splash,
-          RoutePaths.onboarding,
-          RoutePaths.register,
-          RoutePaths.emailVerification,
-          RoutePaths.login,
-          RoutePaths.forgotPassword,
-          RoutePaths.resetPassword,
-        ];
-
-        final isPublic = publicRoutes.contains(path);
-
-        /// Not logged in + private
-        /// → redirect to login
-        if (!isLoggedIn && !isPublic) {
-          return RoutePaths.login;
-        }
-
-        /// Logged in + no CF handle
-        /// + not on setup screen
-        if (isLoggedIn && !hasCfHandle && path != RoutePaths.cfHandleSetup) {
-          return RoutePaths.cfHandleSetup;
-        }
-
-        /// Logged in + has CF handle
-        /// + on auth screen
-        if (isLoggedIn && hasCfHandle && isPublic) {
-          return RoutePaths.home;
-        }
-
-        /// No redirect needed
+      redirect: (context, state) {
+        /// Always allow splash on startup
+        /// Splash screen handles auth logic
+        /// and redirects appropriately
         return null;
       },
 
@@ -166,9 +129,7 @@ abstract class AppRouter {
         GoRoute(
           path: RoutePaths.splash,
           name: RouteNames.splash,
-          builder: (context, state) => const _PlaceholderScreen(
-            label: 'Splash',
-          ),
+          builder: (context, state) => const SplashScreen(),
         ),
 
         GoRoute(

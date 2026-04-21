@@ -1,6 +1,5 @@
 import 'package:algolens/core/network/dio_client.dart';
 import 'package:algolens/core/network/api_endpoints.dart';
-import 'package:algolens/core/errors/app_exceptions.dart';
 import 'package:algolens/features/friends/data/models/friend_model.dart';
 import 'package:algolens/features/friends/data/models/leaderboard_model.dart';
 
@@ -80,7 +79,7 @@ class FriendsRepository {
           'handle2': handle2,
         },
       );
-      return response as Map<String, dynamic>;
+      return response;
     } catch (e) {
       rethrow;
     }

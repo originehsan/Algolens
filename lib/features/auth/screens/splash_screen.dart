@@ -19,20 +19,27 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    _navigate();
+    // Delay navigation to allow splash to render
+    Future.delayed(
+      const Duration(milliseconds: 3500),
+      _navigate,
+    );
   }
 
   Future<void> _navigate() async {
-    await Future.delayed(
-      const Duration(milliseconds: 2500),
-    );
     if (!mounted) return;
-    final isLoggedIn = await SecureStorage.isLoggedIn();
-    if (!mounted) return;
-    if (isLoggedIn) {
-      context.go('/home');
-    } else {
-      context.go('/onboarding');
+    try {
+      final isLoggedIn = await SecureStorage.isLoggedIn();
+      if (!mounted) return;
+
+      if (isLoggedIn) {
+        if (mounted) context.go('/home');
+      } else {
+        if (mounted) context.go('/onboarding');
+      }
+    } catch (e) {
+      // Default to onboarding on error
+      if (mounted) context.go('/onboarding');
     }
   }
 
@@ -66,9 +73,10 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
                     duration: 600.ms,
                   ),
               SizedBox(height: 48.h),
+              // Loading pulse indicator
               SizedBox(
-                width: 6.r,
-                height: 6.r,
+                width: 12.r,
+                height: 12.r,
                 child: Container(
                   decoration: const BoxDecoration(
                     shape: BoxShape.circle,

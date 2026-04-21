@@ -1,6 +1,7 @@
+import 'dart:convert';
 import 'package:algolens/core/network/dio_client.dart';
 import 'package:algolens/core/network/api_endpoints.dart';
-import 'package:algolens/core/errors/app_exceptions.dart';
+import 'package:algolens/core/local/hive_service.dart';
 import 'package:algolens/features/upsolve/data/models/upsolve_model.dart';
 
 class UpsolveRepository {
@@ -13,10 +14,25 @@ class UpsolveRepository {
       final response = await _dioClient.get(
         ApiEndpoints.upsolve(handle),
       );
-      return UpsolveContest.fromApiResponse(
-        response as Map<String, dynamic>,
+      final upsolve = UpsolveContest.fromApiResponse(response);
+
+      // Cache as JSON
+      await HiveService.cachedContests.put(
+        'upsolve_$handle',
+        jsonEncode(response),
       );
+
+      return upsolve;
     } catch (e) {
+      // Try cache fallback
+      final cached = HiveService.cachedContests.get('upsolve_$handle');
+      if (cached != null) {
+        try {
+          return UpsolveContest.fromApiResponse(jsonDecode(cached as String));
+        } catch (_) {
+          rethrow;
+        }
+      }
       rethrow;
     }
   }

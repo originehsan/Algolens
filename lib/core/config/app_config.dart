@@ -2,6 +2,7 @@
 ///
 /// Contains app metadata and
 /// feature flags for AlgoLens
+library algolens.core.config.app_config;
 
 class AppConfig {
   AppConfig._();

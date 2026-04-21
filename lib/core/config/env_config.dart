@@ -8,6 +8,7 @@
 /// → Never hardcode baseUrl
 ///   in any other file
 /// → Always use EnvConfig.baseUrl
+library algolens.core.config.env_config;
 
 class EnvConfig {
   EnvConfig._();

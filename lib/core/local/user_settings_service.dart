@@ -1,299 +1,223 @@
+import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:isar/isar.dart';
-import 'package:algolens/core/local/isar_service.dart';
-import 'package:algolens/core/local/isar_collections.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:algolens/core/local/hive_service.dart';
 import 'package:algolens/core/config/env_config.dart';
 
 // ──────────────────────────────
-// STREAM PROVIDER
-// Reactive UI auto updates
+// USER SETTINGS MODEL
+// Plain Dart — NO annotations
+// NO code generation needed
 // ──────────────────────────────
 
-/// Reactive UserSettings stream
-/// UI rebuilds when settings change
-///
-/// Usage in widget:
-/// ref.watch(userSettingsProvider)
-///   .when(
-///     loading: () => ...,
-///     error: (e, s) => ...,
-///     data: (settings) => ...,
-///   )
-final userSettingsProvider = StreamProvider<UserSettings>((ref) {
-  final isar = ref.watch(isarProvider);
-  return isar.userSettings
-      .watchObject(
-        1,
-        fireImmediately: true,
-      )
-      .map((s) => s ?? UserSettings());
-});
+class UserSettings {
+  UserSettings({
+    this.contestAlertsEnabled = true,
+    this.streakReminderEnabled = true,
+    this.upsolveReminderEnabled = true,
+    this.reminderMinutesBefore = 30,
+    this.ttsEnabled = false,
+    this.ttsLanguage = 'en-US',
+    this.ttsVolume = 0.8,
+    this.smsAlertsEnabled = false,
+    this.voiceCallEnabled = false,
+    this.isPhoneVerified = false,
+    this.phoneNumber,
+    this.widgetEnabled = false,
+    this.onboardingCompleted = false,
+    this.notificationAsked = false,
+    this.bannerLastShownAt,
+  });
+
+  bool contestAlertsEnabled;
+  bool streakReminderEnabled;
+  bool upsolveReminderEnabled;
+  int reminderMinutesBefore;
+  bool ttsEnabled;
+  String ttsLanguage;
+  double ttsVolume;
+  bool smsAlertsEnabled;
+  bool voiceCallEnabled;
+  bool isPhoneVerified;
+  String? phoneNumber;
+  bool widgetEnabled;
+  bool onboardingCompleted;
+  bool notificationAsked;
+  DateTime? bannerLastShownAt;
+}
 
 // ──────────────────────────────
-// SERVICE PROVIDER
+// HIVE KEYS
 // ──────────────────────────────
 
-/// UserSettings service provider
-/// Use ref.read() to call methods
-///
-/// Usage:
-/// final service = ref.read(
-///   userSettingsServiceProvider,
-/// );
-/// await service.setTtsEnabled(true);
-final userSettingsServiceProvider = Provider<UserSettingsService>(
+abstract class _K {
+  static const ca = 'ca';
+  static const sr = 'sr';
+  static const ur = 'ur';
+  static const rm = 'rm';
+  static const te = 'te';
+  static const tl = 'tl';
+  static const tv = 'tv';
+  static const sa = 'sa';
+  static const vc = 'vc';
+  static const pv = 'pv';
+  static const pn = 'pn';
+  static const we = 'we';
+  static const oc = 'oc';
+  static const na = 'na';
+  static const bs = 'bs';
+}
+
+// ──────────────────────────────
+// PROVIDERS
+// ──────────────────────────────
+
+final userSettingsProvider = StreamProvider<UserSettings>(
   (ref) {
-    final isar = ref.watch(isarProvider);
-    return UserSettingsService(isar);
+    final svc = ref.watch(
+      userSettingsServiceProvider,
+    );
+    return svc.stream;
   },
 );
 
+final userSettingsServiceProvider = Provider<UserSettingsService>(
+  (ref) => UserSettingsService(),
+);
+
 // ──────────────────────────────
-// SERVICE CLASS
-// All UserSettings CRUD
+// SERVICE
 // ──────────────────────────────
 
-/// UserSettings CRUD operations
-///
-/// Rules:
-/// → Never access Isar directly
-///   for settings outside this
-/// → Always use this service
-/// → Single source of truth
 class UserSettingsService {
-  UserSettingsService(this._isar);
-  final Isar _isar;
+  UserSettingsService() {
+    _ctrl = StreamController<UserSettings>.broadcast();
+    _emit();
+    _box.listenable().addListener(_emit);
+  }
+
+  late final StreamController<UserSettings> _ctrl;
+
+  Box<dynamic> get _box => HiveService.userSettings;
+
+  Stream<UserSettings> get stream => _ctrl.stream;
+
+  void _emit() {
+    if (!_ctrl.isClosed) {
+      _ctrl.add(_read());
+    }
+  }
+
+  void dispose() {
+    _box.listenable().removeListener(_emit);
+    _ctrl.close();
+  }
 
   // ────────────────────────────
   // READ
   // ────────────────────────────
 
-  /// Get current settings
-  /// Creates defaults if first time
-  Future<UserSettings> get() async {
-    final existing = await _isar.userSettings.get(1);
-    if (existing != null) {
-      return existing;
-    }
-
-    /// First launch — save defaults
-    final defaults = UserSettings();
-    await _isar.writeTxn(() async {
-      await _isar.userSettings.put(defaults);
-    });
-    return defaults;
-  }
-
-  // ────────────────────────────
-  // INTERNAL UPDATE HELPER
-  // ────────────────────────────
-
-  /// Get current → apply change → save
-  /// Used by all setter methods
-  Future<void> _update(
-    void Function(UserSettings s) change,
-  ) async {
-    final s = await get();
-    change(s);
-    s.id = 1;
-    await _isar.writeTxn(() async {
-      await _isar.userSettings.put(s);
-    });
-  }
-
-  // ────────────────────────────
-  // NOTIFICATION SETTINGS
-  // ────────────────────────────
-
-  /// Toggle contest popup alerts
-  /// flutter_local_notifications
-  /// FREE feature
-  Future<void> setContestAlerts(
-    bool enabled,
-  ) =>
-      _update(
-        (s) => s.contestAlertsEnabled = enabled,
+  UserSettings _read() => UserSettings(
+        contestAlertsEnabled: _b<bool>(_K.ca, true),
+        streakReminderEnabled: _b<bool>(_K.sr, true),
+        upsolveReminderEnabled: _b<bool>(_K.ur, true),
+        reminderMinutesBefore: _b<int>(_K.rm, 30),
+        ttsEnabled: _b<bool>(_K.te, false),
+        ttsLanguage: _b<String>(_K.tl, 'en-US'),
+        ttsVolume: (_box.get(
+          _K.tv,
+          defaultValue: 0.8,
+        ) as num)
+            .toDouble(),
+        smsAlertsEnabled: _b<bool>(_K.sa, false),
+        voiceCallEnabled: _b<bool>(_K.vc, false),
+        isPhoneVerified: _b<bool>(_K.pv, false),
+        phoneNumber: _box.get(_K.pn) as String?,
+        widgetEnabled: _b<bool>(_K.we, false),
+        onboardingCompleted: _b<bool>(_K.oc, false),
+        notificationAsked: _b<bool>(_K.na, false),
+        bannerLastShownAt: _box.get(_K.bs) != null
+            ? DateTime.tryParse(
+                _box.get(_K.bs) as String,
+              )
+            : null,
       );
 
-  /// Toggle streak reminder
-  /// Daily local notification
-  /// FREE feature
-  Future<void> setStreakReminder(
-    bool enabled,
-  ) =>
-      _update(
-        (s) => s.streakReminderEnabled = enabled,
-      );
+  T _b<T>(String key, T def) =>
+      (_box.get(
+        key,
+        defaultValue: def,
+      ) as T?) ??
+      def;
 
-  /// Toggle upsolve reminder
-  /// Weekly local notification
-  /// FREE feature
-  Future<void> setUpsolveReminder(
-    bool enabled,
-  ) =>
-      _update(
-        (s) => s.upsolveReminderEnabled = enabled,
-      );
-
-  /// Set reminder timing
-  /// Minutes before contest (0-120)
-  /// Clamped to valid range
-  Future<void> setReminderMinutes(
-    int minutes,
-  ) async {
-    final clamped = minutes.clamp(
-      EnvConfig.minReminderMins,
-      EnvConfig.maxReminderMins,
-    );
-    return _update(
-      (s) => s.reminderMinutesBefore = clamped,
-    );
-  }
+  UserSettings get() => _read();
 
   // ────────────────────────────
-  // TTS SETTINGS (FREE)
-  // flutter_tts package
+  // SETTERS
   // ────────────────────────────
 
-  /// Toggle TTS voice reminder
-  /// App must be open/foreground
-  /// FREE feature
-  Future<void> setTtsEnabled(
-    bool enabled,
-  ) =>
-      _update(
-        (s) => s.ttsEnabled = enabled,
+  Future<void> setContestAlerts(bool v) => _box.put(_K.ca, v);
+
+  Future<void> setStreakReminder(bool v) => _box.put(_K.sr, v);
+
+  Future<void> setUpsolveReminder(bool v) => _box.put(_K.ur, v);
+
+  Future<void> setReminderMinutes(int minutes) => _box.put(
+        _K.rm,
+        minutes.clamp(
+          EnvConfig.minReminderMins,
+          EnvConfig.maxReminderMins,
+        ),
       );
 
-  /// Set TTS language
-  /// Default: 'en-US'
-  Future<void> setTtsLanguage(
-    String language,
-  ) =>
-      _update(
-        (s) => s.ttsLanguage = language,
+  Future<void> setTtsEnabled(bool v) => _box.put(_K.te, v);
+
+  Future<void> setTtsLanguage(String v) => _box.put(_K.tl, v);
+
+  Future<void> setTtsVolume(double v) => _box.put(
+        _K.tv,
+        v.clamp(0.0, 1.0),
       );
 
-  /// Set TTS volume
-  /// Range: 0.0 to 1.0
-  Future<void> setTtsVolume(
-    double volume,
-  ) async {
-    final clamped = volume.clamp(0.0, 1.0);
-    return _update(
-      (s) => s.ttsVolume = clamped,
-    );
-  }
+  Future<void> setSmsAlerts(bool v) => _box.put(_K.sa, v);
 
-  // ────────────────────────────
-  // PREMIUM FEATURES 🔒
-  // Locked until payment gateway
-  // Show premium dialog on tap
-  // DO NOT enable these now
-  // ────────────────────────────
+  Future<void> setVoiceCall(bool v) => _box.put(_K.vc, v);
 
-  /// SMS alerts via Twilio
-  /// PREMIUM 🔒
-  /// Only set true after payment
-  Future<void> setSmsAlerts(
-    bool enabled,
-  ) =>
-      _update(
-        (s) => s.smsAlertsEnabled = enabled,
-      );
-
-  /// Voice call alerts via Twilio
-  /// PREMIUM 🔒
-  /// Only set true after payment
-  Future<void> setVoiceCall(
-    bool enabled,
-  ) =>
-      _update(
-        (s) => s.voiceCallEnabled = enabled,
-      );
-
-  /// Phone verified status
-  /// PREMIUM 🔒
-  /// Set after /verification/verify-otp
   Future<void> setPhoneVerified({
     required bool verified,
     String? phoneNumber,
-  }) =>
-      _update((s) {
-        s.isPhoneVerified = verified;
-        s.phoneNumber = phoneNumber;
-      });
+  }) async {
+    await _box.put(_K.pv, verified);
+    if (phoneNumber != null) {
+      await _box.put(
+        _K.pn,
+        phoneNumber,
+      );
+    }
+  }
 
-  // ────────────────────────────
-  // HOME WIDGET
-  // home_widget + workmanager
-  // ────────────────────────────
+  Future<void> setWidgetEnabled(bool v) => _box.put(_K.we, v);
 
-  /// Toggle home screen widget
-  Future<void> setWidgetEnabled(
-    bool enabled,
-  ) =>
-      _update(
-        (s) => s.widgetEnabled = enabled,
+  Future<void> markPermissionAsked() => _box.put(_K.na, true);
+
+  Future<void> updateBannerShownTime() => _box.put(
+        _K.bs,
+        DateTime.now().toIso8601String(),
       );
 
-  // ────────────────────────────
-  // NOTIFICATION PERMISSION
-  // Snapchat style flow
-  // ────────────────────────────
-
-  /// Mark permission already asked
-  /// Never show bottom sheet again
-  Future<void> markPermissionAsked() => _update(
-        (s) => s.notificationAsked = true,
-      );
-
-  /// Update banner shown time
-  /// Banner reshows after 3 days
-  Future<void> updateBannerShownTime() => _update(
-        (s) => s.bannerLastShownAt = DateTime.now(),
-      );
-
-  /// Should show permission banner?
-  ///
-  /// Returns true if:
-  /// → Already asked (no sheet)
-  /// → Banner never shown OR
-  /// → 3+ days since last shown
   Future<bool> shouldShowBanner() async {
-    final s = await get();
-
-    /// Not asked yet
-    /// → Show bottom sheet instead
+    final s = _read();
     if (!s.notificationAsked) {
       return false;
     }
-
-    /// Banner never shown
     if (s.bannerLastShownAt == null) {
       return true;
     }
-
-    /// Check 3 day timer
-    final daysSince = DateTime.now().difference(s.bannerLastShownAt!).inDays;
-
-    return daysSince >= EnvConfig.bannerReshowDays;
+    return DateTime.now().difference(s.bannerLastShownAt!).inDays >=
+        EnvConfig.bannerReshowDays;
   }
 
-  // ────────────────────────────
-  // ONBOARDING
-  // Show slides only once
-  // ────────────────────────────
+  Future<void> completeOnboarding() => _box.put(_K.oc, true);
 
-  /// Mark onboarding completed
-  /// Never show again
-  Future<void> completeOnboarding() => _update(
-        (s) => s.onboardingCompleted = true,
-      );
-
-  /// Has user done onboarding?
-  Future<bool> isOnboardingDone() async {
-    final s = await get();
-    return s.onboardingCompleted;
-  }
+  Future<bool> isOnboardingDone() async => _b<bool>(_K.oc, false);
 }

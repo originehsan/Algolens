@@ -8,7 +8,6 @@ import 'package:algolens/core/theme/app_text_styles.dart';
 import 'package:algolens/core/providers/ui_providers.dart';
 import 'package:algolens/core/router/app_router.dart';
 import 'package:algolens/core/widgets/app_background.dart';
-import 'package:algolens/core/widgets/user_avatar.dart';
 
 // ──────────────────────────────
 // MAIN SCAFFOLD

@@ -2,6 +2,7 @@
 ///
 /// Single source of truth for
 /// all API and app exceptions.
+library algolens.core.errors.app_exceptions;
 
 // ──────────────────────────────
 // EXCEPTION TYPES

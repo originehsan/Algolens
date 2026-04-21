@@ -1,8 +1,5 @@
-import 'package:json_annotation/json_annotation.dart';
+// Plain Dart models — NO code generation needed
 
-part 'auth_request_model.g.dart';
-
-@JsonSerializable()
 class RegisterRequest {
   final String name;
   final String email;
@@ -14,33 +11,55 @@ class RegisterRequest {
     required this.password,
   });
 
-  factory RegisterRequest.fromJson(Map<String, dynamic> json) =>
-      _$RegisterRequestFromJson(json);
+  factory RegisterRequest.fromJson(Map<String, dynamic> json) {
+    return RegisterRequest(
+      name: json['name'] as String? ?? '',
+      email: json['email'] as String? ?? '',
+      password: json['password'] as String? ?? '',
+    );
+  }
 
-  Map<String, dynamic> toJson() => _$RegisterRequestToJson(this);
+  Map<String, dynamic> toJson() => {
+        'name': name,
+        'email': email,
+        'password': password,
+      };
 }
 
-@JsonSerializable()
 class LoginRequest {
   final String email;
   final String password;
 
-  const LoginRequest({required this.email, required this.password});
+  const LoginRequest({
+    required this.email,
+    required this.password,
+  });
 
-  factory LoginRequest.fromJson(Map<String, dynamic> json) =>
-      _$LoginRequestFromJson(json);
+  factory LoginRequest.fromJson(Map<String, dynamic> json) {
+    return LoginRequest(
+      email: json['email'] as String? ?? '',
+      password: json['password'] as String? ?? '',
+    );
+  }
 
-  Map<String, dynamic> toJson() => _$LoginRequestToJson(this);
+  Map<String, dynamic> toJson() => {
+        'email': email,
+        'password': password,
+      };
 }
 
-@JsonSerializable()
 class RefreshRequest {
   final String refreshToken;
 
   const RefreshRequest({required this.refreshToken});
 
-  factory RefreshRequest.fromJson(Map<String, dynamic> json) =>
-      _$RefreshRequestFromJson(json);
+  factory RefreshRequest.fromJson(Map<String, dynamic> json) {
+    return RefreshRequest(
+      refreshToken: json['refreshToken'] as String? ?? '',
+    );
+  }
 
-  Map<String, dynamic> toJson() => _$RefreshRequestToJson(this);
+  Map<String, dynamic> toJson() => {
+        'refreshToken': refreshToken,
+      };
 }

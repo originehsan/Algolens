@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:algolens/core/storage/secure_storage.dart';
 import 'package:algolens/core/network/dio_client.dart';
+import 'package:algolens/core/local/hive_service.dart';
 import 'package:algolens/features/auth/data/repositories/auth_repository.dart';
 
 class AuthState {
@@ -121,6 +122,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
       // Ignore logout errors
     } finally {
       await SecureStorage.clearAll();
+      await HiveService.clearOnLogout();
       state = const AuthState();
     }
   }
