@@ -1,264 +1,410 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
-import 'package:flutter_card_swiper/flutter_card_swiper.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
-import 'package:animated_text_kit/animated_text_kit.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:algolens/core/router/app_router.dart';
 import 'package:algolens/core/theme/app_colors.dart';
-import 'package:algolens/core/theme/app_text_styles.dart';
-import 'package:algolens/core/widgets/page_wrapper.dart';
+import 'package:algolens/core/widgets/app_background.dart';
 import 'package:algolens/core/widgets/glass_card.dart';
+import 'package:algolens/core/widgets/loading_shimmer.dart';
+import 'package:algolens/core/widgets/offline_banner.dart';
+import 'package:algolens/core/widgets/progress_bar_widget.dart';
+import 'package:algolens/core/widgets/rank_chip.dart';
 import 'package:algolens/core/widgets/section_header.dart';
 import 'package:algolens/core/widgets/stat_card.dart';
 import 'package:algolens/core/widgets/user_avatar.dart';
-import 'package:algolens/core/widgets/rank_chip.dart';
-import 'package:algolens/core/widgets/contest_card.dart';
-import 'package:algolens/core/widgets/error_widget.dart';
+import 'package:algolens/features/home/data/models/home_model.dart';
+import 'package:algolens/features/home/providers/home_provider.dart';
+import 'package:algolens/features/profile/data/models/profile_model.dart';
 import 'package:algolens/features/profile/providers/profile_provider.dart';
-import 'package:algolens/features/contests/providers/contest_provider.dart';
-import 'package:algolens/features/contests/data/models/contest_model.dart';
 
-class HomeScreen extends ConsumerStatefulWidget {
+// ─────────────────────────────────
+// HOME SCREEN
+// Main dashboard screen
+// ─────────────────────────────────
+
+class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
   @override
-  ConsumerState<HomeScreen> createState() => _HomeScreenState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final handleAsync = ref.watch(cfHandleProvider);
 
-class _HomeScreenState extends ConsumerState<HomeScreen> {
-  final CardSwiperController _cardController = CardSwiperController();
-  final Set<int> _reminderSet = {};
+    return AppBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: Column(
+          children: [
+            // Offline banner — always at top
+            const OfflineBanner(),
 
-  @override
-  void dispose() {
-    _cardController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    const handle = 'ehsan_cf';
-
-    final profileAsync = ref.watch(profileProvider(handle));
-    final contestsAsync = ref.watch(upcomingContestsProvider);
-
-    return PageWrapper(
-      child: RefreshIndicator(
-        onRefresh: () async {
-          ref.invalidate(profileProvider(handle));
-          ref.invalidate(upcomingContestsProvider);
-        },
-        color: AppColors.primary,
-        backgroundColor: AppColors.bgMid,
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: EdgeInsets.symmetric(horizontal: 20.w),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SizedBox(height: 16.h),
-
-              // SECTION 1 — Top Bar
-              _buildTopBar(handle, profileAsync),
-              SizedBox(height: 16.h),
-
-              // SECTION 2 — Profile Summary
-              profileAsync.when(
-                loading: () => GlassCardShimmer(height: 90),
-                error: (e, _) => AppErrorWidget(
-                  message: e.toString(),
-                  onRetry: () => ref.refresh(profileProvider(handle)),
+            Expanded(
+              child: handleAsync.when(
+                loading: () => _LoadingBody(),
+                error: (e, s) => _ErrorBody(
+                  error: e.toString(),
+                  onRetry: () => ref.invalidate(cfHandleProvider),
                 ),
-                data: (profile) => _buildProfileCard(profile),
+                data: (handle) {
+                  if (handle == null || handle.isEmpty) {
+                    return _ErrorBody(
+                      error: 'Handle not set',
+                      onRetry: () => ref.invalidate(cfHandleProvider),
+                    );
+                  }
+                  return _HomeBody(handle: handle);
+                },
               ),
-              SizedBox(height: 12.h),
-
-              // SECTION 3 — Rating Card
-              profileAsync.when(
-                loading: () => GlassCardShimmer(height: 80),
-                error: (e, _) => const SizedBox.shrink(),
-                data: (profile) => _buildRatingCard(profile),
-              ),
-              SizedBox(height: 12.h),
-
-              // SECTION 4 — Stats Row
-              profileAsync.when(
-                loading: () => Row(
-                  children: [
-                    Expanded(child: GlassCardShimmer(height: 70)),
-                    SizedBox(width: 12.w),
-                    Expanded(child: GlassCardShimmer(height: 70)),
-                  ],
-                ),
-                error: (e, _) => const SizedBox.shrink(),
-                data: (profile) => _buildStatsRow(profile),
-              ),
-              SizedBox(height: 20.h),
-
-              // SECTION 5 — Upcoming Contests
-              SectionHeader(
-                title: 'Upcoming Contests',
-                actionLabel: 'See All',
-                onAction: () => context.push('/contests/all'),
-              ),
-              SizedBox(height: 12.h),
-              contestsAsync.when(
-                loading: () => GlassCardShimmer(height: 180),
-                error: (e, _) => AppErrorWidget(
-                  message: e.toString(),
-                  onRetry: () => ref.invalidate(upcomingContestsProvider),
-                ),
-                data: (contests) => _buildContestSwiper(contests),
-              ),
-              SizedBox(height: 20.h),
-
-              // SECTION 6 — Quick Actions
-              const SectionHeader(title: 'Quick Actions'),
-              SizedBox(height: 12.h),
-              _buildQuickActions(context),
-              SizedBox(height: 100.h),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
+}
 
-  Widget _buildTopBar(String handle, AsyncValue profileAsync) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(
-              height: 16.h,
-              child: AnimatedTextKit(
-                animatedTexts: [
-                  TypewriterAnimatedText(
-                    _getGreeting(),
-                    textStyle: AppTextStyles.caption,
-                    speed: const Duration(milliseconds: 80),
+// ─────────────────────────────────
+// HOME BODY
+// Main content when handle loaded
+// ─────────────────────────────────
+
+class _HomeBody extends ConsumerWidget {
+  const _HomeBody({required this.handle});
+
+  final String handle;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final profileAsync = ref.watch(profileProvider(handle));
+    final readinessAsync = ref.watch(homeReadinessProvider);
+    final deltaAsync = ref.watch(ratingDeltaProvider);
+
+    return RefreshIndicator(
+      color: AppColors.primary,
+      backgroundColor: AppColors.bgMid,
+      onRefresh: () async {
+        ref.invalidate(profileProvider(handle));
+        ref.invalidate(homeReadinessProvider);
+        ref.invalidate(ratingDeltaProvider);
+      },
+      child: CustomScrollView(
+        slivers: [
+          SliverPadding(
+            padding: EdgeInsets.only(
+              left: 20.w,
+              right: 20.w,
+              top: 16.h,
+            ),
+            sliver: SliverList(
+              delegate: SliverChildListDelegate([
+                // ──────────────────────
+                // HEADER
+                // Greeting + Avatar
+                // ──────────────────────
+                _Header(
+                  handle: handle,
+                  profileAsync: profileAsync,
+                  onAvatarTap: () => context.goNamed(RouteNames.profile),
+                ),
+
+                SizedBox(height: 20.h),
+
+                // ──────────────────────
+                // RATING HERO CARD
+                // Rating + readiness bar
+                // ──────────────────────
+                profileAsync.when(
+                  loading: () => GlassCardShimmer(height: 140.h),
+                  error: (e, s) => const SizedBox.shrink(),
+                  data: (profile) => _RatingHeroCard(
+                    profile: profile,
+                    readinessAsync: readinessAsync,
+                    deltaAsync: deltaAsync,
                   ),
-                ],
-                totalRepeatCount: 1,
-                displayFullTextOnTap: true,
+                ),
+
+                SizedBox(height: 16.h),
+
+                // ──────────────────────
+                // STATS ROW
+                // Solved / Contests / Streak
+                // ──────────────────────
+                profileAsync.when(
+                  loading: () => const StatsRowShimmer(),
+                  error: (e, s) => const SizedBox.shrink(),
+                  data: (profile) => _StatsRow(profile: profile),
+                ),
+
+                SizedBox(height: 24.h),
+
+                // ──────────────────────
+                // UPCOMING CONTESTS
+                // Placeholder until P46
+                // ──────────────────────
+                SectionHeader(
+                  title: 'Upcoming Contests',
+                  actionLabel: 'See all',
+                  onAction: () => context.goNamed(RouteNames.contests),
+                ),
+
+                SizedBox(height: 12.h),
+
+                // Placeholder until upcomingContestsProvider (P46)
+                GlassCard(
+                  child: Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(24.r),
+                      child: Column(
+                        children: [
+                          Icon(
+                            Icons.emoji_events_rounded,
+                            color: AppColors.primary.withValues(alpha: 0.50),
+                            size: 32.r,
+                          ),
+                          SizedBox(height: 12.h),
+                          Text(
+                            'Contest data coming soon',
+                            style: GoogleFonts.inter(
+                              fontSize: 14.sp,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.white.withValues(alpha: 0.55),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+
+                SizedBox(height: 100.h),
+              ]),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────
+// HEADER
+// Time-based greeting + avatar
+// ─────────────────────────────────
+
+class _Header extends StatelessWidget {
+  const _Header({
+    required this.handle,
+    required this.profileAsync,
+    required this.onAvatarTap,
+  });
+
+  final String handle;
+  final AsyncValue<ProfileModel> profileAsync;
+  final VoidCallback onAvatarTap;
+
+  String _greeting() {
+    final hour = DateTime.now().hour;
+    if (hour < 12) return 'Good morning';
+    if (hour < 17) return 'Good afternoon';
+    return 'Good evening';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        // Greeting + handle
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                _greeting(),
+                style: GoogleFonts.inter(
+                  fontSize: 13.sp,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.white.withValues(alpha: 0.55),
+                ),
               ),
-            ),
-            Text(handle, style: AppTextStyles.h2),
-          ],
+              SizedBox(height: 2.h),
+              Text(
+                handle,
+                style: GoogleFonts.inter(
+                  fontSize: 22.sp,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ),
         ),
+
+        // Avatar → /profile
         profileAsync.when(
-          loading: () => CircleAvatar(
-            radius: 20.r,
-            backgroundColor: AppColors.primary.withValues(alpha: 0.20),
-            child: Icon(
-              Icons.person_outline_rounded,
-              color: AppColors.primary,
-              size: 20.r,
+          loading: () => Container(
+            width: 44.r,
+            height: 44.r,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: AppColors.primary.withValues(alpha: 0.15),
             ),
           ),
-          error: (e, _) => CircleAvatar(
-            radius: 20.r,
-            backgroundColor: AppColors.primary.withValues(alpha: 0.20),
+          error: (_, __) => UserAvatar(
+            handle: handle,
+            rank: '',
+            size: 44.r,
+            onTap: onAvatarTap,
           ),
-          data: (profile) => GestureDetector(
-            onTap: () => context.push('/profile'),
-            child: UserAvatar(
-              handle: profile.handle,
-              rank: profile.rank,
-              size: 40.r,
-            ),
+          data: (profile) => UserAvatar(
+            handle: profile.handle,
+            rank: profile.rank,
+            avatarUrl: profile.avatar,
+            size: 44.r,
+            onTap: onAvatarTap,
           ),
         ),
       ],
     );
   }
+}
 
-  Widget _buildProfileCard(dynamic profile) {
-    return GlassCard(
-      child: Row(
-        children: [
-          UserAvatar(handle: profile.handle, rank: profile.rank, size: 52.r),
-          SizedBox(width: 14.w),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(profile.handle, style: AppTextStyles.bodyBold),
-                SizedBox(height: 4.h),
-                RankChip(rank: profile.rank),
-                SizedBox(height: 4.h),
-                Text(
-                  'Active: ${profile.lastActiveDate}',
-                  style: AppTextStyles.caption,
-                ),
-              ],
-            ),
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text('🔥', style: TextStyle(fontSize: 16.sp)),
-              Text(
-                '${profile.streakDays}d',
-                style: AppTextStyles.metricSmall.copyWith(
-                  color: AppColors.success,
-                  fontSize: 16.sp,
-                ),
-              ),
-              Text('streak', style: AppTextStyles.caption),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
+// ─────────────────────────────────
+// RATING HERO CARD
+// Rating + rank + delta + readiness
+// ─────────────────────────────────
 
-  Widget _buildRatingCard(dynamic profile) {
+class _RatingHeroCard extends StatelessWidget {
+  const _RatingHeroCard({
+    required this.profile,
+    required this.readinessAsync,
+    required this.deltaAsync,
+  });
+
+  final ProfileModel profile;
+  final AsyncValue<ReadinessScore> readinessAsync;
+  final AsyncValue<RatingDelta?> deltaAsync;
+
+  @override
+  Widget build(BuildContext context) {
     return GlassCard(
       type: GlassCardType.primary,
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'CF RATING',
-                  style: AppTextStyles.caption.copyWith(letterSpacing: 1.0),
-                ),
-                SizedBox(height: 4.h),
-                Text(
-                  '${profile.rating}',
-                  style: AppTextStyles.metricLarge.copyWith(
-                    color: AppColors.primary,
-                  ),
-                ),
-                Text('Max: ${profile.maxRating}', style: AppTextStyles.caption),
-              ],
-            ),
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              RankChip(rank: profile.rank),
-              SizedBox(height: 8.h),
-              Text(
-                'Top Rated',
-                style: AppTextStyles.caption.copyWith(
-                  color: AppColors.textHint,
-                ),
+              // Rating number
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Rating',
+                    style: GoogleFonts.inter(
+                      fontSize: 12.sp,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.white.withValues(alpha: 0.55),
+                    ),
+                  ),
+                  SizedBox(height: 4.h),
+                  Text(
+                    '${profile.rating}',
+                    style: GoogleFonts.jetBrainsMono(
+                      fontSize: 36.sp,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                ],
+              ),
+
+              const Spacer(),
+
+              // Rank + delta
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  RankChip(rank: profile.rank),
+                  SizedBox(height: 8.h),
+                  deltaAsync.when(
+                    loading: () => const SizedBox.shrink(),
+                    error: (_, __) => const SizedBox.shrink(),
+                    data: (delta) {
+                      if (delta == null) return const SizedBox.shrink();
+                      return Text(
+                        delta.formatted,
+                        style: GoogleFonts.jetBrainsMono(
+                          fontSize: 14.sp,
+                          fontWeight: FontWeight.w600,
+                          color: delta.isPositive
+                              ? AppColors.success
+                              : AppColors.danger,
+                        ),
+                      );
+                    },
+                  ),
+                ],
               ),
             ],
+          ),
+
+          SizedBox(height: 16.h),
+
+          // Readiness score bar
+          readinessAsync.when(
+            loading: () => const SizedBox.shrink(),
+            error: (_, __) => const SizedBox.shrink(),
+            data: (readiness) => Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      readiness.label,
+                      style: GoogleFonts.inter(
+                        fontSize: 12.sp,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white.withValues(alpha: 0.70),
+                      ),
+                    ),
+                    Text(
+                      '${readiness.score}%',
+                      style: GoogleFonts.jetBrainsMono(
+                        fontSize: 12.sp,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 8.h),
+                ProgressBarWidget(
+                  value: readiness.score / 100,
+                  color: AppColors.primary,
+                ),
+              ],
+            ),
           ),
         ],
       ),
     );
   }
+}
 
-  Widget _buildStatsRow(dynamic profile) {
+// ─────────────────────────────────
+// STATS ROW
+// Solved / Contests / Streak
+// ─────────────────────────────────
+
+class _StatsRow extends StatelessWidget {
+  const _StatsRow({required this.profile});
+
+  final ProfileModel profile;
+
+  @override
+  Widget build(BuildContext context) {
     return Row(
       children: [
         Expanded(
@@ -266,152 +412,107 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             icon: Icons.check_circle_rounded,
             iconColor: AppColors.success,
             value: '${profile.problemsSolved}',
-            label: 'Problems Solved',
-          )
-              .animate()
-              .fadeIn(delay: 200.ms, duration: 400.ms)
-              .slideX(begin: -0.1, end: 0, delay: 200.ms),
+            label: 'Solved',
+          ),
         ),
-        SizedBox(width: 12.w),
+        SizedBox(width: 10.w),
         Expanded(
           child: StatCard(
             icon: Icons.emoji_events_rounded,
-            iconColor: AppColors.primary,
+            iconColor: AppColors.warning,
             value: '${profile.contestsParticipated}',
             label: 'Contests',
-          )
-              .animate()
-              .fadeIn(delay: 300.ms, duration: 400.ms)
-              .slideX(begin: 0.1, end: 0, delay: 300.ms),
+          ),
+        ),
+        SizedBox(width: 10.w),
+        Expanded(
+          child: StatCard(
+            icon: Icons.local_fire_department_rounded,
+            iconColor: AppColors.danger,
+            value: '${profile.streakDays}',
+            label: 'Streak',
+          ),
         ),
       ],
     );
   }
+}
 
-  Widget _buildContestSwiper(List<Contest> contests) {
-    if (contests.isEmpty) {
-      return GlassCard(
-        child: Center(
-          child: Text('No upcoming contests', style: AppTextStyles.body),
-        ),
-      );
-    }
+// ─────────────────────────────────
+// LOADING BODY
+// Shimmer placeholders
+// ─────────────────────────────────
 
-    return SizedBox(
-      height: 180.h,
-      child: CardSwiper(
-        controller: _cardController,
-        cardsCount: contests.length,
-        numberOfCardsDisplayed: contests.length > 2 ? 3 : contests.length,
-        backCardOffset: Offset(8.w, 0),
-        padding: EdgeInsets.zero,
-        scale: 0.92,
-        isLoop: false,
-        allowedSwipeDirection: const AllowedSwipeDirection.only(
-          left: true,
-          right: true,
-        ),
-        cardBuilder: (context, index, percentThresholdX, percentThresholdY) {
-          final contest = contests[index];
-          final status = contest.isLive
-              ? ContestStatus.live
-              : contest.isUpcoming
-                  ? ContestStatus.upcoming
-                  : ContestStatus.finished;
-          final difficulty = contest.suitabilityLabel == 'Too Hard'
-              ? 'hard'
-              : contest.suitabilityLabel == 'Good Match'
-                  ? 'moderate'
-                  : 'moderate';
-          return ContestCard(
-            contestId: contest.contestId,
-            name: contest.name,
-            status: status,
-            difficulty: difficulty,
-            startDateTime: contest.startDateTime,
-            durationFormatted: contest.formattedDuration,
-            hasReminder: _reminderSet.contains(index),
-            onReminderTap: () {
-              setState(() {
-                if (_reminderSet.contains(index)) {
-                  _reminderSet.remove(index);
-                } else {
-                  _reminderSet.add(index);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Reminder set for ${contests[index].name}'),
-                      backgroundColor: AppColors.success,
-                    ),
-                  );
-                }
-              });
-            },
-          );
-        },
+class _LoadingBody extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
+      child: Column(
+        children: [
+          GlassCardShimmer(height: 60.h),
+          SizedBox(height: 20.h),
+          GlassCardShimmer(height: 140.h),
+          SizedBox(height: 16.h),
+          const StatsRowShimmer(),
+        ],
       ),
     );
   }
+}
 
-  Widget _buildQuickActions(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: GlassCard(
-            onTap: () => context.push('/practice'),
-            child: Column(
-              children: [
-                Icon(
-                  Icons.lightbulb_rounded,
-                  color: AppColors.warning,
-                  size: 28.r,
+// ─────────────────────────────────
+// ERROR BODY
+// Inline error with retry
+// ─────────────────────────────────
+
+class _ErrorBody extends StatelessWidget {
+  const _ErrorBody({
+    required this.error,
+    required this.onRetry,
+  });
+
+  final String error;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 20.w),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.error_outline_rounded,
+              color: AppColors.danger.withValues(alpha: 0.70),
+              size: 48.r,
+            ),
+            SizedBox(height: 16.h),
+            Text(
+              error,
+              style: GoogleFonts.inter(
+                fontSize: 14.sp,
+                fontWeight: FontWeight.w500,
+                color: Colors.white.withValues(alpha: 0.60),
+              ),
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: 16.h),
+            TextButton(
+              onPressed: onRetry,
+              child: Text(
+                'Retry',
+                style: GoogleFonts.inter(
+                  fontSize: 14.sp,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.primary,
                 ),
-                SizedBox(height: 8.h),
-                Text('Practice', style: AppTextStyles.bodyBold),
-                Text('Weak topics', style: AppTextStyles.caption),
-              ],
+              ),
             ),
-          ),
+          ],
         ),
-        SizedBox(width: 12.w),
-        Expanded(
-          child: GlassCard(
-            onTap: () => context.push('/upsolve'),
-            child: Column(
-              children: [
-                Icon(Icons.queue_rounded, color: AppColors.primary, size: 28.r),
-                SizedBox(height: 8.h),
-                Text('Upsolve', style: AppTextStyles.bodyBold),
-                Text('Unsolved problems', style: AppTextStyles.caption),
-              ],
-            ),
-          ),
-        ),
-        SizedBox(width: 12.w),
-        Expanded(
-          child: GlassCard(
-            onTap: () => context.push('/analysis'),
-            child: Column(
-              children: [
-                Icon(
-                  Icons.auto_awesome_rounded,
-                  color: AppColors.success,
-                  size: 28.r,
-                ),
-                SizedBox(height: 8.h),
-                Text('AI Analysis', style: AppTextStyles.bodyBold),
-                Text('Get insights', style: AppTextStyles.caption),
-              ],
-            ),
-          ),
-        ),
-      ],
+      ),
     );
-  }
-
-  String _getGreeting() {
-    final hour = DateTime.now().hour;
-    if (hour < 12) return 'Good morning,';
-    if (hour < 17) return 'Good afternoon,';
-    return 'Good evening,';
   }
 }

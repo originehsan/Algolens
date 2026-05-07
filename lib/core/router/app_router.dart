@@ -9,6 +9,8 @@ import 'package:algolens/features/auth/screens/login_screen.dart';
 import 'package:algolens/features/auth/screens/forgot_password_screen.dart';
 import 'package:algolens/features/auth/screens/cf_handle_setup_screen.dart';
 import 'package:algolens/features/auth/screens/reset_password_screen.dart';
+import 'package:algolens/features/home/screens/home_screen.dart';
+import 'package:algolens/features/profile/screens/profile_screen.dart';
 
 // ──────────────────────────────
 // ROUTE NAMES
@@ -199,9 +201,7 @@ abstract class AppRouter {
         GoRoute(
           path: RoutePaths.home,
           name: RouteNames.home,
-          builder: (context, state) => const _PlaceholderScreen(
-            label: 'Home',
-          ),
+          builder: (context, state) => const HomeScreen(),
         ),
 
         GoRoute(
@@ -247,9 +247,7 @@ abstract class AppRouter {
         GoRoute(
           path: RoutePaths.profile,
           name: RouteNames.profile,
-          builder: (context, state) => const _PlaceholderScreen(
-            label: 'Profile',
-          ),
+          builder: (context, state) => const ProfileScreen(),
         ),
 
         GoRoute(

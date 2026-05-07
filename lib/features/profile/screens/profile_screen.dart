@@ -1,472 +1,670 @@
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:algolens/core/router/app_router.dart';
 import 'package:algolens/core/theme/app_colors.dart';
-import 'package:algolens/core/theme/app_text_styles.dart';
-import 'package:algolens/core/widgets/page_wrapper.dart';
+import 'package:algolens/core/widgets/app_background.dart';
+import 'package:algolens/core/widgets/error_widget.dart';
 import 'package:algolens/core/widgets/glass_card.dart';
+import 'package:algolens/core/widgets/loading_shimmer.dart';
+import 'package:algolens/core/widgets/progress_bar_widget.dart';
+import 'package:algolens/core/widgets/rank_chip.dart';
 import 'package:algolens/core/widgets/section_header.dart';
 import 'package:algolens/core/widgets/stat_card.dart';
 import 'package:algolens/core/widgets/user_avatar.dart';
-import 'package:algolens/core/widgets/rank_chip.dart';
-import 'package:algolens/core/widgets/app_button.dart';
-import 'package:algolens/core/widgets/error_widget.dart';
-import 'package:algolens/core/widgets/coming_soon_badge.dart';
+import 'package:algolens/features/profile/data/models/contest_history_model.dart';
+import 'package:algolens/features/profile/data/models/profile_model.dart';
+import 'package:algolens/features/profile/data/models/rating_graph_model.dart';
+import 'package:algolens/features/profile/data/models/submission_stats_model.dart';
 import 'package:algolens/features/profile/providers/profile_provider.dart';
-import 'package:fl_chart/fl_chart.dart';
+
+// ─────────────────────────────────
+// PROFILE SCREEN
+// Loads own handle via cfHandleProvider
+// then fetches all 4 data streams
+// ─────────────────────────────────
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    const handle = 'ehsan_cf';
-    final profileAsync = ref.watch(profileProvider(handle));
-    final ratingGraphAsync = ref.watch(ratingGraphProvider(handle));
-    final submissionStatsAsync = ref.watch(submissionStatsProvider(handle));
+    // Load own handle from SecureStorage
+    final handleAsync = ref.watch(cfHandleProvider);
 
-    return PageWrapper(
-      title: 'Profile',
-      actions: [
-        IconButton(
-          icon: Icon(
-            Icons.settings_outlined,
-            color: Colors.white,
-            size: 22.r,
-          ),
-          onPressed: () => context.push('/settings'),
-        ),
-      ],
-      child: RefreshIndicator(
-        onRefresh: () async {
+    return handleAsync.when(
+      loading: () => _LoadingView(),
+      error: (e, s) => _ErrorView(
+        message: e.toString(),
+        onRetry: () => ref.invalidate(cfHandleProvider),
+      ),
+      data: (handle) {
+        if (handle == null || handle.isEmpty) {
+          return _ErrorView(
+            message: 'No CF handle found.\nPlease set up your handle.',
+            onRetry: () => ref.invalidate(cfHandleProvider),
+          );
+        }
+        return _ProfileContent(handle: handle);
+      },
+    );
+  }
+}
+
+// ─────────────────────────────────
+// PROFILE CONTENT
+// Loads all data for handle
+// ─────────────────────────────────
+
+class _ProfileContent extends ConsumerWidget {
+  const _ProfileContent({required this.handle});
+
+  final String handle;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final profileAsync = ref.watch(profileProvider(handle));
+    final graphAsync = ref.watch(ratingGraphProvider(handle));
+    final statsAsync = ref.watch(submissionStatsProvider(handle));
+    final historyAsync = ref.watch(contestHistoryProvider(handle));
+
+    return profileAsync.when(
+      loading: () => _LoadingView(),
+      error: (e, s) => _ErrorView(
+        message: e.toString(),
+        onRetry: () {
           ref.invalidate(profileProvider(handle));
           ref.invalidate(ratingGraphProvider(handle));
           ref.invalidate(submissionStatsProvider(handle));
+          ref.invalidate(contestHistoryProvider(handle));
         },
-        color: AppColors.primary,
-        backgroundColor: AppColors.bgMid,
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: EdgeInsets.symmetric(
-            horizontal: 20.w,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SizedBox(height: 12.h),
-
-              // Profile header card
-              profileAsync.when(
-                loading: () => GlassCardShimmer(height: 100.h),
-                error: (e, _) => AppErrorWidget(
-                  message: e.toString(),
-                  onRetry: () => ref.invalidate(
-                    profileProvider(handle),
-                  ),
-                ),
-                data: (profile) => GlassCard(
-                  type: GlassCardType.primary,
-                  child: Row(
-                    children: [
-                      UserAvatar(
-                        handle: profile.handle,
-                        rank: profile.rank,
-                        size: 64.r,
-                      ),
-                      SizedBox(width: 16.w),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              profile.handle,
-                              style: AppTextStyles.h2,
-                            ),
-                            SizedBox(height: 4.h),
-                            RankChip(
-                              rank: profile.rank,
-                            ),
-                            SizedBox(height: 6.h),
-                            Row(
-                              children: [
-                                Text(
-                                  '${profile.rating}',
-                                  style: AppTextStyles.metricLarge.copyWith(
-                                    color: AppColors.primary,
-                                    fontSize: 22.sp,
-                                  ),
-                                ),
-                                SizedBox(width: 6.w),
-                                Text(
-                                  '/ ${profile.maxRating} max',
-                                  style: AppTextStyles.caption,
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Text(
-                            '🔥 ${profile.streakDays}d',
-                            style: AppTextStyles.bodyBold.copyWith(
-                              color: AppColors.success,
-                            ),
-                          ),
-                          Text(
-                            'streak',
-                            style: AppTextStyles.caption,
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              SizedBox(height: 12.h),
-
-              // Stats row
-              profileAsync.when(
-                loading: () => Row(
-                  children: [
-                    Expanded(child: GlassCardShimmer(height: 70.h)),
-                    SizedBox(width: 12.w),
-                    Expanded(child: GlassCardShimmer(height: 70.h)),
-                    SizedBox(width: 12.w),
-                    Expanded(child: GlassCardShimmer(height: 70.h)),
-                  ],
-                ),
-                error: (e, _) => const SizedBox.shrink(),
-                data: (profile) => Row(
-                  children: [
-                    Expanded(
-                      child: StatCard(
-                        icon: Icons.check_circle_rounded,
-                        iconColor: AppColors.success,
-                        value: '${profile.problemsSolved}',
-                        label: 'Solved',
-                      ),
+      ),
+      data: (profile) => AppBackground(
+        child: Scaffold(
+          backgroundColor: Colors.transparent,
+          body: RefreshIndicator(
+            color: AppColors.primary,
+            backgroundColor: AppColors.bgMid,
+            onRefresh: () async {
+              ref.invalidate(profileProvider(handle));
+              ref.invalidate(ratingGraphProvider(handle));
+              ref.invalidate(submissionStatsProvider(handle));
+              ref.invalidate(contestHistoryProvider(handle));
+            },
+            child: CustomScrollView(
+              slivers: [
+                // ──────────────────────
+                // APP BAR
+                // ──────────────────────
+                SliverAppBar(
+                  backgroundColor: Colors.transparent,
+                  floating: true,
+                  title: Text(
+                    'Profile',
+                    style: GoogleFonts.inter(
+                      fontSize: 18.sp,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
                     ),
-                    SizedBox(width: 10.w),
-                    Expanded(
-                      child: StatCard(
-                        icon: Icons.emoji_events_rounded,
-                        iconColor: AppColors.primary,
-                        value: '${profile.contestsParticipated}',
-                        label: 'Contests',
-                      ),
-                    ),
-                    SizedBox(width: 10.w),
-                    Expanded(
-                      child: StatCard(
-                        icon: Icons.local_fire_department_rounded,
-                        iconColor: AppColors.warning,
-                        value: '${profile.streakDays}d',
-                        label: 'Streak',
+                  ),
+                  actions: [
+                    IconButton(
+                      onPressed: () => context.goNamed(RouteNames.settings),
+                      icon: Icon(
+                        Icons.settings_rounded,
+                        color: Colors.white.withValues(alpha: 0.70),
+                        size: 22.r,
                       ),
                     ),
                   ],
                 ),
-              ),
-              SizedBox(height: 20.h),
 
-              // Rating graph
-              const SectionHeader(
-                title: 'Rating History',
-              ),
-              SizedBox(height: 12.h),
-              ratingGraphAsync.when(
-                loading: () => GlassCardShimmer(height: 180.h),
-                error: (e, _) => const SizedBox.shrink(),
-                data: (points) => Padding(
-                  padding: EdgeInsets.zero,
-                  child: GlassCard(
-                    padding: EdgeInsets.all(16.r),
-                    child: SizedBox(
-                      height: 180.h,
-                      child: LineChart(
-                        LineChartData(
-                          gridData: FlGridData(
-                            show: true,
-                            drawVerticalLine: false,
-                            horizontalInterval: 200,
-                            getDrawingHorizontalLine: (value) {
-                              return FlLine(
-                                color: Colors.white.withValues(alpha: 0.08),
-                                strokeWidth: 1,
-                              );
-                            },
-                          ),
-                          titlesData: FlTitlesData(
-                            leftTitles: AxisTitles(
-                              sideTitles: SideTitles(
-                                showTitles: true,
-                                reservedSize: 40.w,
-                                getTitlesWidget: (value, meta) {
-                                  return Text(
-                                    value.toInt().toString(),
-                                    style: AppTextStyles.monoSmall.copyWith(
-                                      fontSize: 9.sp,
-                                    ),
-                                  );
-                                },
-                              ),
-                            ),
-                            rightTitles: const AxisTitles(
-                              sideTitles: SideTitles(
-                                showTitles: false,
-                              ),
-                            ),
-                            topTitles: const AxisTitles(
-                              sideTitles: SideTitles(
-                                showTitles: false,
-                              ),
-                            ),
-                            bottomTitles: const AxisTitles(
-                              sideTitles: SideTitles(
-                                showTitles: false,
-                              ),
-                            ),
-                          ),
-                          borderData: FlBorderData(show: false),
-                          lineBarsData: [
-                            LineChartBarData(
-                              spots: points
-                                  .asMap()
-                                  .entries
-                                  .map(
-                                    (e) => FlSpot(
-                                      e.key.toDouble(),
-                                      e.value.rating.toDouble(),
-                                    ),
-                                  )
-                                  .toList(),
-                              isCurved: true,
-                              color: AppColors.primary,
-                              barWidth: 2.5,
-                              isStrokeCapRound: true,
-                              dotData: FlDotData(
-                                show: true,
-                                getDotPainter: (spot, percent, barData, index) {
-                                  return FlDotCirclePainter(
-                                    radius: 3.r,
-                                    color: AppColors.primary,
-                                    strokeWidth: 1.5,
-                                    strokeColor:
-                                        Colors.white.withValues(alpha: 0.5),
-                                  );
-                                },
-                              ),
-                              belowBarData: BarAreaData(
-                                show: true,
-                                gradient: LinearGradient(
-                                  begin: Alignment.topCenter,
-                                  end: Alignment.bottomCenter,
-                                  colors: [
-                                    AppColors.primary.withValues(alpha: 0.25),
-                                    AppColors.primary.withValues(alpha: 0.0),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ).animate().fadeIn(delay: 300.ms, duration: 600.ms).slideY(
-                      begin: 0.1,
-                      end: 0,
-                      delay: 300.ms,
-                      duration: 600.ms,
-                    ),
-              ),
-              SizedBox(height: 20.h),
+                SliverPadding(
+                  padding: EdgeInsets.symmetric(horizontal: 20.w),
+                  sliver: SliverList(
+                    delegate: SliverChildListDelegate([
+                      SizedBox(height: 8.h),
 
-              // Submission stats
-              const SectionHeader(
-                title: 'Submission Stats',
-              ),
-              SizedBox(height: 12.h),
-              submissionStatsAsync.when(
-                loading: () => GlassCardShimmer(height: 80.h),
-                error: (e, _) => const SizedBox.shrink(),
-                data: (stats) => GlassCard(
-                  child: Column(
-                    children: [
+                      // ──────────────────────
+                      // HEADER CARD
+                      // Avatar + handle + rank
+                      // ──────────────────────
+                      _HeaderCard(profile: profile),
+
+                      SizedBox(height: 16.h),
+
+                      // ──────────────────────
+                      // RATING HERO CARD
+                      // ──────────────────────
+                      _RatingCard(profile: profile),
+
+                      SizedBox(height: 16.h),
+
+                      // ──────────────────────
+                      // STATS ROW
+                      // Solved / Contests / Streak
+                      // ──────────────────────
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: [
-                          _buildVerdictStat(
-                            'AC',
-                            stats.accepted,
-                            AppColors.success,
+                          Expanded(
+                            child: StatCard(
+                              icon: Icons.check_circle_rounded,
+                              iconColor: AppColors.success,
+                              value: '${profile.problemsSolved}',
+                              label: 'Solved',
+                            ),
                           ),
-                          _buildVerdictStat(
-                            'WA',
-                            stats.wrongAnswer,
-                            AppColors.danger,
+                          SizedBox(width: 10.w),
+                          Expanded(
+                            child: StatCard(
+                              icon: Icons.emoji_events_rounded,
+                              iconColor: AppColors.warning,
+                              value: '${profile.contestsParticipated}',
+                              label: 'Contests',
+                            ),
                           ),
-                          _buildVerdictStat(
-                            'TLE',
-                            stats.timeLimitExceeded,
-                            AppColors.warning,
-                          ),
-                          _buildVerdictStat(
-                            'MLE',
-                            stats.memoryLimitExceeded,
-                            AppColors.warning,
-                          ),
-                          _buildVerdictStat(
-                            'RE',
-                            stats.runtimeError,
-                            AppColors.textMuted,
+                          SizedBox(width: 10.w),
+                          Expanded(
+                            child: StatCard(
+                              icon: Icons.local_fire_department_rounded,
+                              iconColor: AppColors.danger,
+                              value: '${profile.streakDays}',
+                              label: 'Streak',
+                            ),
                           ),
                         ],
                       ),
+
+                      SizedBox(height: 20.h),
+
+                      // ──────────────────────
+                      // RATING GRAPH
+                      // ──────────────────────
+                      const SectionHeader(title: 'Rating History'),
                       SizedBox(height: 12.h),
-                      Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 12.w,
-                          vertical: 8.h,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.05),
-                          borderRadius: BorderRadius.circular(10.r),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              'Total Submissions',
-                              style: AppTextStyles.caption,
-                            ),
-                            Text(
-                              '${stats.totalSubmissions}',
-                              style: AppTextStyles.metricSmall.copyWith(
-                                fontSize: 13.sp,
-                              ),
-                            ),
-                          ],
-                        ),
+                      graphAsync.when(
+                        loading: () => GlassCardShimmer(height: 200.h),
+                        error: (e, s) => const SizedBox.shrink(),
+                        data: (graph) => _RatingGraph(data: graph),
                       ),
-                    ],
+
+                      SizedBox(height: 20.h),
+
+                      // ──────────────────────
+                      // VERDICT STATS
+                      // ──────────────────────
+                      const SectionHeader(title: 'Submission Stats'),
+                      SizedBox(height: 12.h),
+                      statsAsync.when(
+                        loading: () => GlassCardShimmer(height: 160.h),
+                        error: (e, s) => const SizedBox.shrink(),
+                        data: (stats) => _VerdictGrid(stats: stats),
+                      ),
+
+                      SizedBox(height: 20.h),
+
+                      // ──────────────────────
+                      // CONTEST HISTORY
+                      // ──────────────────────
+                      const SectionHeader(title: 'Contest History'),
+                      SizedBox(height: 12.h),
+                      historyAsync.when(
+                        loading: () => GlassCardShimmer(height: 200.h),
+                        error: (e, s) => const SizedBox.shrink(),
+                        data: (history) => _ContestHistory(items: history),
+                      ),
+
+                      SizedBox(height: 100.h),
+                    ]),
                   ),
                 ),
-              ),
-              SizedBox(height: 20.h),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
 
-              // Friends and Compare
-              const SectionHeader(
-                title: 'Social',
-              ),
-              SizedBox(height: 12.h),
-              Row(
-                children: [
-                  Expanded(
-                    child: AppButton(
-                      label: 'Friends',
-                      onTap: () => context.push('/friends'),
-                      type: AppButtonType.outline,
-                    ),
-                  ),
-                  SizedBox(width: 12.w),
-                  Expanded(
-                    child: AppButton(
-                      label: 'Compare',
-                      onTap: () => context.push('/comparison'),
-                      type: AppButtonType.outline,
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 12.h),
-              AppButton(
-                label: 'Get AI Analysis',
-                onTap: () => context.push('/analysis'),
-              ),
-              SizedBox(height: 20.h),
+// ─────────────────────────────────
+// HEADER CARD
+// Avatar + handle + rank chip
+// ─────────────────────────────────
 
-              // Coming soon
-              const SectionHeader(
-                title: 'Coming Soon',
+class _HeaderCard extends StatelessWidget {
+  const _HeaderCard({required this.profile});
+
+  final ProfileModel profile;
+
+  @override
+  Widget build(BuildContext context) {
+    return GlassCard(
+      child: Row(
+        children: [
+          UserAvatar(
+            handle: profile.handle,
+            rank: profile.rank,
+            avatarUrl: profile.avatar,
+            size: 64.r,
+          ),
+          SizedBox(width: 16.w),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  profile.handle,
+                  style: GoogleFonts.inter(
+                    fontSize: 18.sp,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                  ),
+                ),
+                SizedBox(height: 6.h),
+                RankChip(rank: profile.rank),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────
+// RATING CARD
+// Current + max + ratingDelta + rank
+// ─────────────────────────────────
+
+class _RatingCard extends StatelessWidget {
+  const _RatingCard({required this.profile});
+
+  final ProfileModel profile;
+
+  @override
+  Widget build(BuildContext context) {
+    final isPositive = profile.ratingDelta >= 0;
+
+    return GlassCard(
+      type: GlassCardType.primary,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Current Rating',
+            style: GoogleFonts.inter(
+              fontSize: 12.sp,
+              fontWeight: FontWeight.w500,
+              color: Colors.white.withValues(alpha: 0.55),
+            ),
+          ),
+          SizedBox(height: 8.h),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                '${profile.rating}',
+                style: GoogleFonts.jetBrainsMono(
+                  fontSize: 40.sp,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.primary,
+                ),
               ),
-              SizedBox(height: 8.h),
-              GlassCard(
+              SizedBox(width: 12.w),
+              Padding(
+                padding: EdgeInsets.only(bottom: 6.h),
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildComingSoonRow(
-                      'LeetCode Integration',
-                      Icons.code_outlined,
+                    Text(
+                      'Max: ${profile.maxRating}',
+                      style: GoogleFonts.inter(
+                        fontSize: 12.sp,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.white.withValues(alpha: 0.55),
+                      ),
                     ),
-                    SizedBox(height: 10.h),
-                    _buildComingSoonRow(
-                      'CodeChef Integration',
-                      Icons.restaurant_outlined,
-                    ),
-                    SizedBox(height: 10.h),
-                    _buildComingSoonRow(
-                      'College Leaderboard',
-                      Icons.school_outlined,
-                    ),
-                    SizedBox(height: 10.h),
-                    _buildComingSoonRow(
-                      'Activity Heatmap',
-                      Icons.grid_view_outlined,
+                    SizedBox(height: 2.h),
+                    Text(
+                      isPositive
+                          ? '+${profile.ratingDelta}'
+                          : '${profile.ratingDelta}',
+                      style: GoogleFonts.inter(
+                        fontSize: 13.sp,
+                        fontWeight: FontWeight.w600,
+                        color: isPositive ? AppColors.success : AppColors.danger,
+                      ),
                     ),
                   ],
                 ),
               ),
-              SizedBox(height: 100.h),
+              const Spacer(),
+              RankChip(rank: profile.rank),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────
+// RATING GRAPH
+// fl_chart line chart
+// ─────────────────────────────────
+
+class _RatingGraph extends StatelessWidget {
+  const _RatingGraph({required this.data});
+
+  final List<RatingGraphModel> data;
+
+  @override
+  Widget build(BuildContext context) {
+    if (data.isEmpty) {
+      return GlassCard(
+        child: Center(
+          child: Padding(
+            padding: EdgeInsets.all(24.r),
+            child: Text(
+              'No rating history yet',
+              style: GoogleFonts.inter(
+                fontSize: 14.sp,
+                fontWeight: FontWeight.w500,
+                color: Colors.white.withValues(alpha: 0.55),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    final spots = data
+        .asMap()
+        .entries
+        .map((e) => FlSpot(e.key.toDouble(), e.value.rating.toDouble()))
+        .toList();
+
+    final minY = data
+            .map((e) => e.rating)
+            .reduce((a, b) => a < b ? a : b)
+            .toDouble() -
+        100;
+
+    final maxY = data
+            .map((e) => e.rating)
+            .reduce((a, b) => a > b ? a : b)
+            .toDouble() +
+        100;
+
+    return GlassCard(
+      child: SizedBox(
+        height: 200.h,
+        child: LineChart(
+          LineChartData(
+            minY: minY,
+            maxY: maxY,
+            gridData: const FlGridData(show: false),
+            borderData: FlBorderData(show: false),
+            titlesData: const FlTitlesData(show: false),
+            lineBarsData: [
+              LineChartBarData(
+                spots: spots,
+                isCurved: true,
+                color: AppColors.primary,
+                barWidth: 2,
+                dotData: const FlDotData(show: false),
+                belowBarData: BarAreaData(
+                  show: true,
+                  color: AppColors.primary.withValues(alpha: 0.10),
+                ),
+              ),
             ],
           ),
         ),
       ),
     );
   }
+}
 
-  Widget _buildVerdictStat(String label, int count, Color color) {
-    return Column(
-      children: [
-        Text(
-          count.toString(),
-          style: AppTextStyles.metricSmall.copyWith(
-            color: color,
-            fontSize: 16.sp,
-            fontWeight: FontWeight.w700,
+// ─────────────────────────────────
+// VERDICT GRID
+// AC rate bar + AC/WA/TLE/MLE
+// ─────────────────────────────────
+
+class _VerdictGrid extends StatelessWidget {
+  const _VerdictGrid({required this.stats});
+
+  final SubmissionStatsModel stats;
+
+  @override
+  Widget build(BuildContext context) {
+    return GlassCard(
+      child: Column(
+        children: [
+          ProgressBarWidget(
+            value: stats.acRate,
+            color: AppColors.success,
+            label: 'AC Rate',
+            showPercentage: true,
           ),
-        ),
-        SizedBox(height: 2.h),
-        Text(
-          label,
-          style: AppTextStyles.caption.copyWith(
-            color: color.withValues(alpha: 0.80),
+          SizedBox(height: 16.h),
+          Row(
+            children: [
+              _VerdictItem(
+                label: 'AC',
+                count: stats.accepted,
+                color: AppColors.success,
+              ),
+              _VerdictItem(
+                label: 'WA',
+                count: stats.wrongAnswer,
+                color: AppColors.danger,
+              ),
+              _VerdictItem(
+                label: 'TLE',
+                count: stats.timeLimitExceeded,
+                color: AppColors.warning,
+              ),
+              _VerdictItem(
+                label: 'MLE',
+                count: stats.memoryLimitExceeded,
+                color: AppColors.warning,
+              ),
+            ],
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
+}
 
-  Widget _buildComingSoonRow(String label, IconData icon) {
-    return Row(
-      children: [
-        Icon(
-          icon,
-          color: AppColors.textMuted,
-          size: 18.r,
+class _VerdictItem extends StatelessWidget {
+  const _VerdictItem({
+    required this.label,
+    required this.count,
+    required this.color,
+  });
+
+  final String label;
+  final int count;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: Column(
+        children: [
+          Text(
+            '$count',
+            style: GoogleFonts.jetBrainsMono(
+              fontSize: 18.sp,
+              fontWeight: FontWeight.w700,
+              color: color,
+            ),
+          ),
+          SizedBox(height: 4.h),
+          Text(
+            label,
+            style: GoogleFonts.inter(
+              fontSize: 11.sp,
+              fontWeight: FontWeight.w600,
+              color: Colors.white.withValues(alpha: 0.55),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────
+// CONTEST HISTORY
+// Last 10 entries
+// ─────────────────────────────────
+
+class _ContestHistory extends StatelessWidget {
+  const _ContestHistory({required this.items});
+
+  final List<ContestHistoryModel> items;
+
+  @override
+  Widget build(BuildContext context) {
+    if (items.isEmpty) {
+      return GlassCard(
+        child: Center(
+          child: Padding(
+            padding: EdgeInsets.all(24.r),
+            child: Text(
+              'No contest history yet',
+              style: GoogleFonts.inter(
+                fontSize: 14.sp,
+                fontWeight: FontWeight.w500,
+                color: Colors.white.withValues(alpha: 0.55),
+              ),
+            ),
+          ),
         ),
-        SizedBox(width: 10.w),
-        Text(
-          label,
-          style: AppTextStyles.body,
+      );
+    }
+
+    final limited = items.length > 10 ? items.sublist(0, 10) : items;
+
+    return Column(
+      children: limited.map((item) => _ContestItem(item: item)).toList(),
+    );
+  }
+}
+
+class _ContestItem extends StatelessWidget {
+  const _ContestItem({required this.item});
+
+  final ContestHistoryModel item;
+
+  @override
+  Widget build(BuildContext context) {
+    return GlassCard(
+      margin: EdgeInsets.only(bottom: 10.h),
+      child: Row(
+        children: [
+          Container(
+            width: 40.r,
+            height: 40.r,
+            decoration: BoxDecoration(
+              color: AppColors.primary.withValues(alpha: 0.10),
+              borderRadius: BorderRadius.circular(8.r),
+            ),
+            child: Center(
+              child: Text(
+                '#${item.rank}',
+                style: GoogleFonts.jetBrainsMono(
+                  fontSize: 11.sp,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.primary,
+                ),
+              ),
+            ),
+          ),
+          SizedBox(width: 12.w),
+          Expanded(
+            child: Text(
+              item.contestName,
+              style: GoogleFonts.inter(
+                fontSize: 13.sp,
+                fontWeight: FontWeight.w500,
+                color: Colors.white.withValues(alpha: 0.80),
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          SizedBox(width: 8.w),
+          Text(
+            item.formattedChange,
+            style: GoogleFonts.jetBrainsMono(
+              fontSize: 14.sp,
+              fontWeight: FontWeight.w700,
+              color: item.isPositive ? AppColors.success : AppColors.danger,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────
+// LOADING VIEW
+// Shows ProfileShimmer
+// ─────────────────────────────────
+
+class _LoadingView extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return AppBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: SafeArea(
+          child: Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: 20.w,
+              vertical: 16.h,
+            ),
+            child: const ProfileShimmer(),
+          ),
         ),
-        const Spacer(),
-        const ComingSoonBadge(),
-      ],
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────
+// ERROR VIEW
+// Shows AppErrorWidget
+// ─────────────────────────────────
+
+class _ErrorView extends StatelessWidget {
+  const _ErrorView({
+    required this.message,
+    required this.onRetry,
+  });
+
+  final String message;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return AppBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: AppErrorWidget(
+          message: message,
+          onRetry: onRetry,
+        ),
+      ),
     );
   }
 }
