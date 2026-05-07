@@ -1,100 +1,194 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:percent_indicator/percent_indicator.dart';
+import 'package:algolens/core/theme/app_colors.dart';
 import 'package:algolens/core/theme/app_text_styles.dart';
 
-class ProgressBarWidget extends StatelessWidget {
-  final double percentage;
-  final Color color;
-  final double? height;
-  final String? label;
-  final bool showPercentageText;
+// ──────────────────────────────
+// PROGRESS BAR WIDGET
+// Animated progress bar
+// ──────────────────────────────
 
+/// Animated horizontal progress bar
+///
+/// Features:
+/// → Smooth animation on mount
+/// → Color variants
+/// → Optional label
+/// → Optional percentage text
+///
+/// Usage:
+/// ProgressBarWidget(
+///   value: 0.65,
+///   color: AppColors.success,
+///   label: 'AC Rate',
+///   showPercentage: true,
+/// )
+class ProgressBarWidget extends StatefulWidget {
   const ProgressBarWidget({
     super.key,
-    required this.percentage,
-    required this.color,
-    this.height,
+    required this.value,
+    this.color,
     this.label,
-    this.showPercentageText = false,
+    this.showPercentage = false,
+    this.height,
+    this.backgroundColor,
   });
+
+  /// Progress 0.0 to 1.0
+  final double value;
+  final Color? color;
+  final String? label;
+  final bool showPercentage;
+  final double? height;
+  final Color? backgroundColor;
+
+  @override
+  State<ProgressBarWidget> createState() => _ProgressBarWidgetState();
+}
+
+class _ProgressBarWidgetState extends State<ProgressBarWidget>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl;
+  late final Animation<double> _anim;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(
+        milliseconds: 800,
+      ),
+    );
+    _anim = Tween<double>(
+      begin: 0.0,
+      end: widget.value.clamp(
+        0.0,
+        1.0,
+      ),
+    ).animate(
+      CurvedAnimation(
+        parent: _ctrl,
+        curve: Curves.easeOutCubic,
+      ),
+    );
+    _ctrl.forward();
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  void didUpdateWidget(
+    ProgressBarWidget oldWidget,
+  ) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.value != widget.value) {
+      _anim = Tween<double>(
+        begin: _anim.value,
+        end: widget.value.clamp(
+          0.0,
+          1.0,
+        ),
+      ).animate(
+        CurvedAnimation(
+          parent: _ctrl,
+          curve: Curves.easeOutCubic,
+        ),
+      );
+      _ctrl
+        ..reset()
+        ..forward();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final clampedPercentage = percentage.clamp(0.0, 100.0);
-    final percentDecimal = clampedPercentage / 100;
+    final barColor = widget.color ?? AppColors.primary;
+    final bgColor = widget.backgroundColor ??
+        Colors.white.withValues(
+          alpha: 0.08,
+        );
+    final barHeight = widget.height ?? 6.h;
+    final percentage = (widget.value * 100).toStringAsFixed(0);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        if (label != null) ...[
+        // ──────────────────────
+        // LABEL ROW
+        // ──────────────────────
+
+        if (widget.label != null || widget.showPercentage) ...[
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(label!, style: AppTextStyles.caption),
-              if (showPercentageText)
+              if (widget.label != null)
                 Text(
-                  '${clampedPercentage.toStringAsFixed(1)}%',
+                  widget.label!,
                   style: AppTextStyles.caption.copyWith(
-                    color: color,
+                    color: Colors.white.withValues(
+                      alpha: 0.60,
+                    ),
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              if (widget.showPercentage)
+                Text(
+                  '$percentage%',
+                  style: AppTextStyles.caption.copyWith(
+                    color: barColor,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
             ],
           ),
-          SizedBox(height: 4.h),
+          SizedBox(height: 6.h),
         ],
-        LinearPercentIndicator(
-          lineHeight: height ?? 6.h,
-          percent: percentDecimal,
-          progressColor: color,
-          backgroundColor: Colors.white.withValues(alpha: 0.10),
-          barRadius: Radius.circular(4.r),
-          padding: EdgeInsets.zero,
-          animation: true,
-          animationDuration: 800,
-          curve: Curves.easeOut,
-        ),
-      ],
-    );
-  }
-}
 
-class ProgressBarRow extends StatelessWidget {
-  final double percentage;
-  final Color color;
-  final String leftLabel;
-  final String rightLabel;
+        // ──────────────────────
+        // PROGRESS BAR
+        // ──────────────────────
 
-  const ProgressBarRow({
-    super.key,
-    required this.percentage,
-    required this.color,
-    required this.leftLabel,
-    required this.rightLabel,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(leftLabel, style: AppTextStyles.caption),
-            Text(
-              rightLabel,
-              style: AppTextStyles.caption.copyWith(
-                color: color,
-                fontWeight: FontWeight.w600,
-              ),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(
+            barHeight,
+          ),
+          child: Container(
+            height: barHeight,
+            color: bgColor,
+            child: AnimatedBuilder(
+              animation: _anim,
+              builder: (context, _) {
+                return FractionallySizedBox(
+                  alignment: Alignment.centerLeft,
+                  widthFactor: _anim.value,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: barColor,
+                      borderRadius: BorderRadius.circular(
+                        barHeight,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: barColor.withValues(
+                            alpha: 0.40,
+                          ),
+                          blurRadius: 4,
+                          spreadRadius: 0,
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
             ),
-          ],
+          ),
         ),
-        SizedBox(height: 4.h),
-        ProgressBarWidget(percentage: percentage, color: color),
       ],
     );
   }

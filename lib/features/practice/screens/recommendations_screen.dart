@@ -93,7 +93,7 @@ class _RecommendationsScreenState extends ConsumerState<RecommendationsScreen> {
           // Content
           Expanded(
             child: recommendationsAsync.when(
-              loading: () => const ShimmerList(
+              loading: () => const ProblemListShimmer(
                 count: 5,
               ),
               error: (error, _) => AppErrorWidget(
@@ -104,8 +104,8 @@ class _RecommendationsScreenState extends ConsumerState<RecommendationsScreen> {
               ),
               data: (problems) {
                 if (problems.isEmpty) {
-                  return const AppEmptyWidget(
-                    title: 'No Recommendations',
+                  return const EmptyWidget(
+                    message: 'No Recommendations',
                     subtitle: 'Solve more problems to get recommendations',
                     icon: Icons.lightbulb_outline_rounded,
                   );
@@ -148,9 +148,10 @@ class _RecommendationsScreenState extends ConsumerState<RecommendationsScreen> {
                     // Problems list
                     Expanded(
                       child: filteredProblems.isEmpty
-                          ? const AppEmptyWidget(
-                              title: 'No Problems Found',
+                          ? const EmptyWidget(
+                              message: 'No Problems Found',
                               subtitle: 'No problems for this topic filter',
+                              icon: Icons.filter_list_outlined,
                             )
                           : ListView.builder(
                               padding: EdgeInsets.symmetric(
@@ -164,8 +165,12 @@ class _RecommendationsScreenState extends ConsumerState<RecommendationsScreen> {
                                     bottom: 10.h,
                                   ),
                                   child: ProblemRow(
-                                    problem: problem,
-                                    blindMode: blindMode,
+                                    contestId: problem.contestId,
+                                    index: problem.index,
+                                    name: problem.name,
+                                    rating: problem.rating,
+                                    tags: problem.tags,
+                                    url: problem.cfUrl,
                                     onTap: () => _launchUrl(
                                       problem.cfUrl,
                                     ),

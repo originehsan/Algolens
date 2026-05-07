@@ -8,6 +8,7 @@ import 'package:algolens/core/widgets/page_wrapper.dart';
 import 'package:algolens/core/widgets/glass_card.dart';
 import 'package:algolens/core/widgets/app_text_field.dart';
 import 'package:algolens/core/widgets/app_button.dart';
+import 'package:algolens/features/auth/data/models/auth_request_model.dart';
 import 'package:algolens/features/auth/providers/auth_provider.dart';
 
 class ForgotPasswordScreen extends ConsumerStatefulWidget {
@@ -34,7 +35,9 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
     try {
       final repo = ref.read(authRepositoryProvider);
       await repo.forgotPassword(
-        _emailController.text.trim(),
+        ForgotPasswordRequest(
+          email: _emailController.text.trim(),
+        ),
       );
       if (mounted) {
         context.push('/reset-password');

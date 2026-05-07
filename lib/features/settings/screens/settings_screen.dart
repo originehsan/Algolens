@@ -11,7 +11,6 @@ import 'package:algolens/core/widgets/app_button.dart';
 import 'package:algolens/core/widgets/user_avatar.dart';
 import 'package:algolens/core/widgets/rank_chip.dart';
 import 'package:algolens/core/widgets/coming_soon_badge.dart';
-import 'package:algolens/core/widgets/loading_shimmer.dart';
 import 'package:algolens/features/auth/providers/auth_provider.dart';
 import 'package:algolens/features/profile/providers/profile_provider.dart';
 
@@ -111,7 +110,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
             // Account card
             profileAsync.when(
-              loading: () => ShimmerCard(height: 80.h),
+              loading: () => GlassCardShimmer(height: 80),
               error: (e, _) => GlassCard(
                 child: Row(
                   children: [

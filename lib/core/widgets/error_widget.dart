@@ -3,57 +3,116 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:algolens/core/theme/app_colors.dart';
 import 'package:algolens/core/theme/app_text_styles.dart';
 import 'package:algolens/core/widgets/app_button.dart';
-import 'package:algolens/core/widgets/glass_card.dart';
 
+// ──────────────────────────────
+// ERROR WIDGET
+// Error state UI
+// ──────────────────────────────
+
+/// Error state widget
+///
+/// Shows when a request fails
+///
+/// Usage:
+/// AppErrorWidget(
+///   message: 'Failed to load',
+///   onRetry: () => ref
+///     .invalidate(myProvider),
+/// )
 class AppErrorWidget extends StatelessWidget {
-  final String message;
-  final VoidCallback onRetry;
-  final String retryLabel;
-
   const AppErrorWidget({
     super.key,
     required this.message,
     required this.onRetry,
-    this.retryLabel = 'Try Again',
   });
+
+  final String message;
+  final VoidCallback onRetry;
 
   @override
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
         padding: EdgeInsets.symmetric(
-          horizontal: 24.w,
+          horizontal: 32.w,
         ),
-        child: GlassCard(
-          type: GlassCardType.danger,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // ──────────────────
+            // ERROR ICON
+            // ──────────────────
+
+            Container(
+              width: 72.r,
+              height: 72.r,
+              decoration: BoxDecoration(
+                color: AppColors.danger.withValues(
+                  alpha: 0.08,
+                ),
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: AppColors.danger.withValues(
+                    alpha: 0.20,
+                  ),
+                  width: 1.0,
+                ),
+              ),
+              child: Icon(
                 Icons.error_outline_rounded,
-                color: AppColors.danger,
-                size: 48.r,
+                color: AppColors.danger.withValues(
+                  alpha: 0.80,
+                ),
+                size: 32.r,
               ),
-              SizedBox(height: 16.h),
-              Text(
-                'Something went wrong',
-                style: AppTextStyles.h3,
-                textAlign: TextAlign.center,
+            ),
+
+            SizedBox(height: 16.h),
+
+            // ──────────────────
+            // ERROR MESSAGE
+            // ──────────────────
+
+            Text(
+              'Something went wrong',
+              style: AppTextStyles.h3.copyWith(
+                color: Colors.white.withValues(
+                  alpha: 0.80,
+                ),
+                fontWeight: FontWeight.w600,
               ),
-              SizedBox(height: 8.h),
-              Text(
-                message,
-                style: AppTextStyles.body,
-                textAlign: TextAlign.center,
+              textAlign: TextAlign.center,
+            ),
+
+            SizedBox(height: 6.h),
+
+            Text(
+              message,
+              style: AppTextStyles.caption.copyWith(
+                color: Colors.white.withValues(
+                  alpha: 0.50,
+                ),
+                fontWeight: FontWeight.w500,
               ),
-              SizedBox(height: 24.h),
-              AppButton(
-                label: retryLabel,
-                onTap: onRetry,
-                type: AppButtonType.outline,
-              ),
-            ],
-          ),
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+
+            SizedBox(height: 24.h),
+
+            // ──────────────────
+            // RETRY BUTTON
+            // ──────────────────
+
+            AppButton(
+              label: 'Try Again',
+              onTap: onRetry,
+              type: AppButtonType.outline,
+              width: 160.w,
+              icon: Icons.refresh_rounded,
+            ),
+          ],
         ),
       ),
     );

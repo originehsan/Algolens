@@ -35,9 +35,9 @@ class WeakTopicsScreen extends ConsumerWidget {
           ),
           children: [
             SizedBox(height: 12.h),
-            ShimmerCard(height: 200.h),
+            GlassCardShimmer(height: 200),
             SizedBox(height: 16.h),
-            const ShimmerList(count: 4),
+            const ProblemListShimmer(count: 4),
           ],
         ),
         error: (error, _) => AppErrorWidget(
@@ -48,8 +48,8 @@ class WeakTopicsScreen extends ConsumerWidget {
         ),
         data: (topics) {
           if (topics.isEmpty) {
-            return const AppEmptyWidget(
-              title: 'No Weak Topics Found',
+            return const EmptyWidget(
+              message: 'No Weak Topics Found',
               subtitle: 'Keep solving problems to get analysis',
               icon: Icons.analytics_outlined,
             );
@@ -220,9 +220,9 @@ class WeakTopicsScreen extends ConsumerWidget {
           ),
           SizedBox(height: 10.h),
           ProgressBarWidget(
-            percentage: topic.acRate,
+            value: (topic.acRate / 100).clamp(0.0, 1.0),
             color: topic.severityColor,
-            showPercentageText: true,
+            showPercentage: true,
             label: 'Acceptance Rate',
           ),
           SizedBox(height: 8.h),

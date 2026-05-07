@@ -5,7 +5,6 @@ import 'package:algolens/core/theme/app_colors.dart';
 import 'package:algolens/core/theme/app_text_styles.dart';
 import 'package:algolens/core/widgets/page_wrapper.dart';
 import 'package:algolens/core/widgets/glass_card.dart';
-import 'package:algolens/core/widgets/loading_shimmer.dart';
 import 'package:algolens/core/widgets/error_widget.dart';
 import 'package:algolens/features/contests/providers/contest_provider.dart';
 import 'package:algolens/features/contests/data/models/contest_model.dart';
@@ -40,8 +39,8 @@ class _AllContestsScreenState extends ConsumerState<AllContestsScreen> {
                   padding: EdgeInsets.only(
                     bottom: 12.h,
                   ),
-                  child: ShimmerCard(
-                    height: 80.h,
+                  child: GlassCardShimmer(
+                    height: 80,
                   ),
                 ),
               ),

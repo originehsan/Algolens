@@ -9,7 +9,6 @@ import 'package:algolens/core/widgets/app_text_field.dart';
 import 'package:algolens/core/widgets/app_button.dart';
 import 'package:algolens/core/widgets/rank_chip.dart';
 import 'package:algolens/core/widgets/user_avatar.dart';
-import 'package:algolens/core/widgets/loading_shimmer.dart';
 import 'package:algolens/features/friends/providers/friends_provider.dart';
 
 class ComparisonScreen extends ConsumerStatefulWidget {
@@ -116,7 +115,7 @@ class _ComparisonScreenState extends ConsumerState<ComparisonScreen> {
 
             // Results
             if (_isLoading)
-              ShimmerCard(height: 300.h)
+              GlassCardShimmer(height: 300)
             else if (_comparisonData != null)
               _buildComparisonResult(_comparisonData!),
           ],

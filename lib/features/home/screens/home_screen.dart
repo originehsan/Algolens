@@ -14,7 +14,6 @@ import 'package:algolens/core/widgets/stat_card.dart';
 import 'package:algolens/core/widgets/user_avatar.dart';
 import 'package:algolens/core/widgets/rank_chip.dart';
 import 'package:algolens/core/widgets/contest_card.dart';
-import 'package:algolens/core/widgets/loading_shimmer.dart';
 import 'package:algolens/core/widgets/error_widget.dart';
 import 'package:algolens/features/auth/providers/auth_provider.dart';
 import 'package:algolens/features/profile/providers/profile_provider.dart';
@@ -68,7 +67,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
               // SECTION 2 — Profile Summary
               profileAsync.when(
-                loading: () => ShimmerCard(height: 90.h),
+                loading: () => GlassCardShimmer(height: 90),
                 error: (e, _) => AppErrorWidget(
                   message: e.toString(),
                   onRetry: () => ref.refresh(profileProvider(handle)),
@@ -79,7 +78,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
               // SECTION 3 — Rating Card
               profileAsync.when(
-                loading: () => ShimmerCard(height: 80.h),
+                loading: () => GlassCardShimmer(height: 80),
                 error: (e, _) => const SizedBox.shrink(),
                 data: (profile) => _buildRatingCard(profile),
               ),
@@ -89,9 +88,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               profileAsync.when(
                 loading: () => Row(
                   children: [
-                    Expanded(child: ShimmerCard(height: 70.h)),
+                    Expanded(child: GlassCardShimmer(height: 70)),
                     SizedBox(width: 12.w),
-                    Expanded(child: ShimmerCard(height: 70.h)),
+                    Expanded(child: GlassCardShimmer(height: 70)),
                   ],
                 ),
                 error: (e, _) => const SizedBox.shrink(),
@@ -107,7 +106,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               ),
               SizedBox(height: 12.h),
               contestsAsync.when(
-                loading: () => ShimmerCard(height: 180.h),
+                loading: () => GlassCardShimmer(height: 180),
                 error: (e, _) => AppErrorWidget(
                   message: e.toString(),
                   onRetry: () => ref.invalidate(upcomingContestsProvider),
@@ -265,29 +264,27 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     return Row(
       children: [
         Expanded(
-          child:
-              StatCard(
-                    icon: Icons.check_circle_rounded,
-                    iconColor: AppColors.success,
-                    value: '${profile.problemsSolved}',
-                    label: 'Problems Solved',
-                  )
-                  .animate()
-                  .fadeIn(delay: 200.ms, duration: 400.ms)
-                  .slideX(begin: -0.1, end: 0, delay: 200.ms),
+          child: StatCard(
+            icon: Icons.check_circle_rounded,
+            iconColor: AppColors.success,
+            value: '${profile.problemsSolved}',
+            label: 'Problems Solved',
+          )
+              .animate()
+              .fadeIn(delay: 200.ms, duration: 400.ms)
+              .slideX(begin: -0.1, end: 0, delay: 200.ms),
         ),
         SizedBox(width: 12.w),
         Expanded(
-          child:
-              StatCard(
-                    icon: Icons.emoji_events_rounded,
-                    iconColor: AppColors.primary,
-                    value: '${profile.contestsParticipated}',
-                    label: 'Contests',
-                  )
-                  .animate()
-                  .fadeIn(delay: 300.ms, duration: 400.ms)
-                  .slideX(begin: 0.1, end: 0, delay: 300.ms),
+          child: StatCard(
+            icon: Icons.emoji_events_rounded,
+            iconColor: AppColors.primary,
+            value: '${profile.contestsParticipated}',
+            label: 'Contests',
+          )
+              .animate()
+              .fadeIn(delay: 300.ms, duration: 400.ms)
+              .slideX(begin: 0.1, end: 0, delay: 300.ms),
         ),
       ],
     );
@@ -317,10 +314,26 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           right: true,
         ),
         cardBuilder: (context, index, percentThresholdX, percentThresholdY) {
+          final contest = contests[index];
+          final status = contest.isLive
+              ? ContestStatus.live
+              : contest.isUpcoming
+                  ? ContestStatus.upcoming
+                  : ContestStatus.finished;
+          final difficulty = contest.suitabilityLabel == 'Too Hard'
+              ? 'hard'
+              : contest.suitabilityLabel == 'Good Match'
+                  ? 'moderate'
+                  : 'moderate';
           return ContestCard(
-            contest: contests[index],
-            isReminderSet: _reminderSet.contains(index),
-            onReminderToggle: () {
+            contestId: contest.contestId,
+            name: contest.name,
+            status: status,
+            difficulty: difficulty,
+            startDateTime: contest.startDateTime,
+            durationFormatted: contest.formattedDuration,
+            hasReminder: _reminderSet.contains(index),
+            onReminderTap: () {
               setState(() {
                 if (_reminderSet.contains(index)) {
                   _reminderSet.remove(index);

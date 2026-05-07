@@ -52,7 +52,7 @@ class AIAnalysisScreen extends ConsumerWidget {
               ),
             ),
             SizedBox(height: 16.h),
-            const ShimmerList(count: 3),
+            const ProblemListShimmer(count: 3),
           ],
         ),
         error: (error, _) => AppErrorWidget(
@@ -61,8 +61,8 @@ class AIAnalysisScreen extends ConsumerWidget {
         ),
         data: (analysis) {
           if (analysis.problemAnalyses.isEmpty) {
-            return const AppEmptyWidget(
-              title: 'No Analysis Available',
+            return const EmptyWidget(
+              message: 'No Analysis Available',
               subtitle: 'Participate in contests to get AI analysis',
               icon: Icons.auto_awesome_outlined,
             );

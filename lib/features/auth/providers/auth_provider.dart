@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:algolens/core/storage/secure_storage.dart';
 import 'package:algolens/core/network/dio_client.dart';
 import 'package:algolens/core/local/hive_service.dart';
+import 'package:algolens/features/auth/data/models/auth_request_model.dart';
 import 'package:algolens/features/auth/data/repositories/auth_repository.dart';
 
 class AuthState {
@@ -57,18 +58,15 @@ class AuthNotifier extends StateNotifier<AuthState> {
       error: null,
     );
     try {
-      final tokens = await _repository.login(
-        email: email,
-        password: password,
+      await _repository.login(
+        LoginRequest(
+          email: email,
+          password: password,
+        ),
       );
-      await SecureStorage.saveAccessToken(
-        tokens['accessToken']!,
-      );
-      await SecureStorage.saveRefreshToken(
-        tokens['refreshToken']!,
-      );
+      // Tokens already saved by repository
       // Save default CF handle for mock mode
-      await SecureStorage.saveHandle('ehsan_cf');
+      await SecureStorage.saveCfHandle('ehsan_cf');
       state = state.copyWith(
         isAuthenticated: true,
         isLoading: false,
@@ -95,9 +93,12 @@ class AuthNotifier extends StateNotifier<AuthState> {
     );
     try {
       await _repository.register(
-        name: name,
-        email: email,
-        password: password,
+        RegisterRequest(
+          name: name,
+          email: email,
+          password: password,
+          cfHandle: '',
+        ),
       );
       state = state.copyWith(
         isLoading: false,
@@ -116,7 +117,11 @@ class AuthNotifier extends StateNotifier<AuthState> {
     try {
       final refreshToken = await SecureStorage.getRefreshToken();
       if (refreshToken != null) {
-        await _repository.logout(refreshToken);
+        await _repository.logout(
+          LogoutRequest(
+            refreshToken: refreshToken,
+          ),
+        );
       }
     } catch (_) {
       // Ignore logout errors

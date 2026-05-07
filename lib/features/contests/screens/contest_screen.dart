@@ -12,6 +12,7 @@ import 'package:algolens/core/widgets/loading_shimmer.dart';
 import 'package:algolens/core/widgets/error_widget.dart';
 import 'package:algolens/core/widgets/empty_widget.dart';
 import 'package:algolens/features/contests/providers/contest_provider.dart';
+import 'package:algolens/features/contests/data/models/contest_model.dart';
 
 class ContestScreen extends ConsumerStatefulWidget {
   const ContestScreen({super.key});
@@ -81,7 +82,7 @@ class _ContestScreenState extends ConsumerState<ContestScreen> {
         itemCount: 4,
         itemBuilder: (context, index) => Padding(
           padding: EdgeInsets.only(bottom: 12.h),
-          child: ShimmerCard(height: 160.h),
+          child: GlassCardShimmer(height: 160),
         ),
       ),
       error: (error, _) => AppErrorWidget(
@@ -90,8 +91,8 @@ class _ContestScreenState extends ConsumerState<ContestScreen> {
       ),
       data: (contests) {
         if (contests.isEmpty) {
-          return const AppEmptyWidget(
-            title: 'No Upcoming Contests',
+          return const EmptyWidget(
+            message: 'No Upcoming Contests',
             subtitle: 'Check back later for new contests',
             icon: Icons.event_busy_outlined,
           );
@@ -102,12 +103,28 @@ class _ContestScreenState extends ConsumerState<ContestScreen> {
           ),
           itemCount: contests.length,
           itemBuilder: (context, index) {
+            final contest = contests[index];
+            final status = contest.isLive
+                ? ContestStatus.live
+                : contest.isUpcoming
+                    ? ContestStatus.upcoming
+                    : ContestStatus.finished;
+            final difficulty = contest.suitabilityLabel == 'Too Hard'
+                ? 'hard'
+                : contest.suitabilityLabel == 'Good Match'
+                    ? 'moderate'
+                    : 'moderate';
             return Padding(
                 padding: EdgeInsets.only(bottom: 12.h),
                 child: ContestCard(
-                  contest: contests[index],
-                  isReminderSet: _reminderSet.contains(index),
-                  onReminderToggle: () {
+                  contestId: contest.contestId,
+                  name: contest.name,
+                  status: status,
+                  difficulty: difficulty,
+                  startDateTime: contest.startDateTime,
+                  durationFormatted: contest.formattedDuration,
+                  hasReminder: _reminderSet.contains(index),
+                  onReminderTap: () {
                     setState(() {
                       if (_reminderSet.contains(index)) {
                         _reminderSet.remove(index);
@@ -116,7 +133,7 @@ class _ContestScreenState extends ConsumerState<ContestScreen> {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text(
-                              'Reminder set for ${contests[index].name}',
+                              'Reminder set for ${contest.name}',
                             ),
                             backgroundColor: AppColors.success,
                           ),
@@ -191,7 +208,7 @@ class _ContestScreenState extends ConsumerState<ContestScreen> {
     final contestsAsync = ref.watch(upcomingContestsProvider);
 
     return contestsAsync.when(
-      loading: () => const ShimmerList(count: 3),
+      loading: () => const ContestListShimmer(count: 3),
       error: (e, _) => AppErrorWidget(
         message: e.toString(),
         onRetry: () => ref.invalidate(upcomingContestsProvider),
@@ -200,8 +217,8 @@ class _ContestScreenState extends ConsumerState<ContestScreen> {
         final liveContests = contests.where((c) => c.isLive).toList();
 
         if (liveContests.isEmpty) {
-          return const AppEmptyWidget(
-            title: 'No Live Contests',
+          return const EmptyWidget(
+            message: 'No Live Contests',
             subtitle: 'No contests are live right now',
             icon: Icons.live_tv_outlined,
           );
@@ -213,12 +230,23 @@ class _ContestScreenState extends ConsumerState<ContestScreen> {
           ),
           itemCount: liveContests.length,
           itemBuilder: (context, index) {
+            final contest = liveContests[index];
+            final difficulty = contest.suitabilityLabel == 'Too Hard'
+                ? 'hard'
+                : contest.suitabilityLabel == 'Good Match'
+                    ? 'moderate'
+                    : 'moderate';
             return Padding(
               padding: EdgeInsets.only(bottom: 12.h),
               child: ContestCard(
-                contest: liveContests[index],
-                isReminderSet: false,
-                onReminderToggle: () {},
+                contestId: contest.contestId,
+                name: contest.name,
+                status: ContestStatus.live,
+                difficulty: difficulty,
+                startDateTime: contest.startDateTime,
+                durationFormatted: contest.formattedDuration,
+                hasReminder: false,
+                onReminderTap: () {},
               ),
             );
           },

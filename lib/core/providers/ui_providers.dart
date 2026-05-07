@@ -1,10 +1,32 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 
 // ──────────────────────────────
 // UI PROVIDERS
 // Pure UI state — no business logic
 // ──────────────────────────────
+
+// ────────────────────────────
+// CONNECTIVITY
+// Network state stream
+// ────────────────────────────
+
+/// Stream of connectivity results
+///
+/// Emits List<ConnectivityResult>
+/// Watch to detect internet changes
+/// Used by OfflineBanner
+///
+/// Usage:
+/// ref.watch(
+///   connectivityStreamProvider,
+/// ).when(...)
+final connectivityStreamProvider = StreamProvider<List<ConnectivityResult>>(
+  (ref) {
+    return Connectivity().onConnectivityChanged;
+  },
+);
 
 // ────────────────────────────
 // BOTTOM NAV

@@ -1,90 +1,115 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:algolens/core/theme/app_colors.dart';
 import 'package:algolens/core/theme/app_text_styles.dart';
+import 'package:algolens/core/providers/ui_providers.dart';
 
-class OfflineBanner extends StatefulWidget {
+// ──────────────────────────────
+// OFFLINE BANNER
+// No internet indicator
+// ──────────────────────────────
+
+/// Offline banner widget
+///
+/// Shows when device loses internet
+/// Watches connectivityStreamProvider
+/// Animated slide + fade
+///
+/// Usage:
+/// Place at top of screen stack
+/// or integrated in main layout
+class OfflineBanner extends ConsumerWidget {
   const OfflineBanner({super.key});
 
   @override
-  State<OfflineBanner> createState() => _OfflineBannerState();
-}
+  Widget build(
+    BuildContext context,
+    WidgetRef ref,
+  ) {
+    final connectivity = ref.watch(
+      connectivityStreamProvider,
+    );
 
-class _OfflineBannerState extends State<OfflineBanner> {
-  bool _isOffline = false;
+    return connectivity.when(
+      loading: () => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
+      data: (results) {
+        final isOffline = results.every(
+          (r) => r == ConnectivityResult.none,
+        );
 
-  @override
-  void initState() {
-    super.initState();
-    _checkConnectivity();
-    _listenToConnectivity();
-  }
-
-  Future<void> _checkConnectivity() async {
-    final result = await Connectivity().checkConnectivity();
-    if (mounted) {
-      setState(() {
-        _isOffline = result.contains(ConnectivityResult.none);
-      });
-    }
-  }
-
-  void _listenToConnectivity() {
-    Connectivity().onConnectivityChanged.listen(
-      (result) {
-        if (mounted) {
-          setState(() {
-            _isOffline = result.contains(ConnectivityResult.none);
-          });
-        }
+        return AnimatedSwitcher(
+          duration: Duration(
+            milliseconds: 300,
+          ),
+          child: isOffline
+              ? _BannerContent(
+                  key: ValueKey(
+                    'offline',
+                  ),
+                )
+              : const SizedBox.shrink(
+                  key: ValueKey(
+                    'online',
+                  ),
+                ),
+        );
       },
     );
   }
+}
+
+// ──────────────────────────────
+// BANNER CONTENT
+// ──────────────────────────────
+
+class _BannerContent extends StatelessWidget {
+  const _BannerContent({
+    required Key key,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    if (!_isOffline) return const SizedBox.shrink();
-
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.symmetric(
-        horizontal: 16.w,
-        vertical: 8.h,
+    return SlideTransition(
+      position: AlwaysStoppedAnimation(
+        Offset(0, -1),
       ),
-      color: const Color(0xFFEF4444).withValues(alpha: 0.90),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.wifi_off_rounded,
-            color: Colors.white,
-            size: 16.r,
+      child: Container(
+        width: double.infinity,
+        padding: EdgeInsets.symmetric(
+          horizontal: 16.w,
+          vertical: 8.h,
+        ),
+        decoration: BoxDecoration(
+          color: AppColors.danger.withValues(
+            alpha: 0.90,
           ),
-          SizedBox(width: 8.w),
-          Text(
-            'No internet connection',
-            style: AppTextStyles.caption.copyWith(
+          borderRadius: BorderRadius.only(
+            bottomLeft: Radius.circular(8.r),
+            bottomRight: Radius.circular(8.r),
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.wifi_off_rounded,
               color: Colors.white,
-              fontWeight: FontWeight.w600,
+              size: 16.r,
             ),
-          ),
-        ],
+            SizedBox(width: 8.w),
+            Text(
+              'No internet connection',
+              style: AppTextStyles.caption.copyWith(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
       ),
-    )
-        .animate()
-        .slideY(
-          begin: -1,
-          end: 0,
-          duration: 300.ms,
-          curve: Curves.easeOut,
-        )
-        .fadeIn(duration: 300.ms)
-        .shake(
-          hz: 4,
-          offset: const Offset(4, 0),
-          duration: 400.ms,
-          delay: 300.ms,
-        );
+    );
   }
 }

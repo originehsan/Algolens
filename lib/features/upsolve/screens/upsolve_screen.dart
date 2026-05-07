@@ -78,13 +78,13 @@ class _UpsolveScreenState extends ConsumerState<UpsolveScreen> {
                   horizontal: 20.w,
                 ),
                 children: [
-                  ShimmerCard(height: 30.h),
+                  GlassCardShimmer(height: 30),
                   SizedBox(height: 8.h),
-                  const ShimmerList(count: 3),
+                  const ProblemListShimmer(count: 3),
                   SizedBox(height: 16.h),
-                  ShimmerCard(height: 30.h),
+                  GlassCardShimmer(height: 30),
                   SizedBox(height: 8.h),
-                  const ShimmerList(count: 2),
+                  const ProblemListShimmer(count: 2),
                 ],
               ),
               error: (error, _) => AppErrorWidget(
@@ -133,12 +133,12 @@ class _UpsolveScreenState extends ConsumerState<UpsolveScreen> {
     BuildContext context,
   ) {
     if (pendingProblems.isEmpty) {
-      return AppEmptyWidget(
-        title: 'All Caught Up!',
+      return EmptyWidget(
+        message: 'All Caught Up!',
         subtitle: 'You have solved all upsolve problems',
         icon: Icons.check_circle_outline_rounded,
-        buttonLabel: 'Browse Contests',
-        onButtonTap: () => context.push('/contests'),
+        actionLabel: 'Browse Contests',
+        onAction: () => context.push('/contests'),
       );
     }
 
@@ -361,8 +361,8 @@ class _UpsolveScreenState extends ConsumerState<UpsolveScreen> {
     BuildContext context,
   ) {
     if (solvedProblems.isEmpty) {
-      return const AppEmptyWidget(
-        title: 'No Solved Problems Yet',
+      return const EmptyWidget(
+        message: 'No Solved Problems Yet',
         subtitle: 'Mark problems as solved from Pending tab',
         icon: Icons.check_circle_outline_rounded,
       );

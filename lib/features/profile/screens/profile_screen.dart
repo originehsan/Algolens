@@ -12,7 +12,6 @@ import 'package:algolens/core/widgets/stat_card.dart';
 import 'package:algolens/core/widgets/user_avatar.dart';
 import 'package:algolens/core/widgets/rank_chip.dart';
 import 'package:algolens/core/widgets/app_button.dart';
-import 'package:algolens/core/widgets/loading_shimmer.dart';
 import 'package:algolens/core/widgets/error_widget.dart';
 import 'package:algolens/core/widgets/coming_soon_badge.dart';
 import 'package:algolens/features/auth/providers/auth_provider.dart';
@@ -62,7 +61,7 @@ class ProfileScreen extends ConsumerWidget {
 
               // Profile header card
               profileAsync.when(
-                loading: () => ShimmerCard(height: 100.h),
+                loading: () => GlassCardShimmer(height: 100),
                 error: (e, _) => AppErrorWidget(
                   message: e.toString(),
                   onRetry: () => ref.invalidate(
@@ -136,11 +135,11 @@ class ProfileScreen extends ConsumerWidget {
               profileAsync.when(
                 loading: () => Row(
                   children: [
-                    Expanded(child: ShimmerCard(height: 70.h)),
+                    Expanded(child: GlassCardShimmer(height: 70)),
                     SizedBox(width: 12.w),
-                    Expanded(child: ShimmerCard(height: 70.h)),
+                    Expanded(child: GlassCardShimmer(height: 70)),
                     SizedBox(width: 12.w),
-                    Expanded(child: ShimmerCard(height: 70.h)),
+                    Expanded(child: GlassCardShimmer(height: 70)),
                   ],
                 ),
                 error: (e, _) => const SizedBox.shrink(),
@@ -183,7 +182,7 @@ class ProfileScreen extends ConsumerWidget {
               ),
               SizedBox(height: 12.h),
               ratingGraphAsync.when(
-                loading: () => ShimmerCard(height: 180.h),
+                loading: () => GlassCardShimmer(height: 180),
                 error: (e, _) => const SizedBox.shrink(),
                 data: (points) => Padding(
                   padding: EdgeInsets.zero,
@@ -296,7 +295,7 @@ class ProfileScreen extends ConsumerWidget {
               ),
               SizedBox(height: 12.h),
               submissionStatsAsync.when(
-                loading: () => ShimmerCard(height: 80.h),
+                loading: () => GlassCardShimmer(height: 80),
                 error: (e, _) => const SizedBox.shrink(),
                 data: (stats) => GlassCard(
                   child: Column(

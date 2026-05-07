@@ -150,15 +150,15 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> {
     final friendsAsync = ref.watch(friendsProvider(handle));
 
     return friendsAsync.when(
-      loading: () => const ShimmerList(count: 4),
+      loading: () => const ProblemListShimmer(count: 4),
       error: (e, _) => AppErrorWidget(
         message: e.toString(),
         onRetry: () => ref.invalidate(friendsProvider(handle)),
       ),
       data: (friends) {
         if (friends.isEmpty) {
-          return const AppEmptyWidget(
-            title: 'No Friends Yet',
+          return const EmptyWidget(
+            message: 'No Friends Yet',
             subtitle: 'Add friends by their CF handle above',
             icon: Icons.people_outline_rounded,
           );
@@ -238,15 +238,15 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> {
     final leaderboardAsync = ref.watch(leaderboardProvider(handle));
 
     return leaderboardAsync.when(
-      loading: () => const ShimmerList(count: 5),
+      loading: () => const ProblemListShimmer(count: 5),
       error: (e, _) => AppErrorWidget(
         message: e.toString(),
         onRetry: () => ref.invalidate(leaderboardProvider(handle)),
       ),
       data: (entries) {
         if (entries.isEmpty) {
-          return const AppEmptyWidget(
-            title: 'No Leaderboard Data',
+          return const EmptyWidget(
+            message: 'No Leaderboard Data',
             subtitle: 'Add friends to see rankings',
             icon: Icons.leaderboard_outlined,
           );

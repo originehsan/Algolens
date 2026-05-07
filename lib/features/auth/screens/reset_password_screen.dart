@@ -8,6 +8,7 @@ import 'package:algolens/core/widgets/page_wrapper.dart';
 import 'package:algolens/core/widgets/glass_card.dart';
 import 'package:algolens/core/widgets/app_text_field.dart';
 import 'package:algolens/core/widgets/app_button.dart';
+import 'package:algolens/features/auth/data/models/auth_request_model.dart';
 import 'package:algolens/features/auth/providers/auth_provider.dart';
 
 class ResetPasswordScreen extends ConsumerStatefulWidget {
@@ -39,8 +40,10 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
     try {
       final repo = ref.read(authRepositoryProvider);
       await repo.resetPassword(
-        otp: _otpController.text.trim(),
-        newPassword: _passwordController.text,
+        ResetPasswordRequest(
+          otp: _otpController.text.trim(),
+          newPassword: _passwordController.text,
+        ),
       );
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
