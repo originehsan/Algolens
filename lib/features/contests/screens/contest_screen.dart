@@ -12,7 +12,6 @@ import 'package:algolens/core/widgets/loading_shimmer.dart';
 import 'package:algolens/core/widgets/error_widget.dart';
 import 'package:algolens/core/widgets/empty_widget.dart';
 import 'package:algolens/features/contests/providers/contest_provider.dart';
-import 'package:algolens/features/contests/data/models/contest_model.dart';
 
 class ContestScreen extends ConsumerStatefulWidget {
   const ContestScreen({super.key});

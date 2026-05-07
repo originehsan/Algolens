@@ -9,7 +9,7 @@ import 'package:algolens/core/widgets/section_header.dart';
 import 'package:algolens/core/widgets/loading_shimmer.dart';
 import 'package:algolens/core/widgets/error_widget.dart';
 import 'package:algolens/core/widgets/empty_widget.dart';
-import 'package:algolens/features/auth/providers/auth_provider.dart';
+
 import 'package:algolens/features/analysis/providers/analysis_provider.dart';
 import 'package:algolens/features/analysis/data/models/analysis_model.dart';
 
@@ -18,8 +18,7 @@ class AIAnalysisScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final authState = ref.watch(authStateProvider);
-    final handle = authState.handle ?? 'ehsan_cf';
+    const handle = 'ehsan_cf';
     final analysisAsync = ref.watch(aiAnalysisProvider(handle));
 
     return PageWrapper(

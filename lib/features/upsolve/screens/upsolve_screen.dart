@@ -12,7 +12,6 @@ import 'package:algolens/core/widgets/segmented_tab.dart';
 import 'package:algolens/core/widgets/loading_shimmer.dart';
 import 'package:algolens/core/widgets/error_widget.dart';
 import 'package:algolens/core/widgets/empty_widget.dart';
-import 'package:algolens/features/auth/providers/auth_provider.dart';
 import 'package:algolens/features/upsolve/providers/upsolve_provider.dart';
 import 'package:algolens/features/upsolve/data/models/upsolve_model.dart';
 
@@ -50,8 +49,7 @@ class _UpsolveScreenState extends ConsumerState<UpsolveScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final authState = ref.watch(authStateProvider);
-    final handle = authState.handle ?? 'ehsan_cf';
+    const handle = 'ehsan_cf';
     final upsolveAsync = ref.watch(upsolveProvider(handle));
 
     return PageWrapper(

@@ -2,17 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:pinput/pinput.dart';
+import 'package:algolens/core/router/app_router.dart';
 import 'package:algolens/core/theme/app_colors.dart';
-import 'package:algolens/core/theme/app_text_styles.dart';
-import 'package:algolens/core/widgets/page_wrapper.dart';
-import 'package:algolens/core/widgets/glass_card.dart';
-import 'package:algolens/core/widgets/app_text_field.dart';
+import 'package:algolens/core/widgets/app_background.dart';
 import 'package:algolens/core/widgets/app_button.dart';
-import 'package:algolens/features/auth/data/models/auth_request_model.dart';
+import 'package:algolens/core/widgets/app_text_field.dart';
+import 'package:algolens/core/widgets/glass_card.dart';
 import 'package:algolens/features/auth/providers/auth_provider.dart';
 
 class ResetPasswordScreen extends ConsumerStatefulWidget {
-  const ResetPasswordScreen({super.key});
+  const ResetPasswordScreen({
+    super.key,
+    required this.email,
+  });
+
+  final String email;
 
   @override
   ConsumerState<ResetPasswordScreen> createState() =>
@@ -20,116 +26,286 @@ class ResetPasswordScreen extends ConsumerStatefulWidget {
 }
 
 class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
-  final _formKey = GlobalKey<FormState>();
-  final _otpController = TextEditingController();
-  final _passwordController = TextEditingController();
-  final _confirmController = TextEditingController();
-  bool _isLoading = false;
+  final _newPassCtrl = TextEditingController();
+  final _confirmPassCtrl = TextEditingController();
+
+  String _otp = '';
+  String? _passError;
 
   @override
   void dispose() {
-    _otpController.dispose();
-    _passwordController.dispose();
-    _confirmController.dispose();
+    _newPassCtrl.dispose();
+    _confirmPassCtrl.dispose();
     super.dispose();
   }
 
-  Future<void> _handleReset() async {
-    if (!_formKey.currentState!.validate()) return;
-    setState(() => _isLoading = true);
-    try {
-      final repo = ref.read(authRepositoryProvider);
-      await repo.resetPassword(
-        ResetPasswordRequest(
-          otp: _otpController.text.trim(),
-          newPassword: _passwordController.text,
+  bool get _canSubmit =>
+      _otp.length == 6 &&
+      _newPassCtrl.text.trim().length >= 8 &&
+      _newPassCtrl.text.trim() == _confirmPassCtrl.text.trim();
+
+  Future<void> _submit() async {
+    if (!_canSubmit) return;
+
+    setState(() {
+      _passError = null;
+    });
+
+    if (_newPassCtrl.text.trim() != _confirmPassCtrl.text.trim()) {
+      setState(() {
+        _passError = 'Passwords do not match';
+      });
+      return;
+    }
+
+    await ref
+        .read(
+          resetPasswordProvider.notifier,
+        )
+        .resetPassword(
+          otp: _otp,
+          newPassword: _newPassCtrl.text.trim(),
+        );
+  }
+
+  // ───────────────────────────────
+  // PINPUT THEME
+  // Glassmorphism style OTP boxes
+  // ───────────────────────────────
+
+  PinTheme get _defaultTheme => PinTheme(
+        width: 48.r,
+        height: 56.r,
+        textStyle: GoogleFonts.jetBrainsMono(
+          fontSize: 20.sp,
+          fontWeight: FontWeight.w700,
+          color: Colors.white,
+        ),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.06),
+          borderRadius: BorderRadius.circular(12.r),
+          border: Border.all(
+            color: Colors.white.withValues(alpha: 0.15),
+            width: 1.5,
+          ),
         ),
       );
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Password reset successfully',
-            ),
-            backgroundColor: AppColors.success,
+
+  PinTheme get _focusedTheme => _defaultTheme.copyWith(
+        decoration: BoxDecoration(
+          color: AppColors.primary.withValues(alpha: 0.10),
+          borderRadius: BorderRadius.circular(12.r),
+          border: Border.all(
+            color: AppColors.primary,
+            width: 1.5,
           ),
-        );
-        context.go('/login');
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(e.toString()),
-            backgroundColor: AppColors.danger,
+        ),
+      );
+
+  PinTheme get _submittedTheme => _defaultTheme.copyWith(
+        decoration: BoxDecoration(
+          color: AppColors.primary.withValues(alpha: 0.15),
+          borderRadius: BorderRadius.circular(12.r),
+          border: Border.all(
+            color: AppColors.primary.withValues(alpha: 0.60),
+            width: 1.5,
           ),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
-    }
-  }
+        ),
+      );
 
   @override
   Widget build(BuildContext context) {
-    return PageWrapper(
-      title: 'Reset Password',
-      showBackButton: true,
-      child: Padding(
-        padding: EdgeInsets.symmetric(
-          horizontal: 20.w,
-        ),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            children: [
-              SizedBox(height: 32.h),
-              GlassCard(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'New Password',
-                      style: AppTextStyles.h2,
-                    ),
-                    SizedBox(height: 4.h),
-                    Text(
-                      'Enter the OTP from your email',
-                      style: AppTextStyles.body,
-                    ),
-                    SizedBox(height: 24.h),
-                    AppTextField(
-                      label: 'Enter OTP',
-                      controller: _otpController,
-                      keyboardType: TextInputType.number,
-                      prefixIcon: Icons.pin_outlined,
-                    ),
-                    SizedBox(height: 14.h),
-                    AppTextField(
-                      label: 'New Password',
-                      controller: _passwordController,
-                      isPassword: true,
-                      prefixIcon: Icons.lock_outlined,
-                    ),
-                    SizedBox(height: 14.h),
-                    AppTextField(
-                      label: 'Confirm Password',
-                      controller: _confirmController,
-                      isPassword: true,
-                      prefixIcon: Icons.lock_outlined,
-                    ),
-                  ],
+    final authState = ref.watch(
+      resetPasswordProvider,
+    );
+
+    ref.listen(
+      resetPasswordProvider,
+      (_, next) {
+        if (next is AuthSuccess) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Password reset successfully!',
+                style: GoogleFonts.inter(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
-              SizedBox(height: 24.h),
-              AppButton(
-                label: 'Reset Password',
-                onTap: _handleReset,
-                isLoading: _isLoading,
-              ),
-            ],
+              backgroundColor: AppColors.success,
+            ),
+          );
+          context.goNamed(
+            RouteNames.login,
+          );
+        }
+      },
+    );
+
+    final isLoading = authState is AuthLoading;
+
+    return AppBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: SafeArea(
+          child: SingleChildScrollView(
+            padding: EdgeInsets.symmetric(
+              horizontal: 20.w,
+              vertical: 24.h,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Back button
+                IconButton(
+                  onPressed: () => context.pop(),
+                  icon: Icon(
+                    Icons.arrow_back_rounded,
+                    color: Colors.white.withValues(
+                      alpha: 0.70,
+                    ),
+                    size: 24.r,
+                  ),
+                  padding: EdgeInsets.zero,
+                ),
+
+                SizedBox(height: 16.h),
+
+                // Header
+                Text(
+                  'Reset Password',
+                  style: GoogleFonts.inter(
+                    fontSize: 28.sp,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                  ),
+                ),
+
+                SizedBox(height: 8.h),
+
+                Text(
+                  'Enter the code sent '
+                  'to ${widget.email}',
+                  style: GoogleFonts.inter(
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.white.withValues(
+                      alpha: 0.55,
+                    ),
+                  ),
+                ),
+
+                SizedBox(height: 32.h),
+
+                GlassCard(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // OTP label
+                      Text(
+                        'Reset Code',
+                        style: GoogleFonts.inter(
+                          fontSize: 13.sp,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white.withValues(
+                            alpha: 0.70,
+                          ),
+                        ),
+                      ),
+
+                      SizedBox(
+                        height: 12.h,
+                      ),
+
+                      // Pinput OTP
+                      Center(
+                        child: Pinput(
+                          length: 6,
+                          defaultPinTheme: _defaultTheme,
+                          focusedPinTheme: _focusedTheme,
+                          submittedPinTheme: _submittedTheme,
+                          onChanged: (val) => setState(
+                            () => _otp = val,
+                          ),
+                          onCompleted: (val) => setState(
+                            () => _otp = val,
+                          ),
+                        ),
+                      ),
+
+                      SizedBox(
+                        height: 24.h,
+                      ),
+
+                      // New password
+                      AppTextField(
+                        label: 'New Password',
+                        hint: 'Min 8 characters',
+                        controller: _newPassCtrl,
+                        isPassword: true,
+                        prefixIcon: Icons.lock_outline_rounded,
+                        textInputAction: TextInputAction.next,
+                        onChanged: (_) => setState(
+                          () {},
+                        ),
+                      ),
+
+                      SizedBox(
+                        height: 16.h,
+                      ),
+
+                      // Confirm password
+                      AppTextField(
+                        label: 'Confirm '
+                            'Password',
+                        hint: 'Repeat password',
+                        controller: _confirmPassCtrl,
+                        isPassword: true,
+                        prefixIcon: Icons.lock_outline_rounded,
+                        textInputAction: TextInputAction.done,
+                        fieldState: _passError != null
+                            ? AppTextFieldState.error
+                            : AppTextFieldState.defaultState,
+                        errorText: _passError,
+                        onChanged: (_) => setState(
+                          () {},
+                        ),
+                        onSubmitted: (_) => _submit(),
+                      ),
+
+                      SizedBox(
+                        height: 24.h,
+                      ),
+
+                      // API error
+                      if (authState is AuthError)
+                        Padding(
+                          padding: EdgeInsets.only(
+                            bottom: 16.h,
+                          ),
+                          child: Text(
+                            authState.message,
+                            style: GoogleFonts.inter(
+                              fontSize: 13.sp,
+                              color: AppColors.danger,
+                              fontWeight: FontWeight.w500,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+
+                      // Submit button
+                      AppButton(
+                        label: 'Reset Password',
+                        onTap: _canSubmit ? _submit : null,
+                        isLoading: isLoading,
+                        isDisabled: !_canSubmit,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

@@ -14,7 +14,6 @@ import 'package:algolens/core/widgets/rank_chip.dart';
 import 'package:algolens/core/widgets/app_button.dart';
 import 'package:algolens/core/widgets/error_widget.dart';
 import 'package:algolens/core/widgets/coming_soon_badge.dart';
-import 'package:algolens/features/auth/providers/auth_provider.dart';
 import 'package:algolens/features/profile/providers/profile_provider.dart';
 import 'package:fl_chart/fl_chart.dart';
 
@@ -23,8 +22,7 @@ class ProfileScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final authState = ref.watch(authStateProvider);
-    final handle = authState.handle ?? 'ehsan_cf';
+    const handle = 'ehsan_cf';
     final profileAsync = ref.watch(profileProvider(handle));
     final ratingGraphAsync = ref.watch(ratingGraphProvider(handle));
     final submissionStatsAsync = ref.watch(submissionStatsProvider(handle));
@@ -61,7 +59,7 @@ class ProfileScreen extends ConsumerWidget {
 
               // Profile header card
               profileAsync.when(
-                loading: () => GlassCardShimmer(height: 100),
+                loading: () => GlassCardShimmer(height: 100.h),
                 error: (e, _) => AppErrorWidget(
                   message: e.toString(),
                   onRetry: () => ref.invalidate(
@@ -135,11 +133,11 @@ class ProfileScreen extends ConsumerWidget {
               profileAsync.when(
                 loading: () => Row(
                   children: [
-                    Expanded(child: GlassCardShimmer(height: 70)),
+                    Expanded(child: GlassCardShimmer(height: 70.h)),
                     SizedBox(width: 12.w),
-                    Expanded(child: GlassCardShimmer(height: 70)),
+                    Expanded(child: GlassCardShimmer(height: 70.h)),
                     SizedBox(width: 12.w),
-                    Expanded(child: GlassCardShimmer(height: 70)),
+                    Expanded(child: GlassCardShimmer(height: 70.h)),
                   ],
                 ),
                 error: (e, _) => const SizedBox.shrink(),
@@ -182,7 +180,7 @@ class ProfileScreen extends ConsumerWidget {
               ),
               SizedBox(height: 12.h),
               ratingGraphAsync.when(
-                loading: () => GlassCardShimmer(height: 180),
+                loading: () => GlassCardShimmer(height: 180.h),
                 error: (e, _) => const SizedBox.shrink(),
                 data: (points) => Padding(
                   padding: EdgeInsets.zero,
@@ -295,7 +293,7 @@ class ProfileScreen extends ConsumerWidget {
               ),
               SizedBox(height: 12.h),
               submissionStatsAsync.when(
-                loading: () => GlassCardShimmer(height: 80),
+                loading: () => GlassCardShimmer(height: 80.h),
                 error: (e, _) => const SizedBox.shrink(),
                 data: (stats) => GlassCard(
                   child: Column(
@@ -305,27 +303,27 @@ class ProfileScreen extends ConsumerWidget {
                         children: [
                           _buildVerdictStat(
                             'AC',
-                            stats.verdictsCount['ACCEPTED'] ?? 0,
+                            stats.accepted,
                             AppColors.success,
                           ),
                           _buildVerdictStat(
                             'WA',
-                            stats.verdictsCount['WRONG_ANSWER'] ?? 0,
+                            stats.wrongAnswer,
                             AppColors.danger,
                           ),
                           _buildVerdictStat(
                             'TLE',
-                            stats.verdictsCount['TIME_LIMIT_EXCEEDED'] ?? 0,
+                            stats.timeLimitExceeded,
                             AppColors.warning,
                           ),
                           _buildVerdictStat(
                             'MLE',
-                            stats.verdictsCount['MEMORY_LIMIT_EXCEEDED'] ?? 0,
+                            stats.memoryLimitExceeded,
                             AppColors.warning,
                           ),
                           _buildVerdictStat(
                             'RE',
-                            stats.verdictsCount['RUNTIME_ERROR'] ?? 0,
+                            stats.runtimeError,
                             AppColors.textMuted,
                           ),
                         ],

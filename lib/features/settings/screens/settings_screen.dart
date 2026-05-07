@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 import 'package:algolens/core/theme/app_colors.dart';
 import 'package:algolens/core/theme/app_text_styles.dart';
 import 'package:algolens/core/widgets/page_wrapper.dart';
@@ -24,27 +23,12 @@ class SettingsScreen extends ConsumerStatefulWidget {
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   bool _contestReminders = true;
   bool _streakReminders = true;
-  String _appVersion = '1.0.0';
-
-  @override
-  void initState() {
-    super.initState();
-    _loadAppVersion();
-  }
-
-  Future<void> _loadAppVersion() async {
-    final info = await PackageInfo.fromPlatform();
-    if (mounted) {
-      setState(() {
-        _appVersion = '${info.version}+${info.buildNumber}';
-      });
-    }
-  }
 
   Future<void> _handleLogout() async {
-    showDialog(
+    final router = GoRouter.of(context);
+    final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (ctx) => AlertDialog(
         backgroundColor: AppColors.bgMid,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20.r),
@@ -62,7 +46,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(ctx, false),
             child: Text(
               'Cancel',
               style: AppTextStyles.body.copyWith(
@@ -71,13 +55,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ),
           ),
           TextButton(
-            onPressed: () async {
-              Navigator.pop(context);
-              await ref.read(authStateProvider.notifier).logout();
-              if (mounted) {
-                context.go('/onboarding');
-              }
-            },
+            onPressed: () => Navigator.pop(ctx, true),
             child: Text(
               'Logout',
               style: AppTextStyles.bodyBold.copyWith(
@@ -88,12 +66,16 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         ],
       ),
     );
+    if (confirmed == true) {
+      await ref.read(logoutProvider.notifier).logout();
+      if (!mounted) return;
+      router.go('/onboarding');
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final authState = ref.watch(authStateProvider);
-    final handle = authState.handle ?? 'ehsan_cf';
+    const handle = 'ehsan_cf';
     final profileAsync = ref.watch(profileProvider(handle));
 
     return PageWrapper(
@@ -110,7 +92,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
             // Account card
             profileAsync.when(
-              loading: () => GlassCardShimmer(height: 80),
+              loading: () => const GlassCardShimmer(height: 80),
               error: (e, _) => GlassCard(
                 child: Row(
                   children: [
@@ -223,7 +205,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     icon: Icons.info_outline_rounded,
                     title: 'App Version',
                     trailing: Text(
-                      _appVersion,
+                      '1.0.0',
                       style: AppTextStyles.metricSmall.copyWith(
                         fontSize: 12.sp,
                         color: AppColors.textMuted,

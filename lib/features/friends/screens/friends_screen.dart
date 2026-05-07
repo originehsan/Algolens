@@ -14,7 +14,6 @@ import 'package:algolens/core/widgets/rank_chip.dart';
 import 'package:algolens/core/widgets/loading_shimmer.dart';
 import 'package:algolens/core/widgets/error_widget.dart';
 import 'package:algolens/core/widgets/empty_widget.dart';
-import 'package:algolens/features/auth/providers/auth_provider.dart';
 import 'package:algolens/features/friends/providers/friends_provider.dart';
 
 class FriendsScreen extends ConsumerStatefulWidget {
@@ -75,8 +74,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final authState = ref.watch(authStateProvider);
-    final handle = authState.handle ?? 'ehsan_cf';
+    const handle = 'ehsan_cf';
 
     return PageWrapper(
       title: 'Friends',

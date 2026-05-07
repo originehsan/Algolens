@@ -11,7 +11,7 @@ import 'package:algolens/core/widgets/problem_row.dart';
 import 'package:algolens/core/widgets/loading_shimmer.dart';
 import 'package:algolens/core/widgets/error_widget.dart';
 import 'package:algolens/core/widgets/empty_widget.dart';
-import 'package:algolens/features/auth/providers/auth_provider.dart';
+
 import 'package:algolens/features/practice/providers/practice_provider.dart';
 
 class RecommendationsScreen extends ConsumerStatefulWidget {
@@ -37,8 +37,7 @@ class _RecommendationsScreenState extends ConsumerState<RecommendationsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final authState = ref.watch(authStateProvider);
-    final handle = authState.handle ?? 'ehsan_cf';
+    const handle = 'ehsan_cf';
     final blindMode = ref.watch(blindModeProvider);
     final recommendationsAsync = ref.watch(recommendationsProvider(handle));
 

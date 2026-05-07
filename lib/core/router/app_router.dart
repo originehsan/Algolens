@@ -2,6 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:algolens/features/auth/screens/splash_screen.dart';
+import 'package:algolens/features/auth/screens/onboarding_screen.dart';
+import 'package:algolens/features/auth/screens/register_screen.dart';
+import 'package:algolens/features/auth/screens/email_verification_screen.dart';
+import 'package:algolens/features/auth/screens/login_screen.dart';
+import 'package:algolens/features/auth/screens/forgot_password_screen.dart';
+import 'package:algolens/features/auth/screens/cf_handle_setup_screen.dart';
+import 'package:algolens/features/auth/screens/reset_password_screen.dart';
 
 // ──────────────────────────────
 // ROUTE NAMES
@@ -135,57 +142,54 @@ abstract class AppRouter {
         GoRoute(
           path: RoutePaths.onboarding,
           name: RouteNames.onboarding,
-          builder: (context, state) => const _PlaceholderScreen(
-            label: 'Onboarding',
-          ),
+          builder: (context, state) => const OnboardingScreen(),
         ),
 
         GoRoute(
           path: RoutePaths.register,
           name: RouteNames.register,
-          builder: (context, state) => const _PlaceholderScreen(
-            label: 'Register',
-          ),
+          builder: (context, state) => const RegisterScreen(),
         ),
 
         GoRoute(
           path: RoutePaths.emailVerification,
           name: RouteNames.emailVerification,
-          builder: (context, state) => const _PlaceholderScreen(
-            label: 'Email Verification',
-          ),
+          builder: (context, state) {
+            final email = state.extra as String? ?? '';
+            return EmailVerificationScreen(
+              email: email,
+            );
+          },
         ),
 
         GoRoute(
           path: RoutePaths.login,
           name: RouteNames.login,
-          builder: (context, state) => const _PlaceholderScreen(
-            label: 'Login',
-          ),
+          builder: (context, state) => const LoginScreen(),
         ),
 
         GoRoute(
           path: RoutePaths.forgotPassword,
           name: RouteNames.forgotPassword,
-          builder: (context, state) => const _PlaceholderScreen(
-            label: 'Forgot Password',
-          ),
+          builder: (context, state) => const ForgotPasswordScreen(),
         ),
 
         GoRoute(
           path: RoutePaths.resetPassword,
           name: RouteNames.resetPassword,
-          builder: (context, state) => const _PlaceholderScreen(
-            label: 'Reset Password',
-          ),
+          builder: (context, state) {
+            final email = state.extra as String? ?? '';
+            return ResetPasswordScreen(
+              email: email,
+            );
+          },
         ),
 
         GoRoute(
           path: RoutePaths.cfHandleSetup,
           name: RouteNames.cfHandleSetup,
-          builder: (context, state) => const _PlaceholderScreen(
-            label: 'CF Handle Setup',
-          ),
+          builder: (context, state) =>
+              const CfHandleSetupScreen(),
         ),
 
         // ──────────────────────

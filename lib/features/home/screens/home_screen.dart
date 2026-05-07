@@ -15,7 +15,6 @@ import 'package:algolens/core/widgets/user_avatar.dart';
 import 'package:algolens/core/widgets/rank_chip.dart';
 import 'package:algolens/core/widgets/contest_card.dart';
 import 'package:algolens/core/widgets/error_widget.dart';
-import 'package:algolens/features/auth/providers/auth_provider.dart';
 import 'package:algolens/features/profile/providers/profile_provider.dart';
 import 'package:algolens/features/contests/providers/contest_provider.dart';
 import 'package:algolens/features/contests/data/models/contest_model.dart';
@@ -39,8 +38,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final authState = ref.watch(authStateProvider);
-    final handle = authState.handle ?? 'ehsan_cf';
+    const handle = 'ehsan_cf';
 
     final profileAsync = ref.watch(profileProvider(handle));
     final contestsAsync = ref.watch(upcomingContestsProvider);

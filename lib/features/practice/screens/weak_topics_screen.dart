@@ -13,7 +13,6 @@ import 'package:algolens/core/widgets/error_widget.dart';
 import 'package:algolens/core/widgets/empty_widget.dart';
 import 'package:algolens/core/widgets/progress_bar_widget.dart';
 import 'package:algolens/core/widgets/coming_soon_badge.dart';
-import 'package:algolens/features/auth/providers/auth_provider.dart';
 import 'package:algolens/features/practice/providers/practice_provider.dart';
 import 'package:algolens/features/practice/data/models/weak_topic_model.dart';
 
@@ -22,8 +21,7 @@ class WeakTopicsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final authState = ref.watch(authStateProvider);
-    final handle = authState.handle ?? 'ehsan_cf';
+    const handle = 'ehsan_cf';
     final weakTopicsAsync = ref.watch(weakTopicsProvider(handle));
 
     return PageWrapper(

@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
-import 'package:algolens/core/theme/app_colors.dart';
-import 'package:algolens/core/theme/app_text_styles.dart';
-import 'package:algolens/core/widgets/app_background.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:algolens/core/router/app_router.dart';
 import 'package:algolens/core/storage/secure_storage.dart';
+import 'package:algolens/core/local/user_settings_service.dart';
+import 'package:algolens/core/widgets/app_background.dart';
+import 'package:algolens/core/theme/app_colors.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
@@ -15,32 +16,84 @@ class SplashScreen extends ConsumerStatefulWidget {
   ConsumerState<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends ConsumerState<SplashScreen> {
+class _SplashScreenState extends ConsumerState<SplashScreen>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl;
+  late final Animation<double> _fadeAnim;
+
   @override
   void initState() {
     super.initState();
-    // Delay navigation to allow splash to render
-    Future.delayed(
-      const Duration(milliseconds: 3500),
-      _navigate,
+
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 800),
     );
+
+    _fadeAnim = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(
+      CurvedAnimation(
+        parent: _ctrl,
+        curve: Curves.easeIn,
+      ),
+    );
+
+    _ctrl.forward();
+    _navigate();
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
   }
 
   Future<void> _navigate() async {
-    if (!mounted) return;
-    try {
-      final isLoggedIn = await SecureStorage.isLoggedIn();
-      if (!mounted) return;
+    // Wait for animation
+    await Future.delayed(
+      const Duration(milliseconds: 2000),
+    );
 
-      if (isLoggedIn) {
-        if (mounted) context.go('/home');
-      } else {
-        if (mounted) context.go('/onboarding');
-      }
-    } catch (e) {
-      // Default to onboarding on error
-      if (mounted) context.go('/onboarding');
+    if (!mounted) return;
+
+    final svc = ref.read(
+      userSettingsServiceProvider,
+    );
+
+    final token = await SecureStorage.getAccessToken();
+    final cfHandle = await SecureStorage.getCfHandle();
+    final onboardingDone = await svc.isOnboardingDone();
+
+    if (!mounted) return;
+
+    // Not logged in + no onboarding
+    if (token == null && !onboardingDone) {
+      context.goNamed(
+        RouteNames.onboarding,
+      );
+      return;
     }
+
+    // Not logged in + onboarding done
+    if (token == null) {
+      context.goNamed(
+        RouteNames.login,
+      );
+      return;
+    }
+
+    // Logged in + no CF handle
+    if (cfHandle == null || cfHandle.isEmpty) {
+      context.goNamed(
+        RouteNames.cfHandleSetup,
+      );
+      return;
+    }
+
+    // Fully set up → home
+    context.goNamed(RouteNames.home);
   }
 
   @override
@@ -48,59 +101,80 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
     return AppBackground(
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                'AlgoLens',
-                style: AppTextStyles.display.copyWith(
-                  color: AppColors.primary,
-                ),
-              ).animate().fadeIn(duration: 800.ms).slideY(
-                    begin: 0.3,
-                    end: 0,
-                    duration: 800.ms,
-                    curve: Curves.easeOut,
-                  ),
-              SizedBox(height: 8.h),
-              Text(
-                'Competitive Programming Analytics',
-                style: AppTextStyles.body,
-                textAlign: TextAlign.center,
-              ).animate().fadeIn(
-                    delay: 400.ms,
-                    duration: 600.ms,
-                  ),
-              SizedBox(height: 48.h),
-              // Loading pulse indicator
-              SizedBox(
-                width: 12.r,
-                height: 12.r,
-                child: Container(
-                  decoration: const BoxDecoration(
+        body: FadeTransition(
+          opacity: _fadeAnim,
+          child: Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Logo circle
+                Container(
+                  width: 100.r,
+                  height: 100.r,
+                  decoration: BoxDecoration(
                     shape: BoxShape.circle,
+                    color: AppColors.primary.withValues(
+                      alpha: 0.15,
+                    ),
+                    border: Border.all(
+                      color: AppColors.primary.withValues(
+                        alpha: 0.60,
+                      ),
+                      width: 2,
+                    ),
+                  ),
+                  child: Icon(
+                    Icons.code_rounded,
                     color: AppColors.primary,
+                    size: 48.r,
                   ),
                 ),
-              )
-                  .animate(
-                    onPlay: (controller) => controller.repeat(),
-                  )
-                  .scale(
-                    begin: const Offset(0.8, 0.8),
-                    end: const Offset(1.2, 1.2),
-                    duration: 800.ms,
-                    curve: Curves.easeInOut,
-                  )
-                  .then()
-                  .scale(
-                    begin: const Offset(1.2, 1.2),
-                    end: const Offset(0.8, 0.8),
-                    duration: 800.ms,
-                    curve: Curves.easeInOut,
-                  )
-            ],
+
+                SizedBox(height: 24.h),
+
+                // App name
+                Text(
+                  'AlgoLens',
+                  style: GoogleFonts.jetBrainsMono(
+                    fontSize: 32.sp,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                    letterSpacing: 2,
+                  ),
+                ),
+
+                SizedBox(height: 8.h),
+
+                // Tagline
+                Text(
+                  'Track. Analyze. Improve.',
+                  style: GoogleFonts.inter(
+                    fontSize: 13.sp,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.white.withValues(
+                      alpha: 0.55,
+                    ),
+                    letterSpacing: 1,
+                  ),
+                ),
+
+                SizedBox(height: 60.h),
+
+                // Loading indicator
+                SizedBox(
+                  width: 24.r,
+                  height: 24.r,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation(
+                      AppColors.primary.withValues(
+                        alpha: 0.70,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
