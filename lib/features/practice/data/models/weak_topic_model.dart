@@ -1,48 +1,67 @@
-import 'package:flutter/material.dart';
-import 'package:algolens/core/theme/app_colors.dart';
+class WeakTopicModel {
+  const WeakTopicModel({
+    required this.tag,
+    required this.totalAttempts,
+    required this.solvedCount,
+    required this.unsolvedCount,
+    required this.acRate,
+    required this.severity,
+  });
 
-class WeakTopic {
   final String tag;
   final int totalAttempts;
   final int solvedCount;
   final int unsolvedCount;
   final double acRate;
 
-  const WeakTopic({
-    required this.tag,
-    required this.totalAttempts,
-    required this.solvedCount,
-    required this.unsolvedCount,
-    required this.acRate,
-  });
+  /// critical / high / moderate
+  final String severity;
 
-  factory WeakTopic.fromJson(Map<String, dynamic> json) {
-    return WeakTopic(
+  factory WeakTopicModel.fromJson(
+    Map<String, dynamic> json,
+  ) {
+    final acRate = (json['acRate'] as num?)?.toDouble() ?? 0.0;
+
+    final severity =
+        (json['severity'] as String?) ?? _computeSeverity(acRate);
+
+    return WeakTopicModel(
       tag: json['tag'] as String,
-      totalAttempts: json['totalAttempts'] as int,
-      solvedCount: json['solvedCount'] as int,
-      unsolvedCount: json['unsolvedCount'] as int,
-      acRate: (json['acRate'] as num).toDouble(),
+      totalAttempts: (json['totalAttempts'] as int?) ?? 0,
+      solvedCount: (json['solvedCount'] as int?) ?? 0,
+      unsolvedCount: (json['unsolvedCount'] as int?) ?? 0,
+      acRate: acRate,
+      severity: severity,
     );
   }
 
-  String get severity {
-    if (acRate < 30) return 'CRITICAL';
-    if (acRate < 50) return 'HIGH';
-    if (acRate < 70) return 'MEDIUM';
-    return 'LOW';
+  static String _computeSeverity(double acRate) {
+    if (acRate < 0.40) return 'critical';
+    if (acRate < 0.60) return 'high';
+    return 'moderate';
   }
 
-  Color get severityColor {
-    switch (severity) {
-      case 'CRITICAL':
-        return AppColors.danger;
-      case 'HIGH':
-        return AppColors.warning;
-      case 'MEDIUM':
-        return AppColors.primary;
-      default:
-        return AppColors.success;
-    }
-  }
+  Map<String, dynamic> toJson() => {
+        'tag': tag,
+        'totalAttempts': totalAttempts,
+        'solvedCount': solvedCount,
+        'unsolvedCount': unsolvedCount,
+        'acRate': acRate,
+        'severity': severity,
+      };
+
+  // ───────────────────────────────
+  // COMPUTED PROPERTIES
+  // ───────────────────────────────
+
+  String get severityColor => switch (severity) {
+        'critical' => '#EF4444',
+        'high' => '#F59E0B',
+        _ => '#4DA3FF',
+      };
+
+  String get acRateFormatted =>
+      '${(acRate * 100).toStringAsFixed(0)}%';
+
+  bool get isCritical => severity == 'critical';
 }

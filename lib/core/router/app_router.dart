@@ -15,6 +15,8 @@ import 'package:algolens/features/contests/screens/all_contests_screen.dart';
 import 'package:algolens/features/profile/screens/profile_screen.dart';
 import 'package:algolens/features/friends/screens/friends_screen.dart';
 import 'package:algolens/features/friends/screens/comparison_screen.dart';
+import 'package:algolens/features/practice/screens/weak_topics_screen.dart';
+import 'package:algolens/features/practice/screens/recommendations_screen.dart';
 
 // ──────────────────────────────
 // ROUTE NAMES
@@ -222,17 +224,13 @@ abstract class AppRouter {
         GoRoute(
           path: RoutePaths.practice,
           name: RouteNames.practice,
-          builder: (context, state) => const _PlaceholderScreen(
-            label: 'Practice',
-          ),
+          builder: (context, state) => const WeakTopicsScreen(),
         ),
 
         GoRoute(
           path: RoutePaths.recommendations,
           name: RouteNames.recommendations,
-          builder: (context, state) => const _PlaceholderScreen(
-            label: 'Recommendations',
-          ),
+          builder: (context, state) => const RecommendationsScreen(),
         ),
 
         GoRoute(

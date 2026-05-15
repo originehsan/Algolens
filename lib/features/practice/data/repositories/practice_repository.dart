@@ -1,76 +1,79 @@
-import 'dart:convert';
-import 'package:algolens/core/network/dio_client.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:algolens/core/errors/app_exceptions.dart';
 import 'package:algolens/core/network/api_endpoints.dart';
-import 'package:algolens/core/local/hive_service.dart';
-import 'package:algolens/features/practice/data/models/weak_topic_model.dart';
+import 'package:algolens/core/network/dio_client.dart';
 import 'package:algolens/features/practice/data/models/problem_model.dart';
+import 'package:algolens/features/practice/data/models/weak_topic_model.dart';
+
+// ─────────────────────────────────
+// PROVIDER
+// ─────────────────────────────────
+
+final practiceRepositoryProvider = Provider<PracticeRepository>(
+  (ref) => PracticeRepository(
+    ref.watch(dioClientProvider),
+  ),
+);
+
+// ─────────────────────────────────
+// REPOSITORY
+// ─────────────────────────────────
 
 class PracticeRepository {
-  final DioClient _dioClient;
+  PracticeRepository(this._client);
+  final DioClient _client;
 
-  PracticeRepository(this._dioClient);
-
-  Future<List<WeakTopic>> getWeakTopics(String handle) async {
+  // GET /insights/{handle}/weak-topics
+  // No cache — always fresh
+  Future<List<WeakTopicModel>> getWeakTopics(String handle) async {
     try {
-      final response = await _dioClient.get(
+      final data = await _client.get(
         ApiEndpoints.weakTopics(handle),
       );
-      final topics = (response as List)
-          .map((item) => WeakTopic.fromJson(item as Map<String, dynamic>))
+      final List<dynamic> list = (data['topics'] as List?) ??
+          (data['weakTopics'] as List?) ??
+          (data is List ? data as List : const <dynamic>[]);
+      return list
+          .map(
+            (e) => WeakTopicModel.fromJson(
+              e as Map<String, dynamic>,
+            ),
+          )
           .toList();
-
-      // Cache as JSON
-      await HiveService.cachedContests.put(
-        'weak_topics_$handle',
-        jsonEncode(response),
-      );
-
-      return topics;
-    } catch (e) {
-      // Try cache fallback
-      final cached = HiveService.cachedContests.get('weak_topics_$handle');
-      if (cached != null) {
-        try {
-          return (jsonDecode(cached as String) as List)
-              .map((item) => WeakTopic.fromJson(item as Map<String, dynamic>))
-              .toList();
-        } catch (_) {
-          rethrow;
-        }
-      }
+    } on ApiException {
       rethrow;
+    } catch (e) {
+      throw ApiException(
+        message: e.toString(),
+        type: ApiExceptionType.unknown,
+      );
     }
   }
 
-  Future<List<Problem>> getRecommendations(String handle) async {
+  // GET /insights/{handle}/recommendations
+  // No cache — always fresh
+  Future<List<ProblemModel>> getRecommendations(String handle) async {
     try {
-      final response = await _dioClient.get(
+      final data = await _client.get(
         ApiEndpoints.recommendations(handle),
       );
-      final problems = (response as List)
-          .map((item) => Problem.fromJson(item as Map<String, dynamic>))
+      final List<dynamic> list = (data['problems'] as List?) ??
+          (data['recommendations'] as List?) ??
+          (data is List ? data as List : const <dynamic>[]);
+      return list
+          .map(
+            (e) => ProblemModel.fromJson(
+              e as Map<String, dynamic>,
+            ),
+          )
           .toList();
-
-      // Cache as JSON
-      await HiveService.cachedContests.put(
-        'recommendations_$handle',
-        jsonEncode(response),
-      );
-
-      return problems;
-    } catch (e) {
-      // Try cache fallback
-      final cached = HiveService.cachedContests.get('recommendations_$handle');
-      if (cached != null) {
-        try {
-          return (jsonDecode(cached as String) as List)
-              .map((item) => Problem.fromJson(item as Map<String, dynamic>))
-              .toList();
-        } catch (_) {
-          rethrow;
-        }
-      }
+    } on ApiException {
       rethrow;
+    } catch (e) {
+      throw ApiException(
+        message: e.toString(),
+        type: ApiExceptionType.unknown,
+      );
     }
   }
 }

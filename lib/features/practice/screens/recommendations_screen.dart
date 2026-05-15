@@ -1,189 +1,101 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:algolens/core/theme/app_colors.dart';
-import 'package:algolens/core/theme/app_text_styles.dart';
-import 'package:algolens/core/widgets/page_wrapper.dart';
-import 'package:algolens/core/widgets/glass_card.dart';
-import 'package:algolens/core/widgets/segmented_tab.dart';
-import 'package:algolens/core/widgets/problem_row.dart';
-import 'package:algolens/core/widgets/loading_shimmer.dart';
-import 'package:algolens/core/widgets/error_widget.dart';
+import 'package:algolens/core/widgets/app_background.dart';
 import 'package:algolens/core/widgets/empty_widget.dart';
-
+import 'package:algolens/core/widgets/error_widget.dart';
+import 'package:algolens/core/widgets/loading_shimmer.dart';
+import 'package:algolens/core/widgets/problem_row.dart';
+import 'package:algolens/core/widgets/section_header.dart';
 import 'package:algolens/features/practice/providers/practice_provider.dart';
 
-class RecommendationsScreen extends ConsumerStatefulWidget {
+class RecommendationsScreen extends ConsumerWidget {
   const RecommendationsScreen({super.key});
 
   @override
-  ConsumerState<RecommendationsScreen> createState() =>
-      _RecommendationsScreenState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final problemsAsync = ref.watch(recommendationsProvider);
 
-class _RecommendationsScreenState extends ConsumerState<RecommendationsScreen> {
-  int _selectedTopicIndex = 0;
-
-  Future<void> _launchUrl(String url) async {
-    final uri = Uri.parse(url);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(
-        uri,
-        mode: LaunchMode.externalApplication,
-      );
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    const handle = 'ehsan_cf';
-    final blindMode = ref.watch(blindModeProvider);
-    final recommendationsAsync = ref.watch(recommendationsProvider(handle));
-
-    return PageWrapper(
-      title: 'Recommendations',
-      showBackButton: true,
-      child: Column(
-        children: [
-          // Blind mode toggle
-          Padding(
-            padding: EdgeInsets.symmetric(
-              horizontal: 20.w,
-              vertical: 8.h,
-            ),
-            child: GlassCard(
-              padding: EdgeInsets.symmetric(
-                horizontal: 16.w,
-                vertical: 10.h,
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.visibility_off_outlined,
-                    color: AppColors.textMuted,
-                    size: 18.r,
-                  ),
-                  SizedBox(width: 10.w),
-                  Text(
-                    'Blind Mode',
-                    style: AppTextStyles.bodyBold,
-                  ),
-                  Text(
-                    ' — Hide problem names',
-                    style: AppTextStyles.caption,
-                  ),
-                  const Spacer(),
-                  Switch(
-                    value: blindMode,
-                    onChanged: (value) {
-                      ref.read(blindModeProvider.notifier).state = value;
-                    },
-                    activeColor: AppColors.primary,
-                    activeTrackColor: AppColors.primary.withValues(alpha: 0.30),
-                    inactiveThumbColor: AppColors.textMuted,
-                    inactiveTrackColor: Colors.white.withValues(alpha: 0.10),
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          // Content
-          Expanded(
-            child: recommendationsAsync.when(
-              loading: () => const ProblemListShimmer(
-                count: 5,
-              ),
-              error: (error, _) => AppErrorWidget(
-                message: error.toString(),
-                onRetry: () => ref.refresh(
-                  recommendationsProvider(handle),
+    return AppBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: CustomScrollView(
+          slivers: [
+            SliverAppBar(
+              backgroundColor: Colors.transparent,
+              floating: true,
+              title: Text(
+                'Recommendations',
+                style: GoogleFonts.inter(
+                  fontSize: 18.sp,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
                 ),
               ),
-              data: (problems) {
-                if (problems.isEmpty) {
-                  return const EmptyWidget(
-                    message: 'No Recommendations',
-                    subtitle: 'Solve more problems to get recommendations',
-                    icon: Icons.lightbulb_outline_rounded,
-                  );
-                }
-
-                // Get unique tags for filter
-                final allTags = problems.expand((p) => p.tags).toSet().toList();
-                final tabs = ['All', ...allTags];
-
-                // Filter problems
-                final filteredProblems = _selectedTopicIndex == 0
-                    ? problems
-                    : problems
-                        .where(
-                            (p) => p.tags.contains(tabs[_selectedTopicIndex]))
-                        .toList();
-
-                return Column(
-                  children: [
-                    // Topic filter tabs
-                    Padding(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 20.w,
-                        vertical: 8.h,
-                      ),
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: SegmentedTab(
-                          tabs: tabs.length > 5 ? tabs.take(5).toList() : tabs,
-                          currentIndex: _selectedTopicIndex,
-                          onChanged: (index) {
-                            setState(() {
-                              _selectedTopicIndex = index;
-                            });
-                          },
-                        ),
-                      ),
+            ),
+            SliverPadding(
+              padding: EdgeInsets.symmetric(horizontal: 20.w),
+              sliver: SliverList(
+                delegate: SliverChildListDelegate([
+                  SizedBox(height: 8.h),
+                  problemsAsync.when(
+                    loading: () => const PracticeListShimmer(),
+                    error: (e, s) => AppErrorWidget(
+                      message: e.toString(),
+                      onRetry: () =>
+                          ref.invalidate(recommendationsProvider),
                     ),
+                    data: (problems) {
+                      if (problems.isEmpty) {
+                        return const EmptyWidget(
+                          icon: Icons.check_circle_rounded,
+                          message: 'All caught up!',
+                          subtitle:
+                              'No recommendations right now. Keep solving problems!',
+                        );
+                      }
 
-                    // Problems list
-                    Expanded(
-                      child: filteredProblems.isEmpty
-                          ? const EmptyWidget(
-                              message: 'No Problems Found',
-                              subtitle: 'No problems for this topic filter',
-                              icon: Icons.filter_list_outlined,
-                            )
-                          : ListView.builder(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: 20.w,
-                              ),
-                              itemCount: filteredProblems.length,
-                              itemBuilder: (context, index) {
-                                final problem = filteredProblems[index];
-                                return Padding(
-                                  padding: EdgeInsets.only(
-                                    bottom: 10.h,
-                                  ),
-                                  child: ProblemRow(
-                                    contestId: problem.contestId,
-                                    index: problem.index,
-                                    name: problem.name,
-                                    rating: problem.rating,
-                                    tags: problem.tags,
-                                    url: problem.cfUrl,
-                                    onTap: () => _launchUrl(
-                                      problem.cfUrl,
-                                    ),
-                                  ),
-                                );
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SectionHeader(
+                            title: 'For you',
+                            actionLabel: '${problems.length} problems',
+                          ),
+                          SizedBox(height: 12.h),
+
+                          ...problems.map(
+                            (p) => ProblemRow(
+                              name: p.name,
+                              rating: p.rating,
+                              tags: p.tags,
+                              contestId: p.contestId,
+                              index: p.index,
+                              url: p.url,
+                              onTap: () async {
+                                final uri = Uri.parse(p.url);
+                                if (await canLaunchUrl(uri)) {
+                                  await launchUrl(
+                                    uri,
+                                    mode: LaunchMode.externalApplication,
+                                  );
+                                }
                               },
                             ),
-                    ),
-                  ],
-                );
-              },
+                          ),
+
+                          SizedBox(height: 100.h),
+                        ],
+                      );
+                    },
+                  ),
+                ]),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

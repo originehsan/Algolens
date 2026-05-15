@@ -147,6 +147,37 @@ class ProfileShimmer extends StatelessWidget {
 }
 
 // ──────────────────────────────────────────
+// PRACTICE LIST SHIMMER
+// ──────────────────────────────────────────
+
+/// Practice/weak-topics placeholder (4 items)
+class PracticeListShimmer extends StatelessWidget {
+  const PracticeListShimmer({
+    super.key,
+    this.count = 4,
+  });
+
+  final int count;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: List.generate(
+        count,
+        (index) => Padding(
+          padding: EdgeInsets.only(
+            bottom: index < count - 1 ? 12.h : 0,
+          ),
+          child: const GlassCardShimmer(
+            height: 90,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ──────────────────────────────────────────
 // FRIENDS LIST SHIMMER
 // ──────────────────────────────────────────
 
