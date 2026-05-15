@@ -29,7 +29,7 @@ class ContestListShimmer extends StatelessWidget {
           padding: EdgeInsets.only(
             bottom: index < count - 1 ? 12.h : 0,
           ),
-          child: GlassCardShimmer(
+          child: const GlassCardShimmer(
             height: 110,
           ),
         ),
@@ -60,7 +60,7 @@ class ProblemListShimmer extends StatelessWidget {
           padding: EdgeInsets.only(
             bottom: index < count - 1 ? 12.h : 0,
           ),
-          child: GlassCardShimmer(
+          child: const GlassCardShimmer(
             height: 80,
           ),
         ),
@@ -87,7 +87,7 @@ class StatsRowShimmer extends StatelessWidget {
             padding: EdgeInsets.only(
               right: index < 2 ? 12.w : 0,
             ),
-            child: GlassCardShimmer(
+            child: const GlassCardShimmer(
               height: 100,
             ),
           ),
@@ -112,14 +112,14 @@ class ProfileShimmer extends StatelessWidget {
     return Column(
       children: [
         // Hero section
-        GlassCardShimmer(
+        const GlassCardShimmer(
           height: 160,
         ),
 
         SizedBox(height: 20.h),
 
         // Chart
-        GlassCardShimmer(
+        const GlassCardShimmer(
           height: 200,
         ),
 
@@ -128,13 +128,13 @@ class ProfileShimmer extends StatelessWidget {
         // Stats grid
         Row(
           children: [
-            Expanded(
+            const Expanded(
               child: GlassCardShimmer(
                 height: 80,
               ),
             ),
             SizedBox(width: 12.w),
-            Expanded(
+            const Expanded(
               child: GlassCardShimmer(
                 height: 80,
               ),
@@ -168,7 +168,7 @@ class FriendsListShimmer extends StatelessWidget {
           padding: EdgeInsets.only(
             bottom: index < count - 1 ? 12.h : 0,
           ),
-          child: GlassCardShimmer(
+          child: const GlassCardShimmer(
             height: 72,
           ),
         ),

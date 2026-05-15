@@ -1,221 +1,121 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:algolens/core/theme/app_colors.dart';
-import 'package:algolens/core/theme/app_text_styles.dart';
-import 'package:algolens/core/widgets/page_wrapper.dart';
-import 'package:algolens/core/widgets/glass_card.dart';
+import 'package:algolens/core/widgets/app_background.dart';
+import 'package:algolens/core/widgets/contest_card.dart';
 import 'package:algolens/core/widgets/error_widget.dart';
+import 'package:algolens/core/widgets/loading_shimmer.dart';
 import 'package:algolens/features/contests/providers/contest_provider.dart';
-import 'package:algolens/features/contests/data/models/contest_model.dart';
 
-class AllContestsScreen extends ConsumerStatefulWidget {
+class AllContestsScreen extends ConsumerWidget {
   const AllContestsScreen({super.key});
 
   @override
-  ConsumerState<AllContestsScreen> createState() => _AllContestsScreenState();
-}
+  Widget build(
+    BuildContext context,
+    WidgetRef ref,
+  ) {
+    final contestsAsync = ref.watch(
+      allContestsProvider,
+    );
+    final notifier = ref.read(
+      allContestsProvider.notifier,
+    );
 
-class _AllContestsScreenState extends ConsumerState<AllContestsScreen> {
-  int _currentPage = 0;
-
-  @override
-  Widget build(BuildContext context) {
-    final allContestsAsync = ref.watch(allContestsProvider(_currentPage));
-
-    return PageWrapper(
-      title: 'All Contests',
-      showBackButton: true,
-      child: Column(
-        children: [
-          Expanded(
-            child: allContestsAsync.when(
-              loading: () => ListView.builder(
-                padding: EdgeInsets.symmetric(
-                  horizontal: 20.w,
-                ),
-                itemCount: 6,
-                itemBuilder: (context, index) => Padding(
-                  padding: EdgeInsets.only(
-                    bottom: 12.h,
-                  ),
-                  child: GlassCardShimmer(
-                    height: 80,
-                  ),
+    return AppBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: CustomScrollView(
+          slivers: [
+            SliverAppBar(
+              backgroundColor: Colors.transparent,
+              floating: true,
+              title: Text(
+                'All Contests',
+                style: GoogleFonts.inter(
+                  fontSize: 18.sp,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
                 ),
               ),
-              error: (e, _) => AppErrorWidget(
-                message: e.toString(),
-                onRetry: () => ref.invalidate(
-                  allContestsProvider(_currentPage),
-                ),
+            ),
+            SliverPadding(
+              padding: EdgeInsets.symmetric(
+                horizontal: 20.w,
               ),
-              data: (data) {
-                final contests = (data['content'] as List)
-                    .map((c) => Contest.fromJson(c as Map<String, dynamic>))
-                    .toList();
-                final pageData = data['page'] as Map<String, dynamic>;
-                final totalPages = pageData['totalPages'] as int;
-
-                return Column(
-                  children: [
-                    Expanded(
-                      child: ListView.builder(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 20.w,
-                        ),
-                        itemCount: contests.length,
-                        itemBuilder: (context, index) {
-                          final contest = contests[index];
+              sliver: contestsAsync.when(
+                loading: () => SliverToBoxAdapter(
+                  child: const ContestListShimmer(
+                    count: 8,
+                  ),
+                ),
+                error: (e, s) => SliverToBoxAdapter(
+                  child: AppErrorWidget(
+                    message: e.toString(),
+                    onRetry: () => notifier.refresh(),
+                  ),
+                ),
+                data: (contests) => SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      // Load more at end
+                      if (index == contests.length) {
+                        if (notifier.hasMore) {
+                          notifier.loadMore();
                           return Padding(
-                            padding: EdgeInsets.only(
-                              bottom: 10.h,
-                            ),
-                            child: GlassCard(
-                              padding: EdgeInsets.all(12.r),
-                              child: Row(
-                                children: [
-                                  Container(
-                                    width: 40.r,
-                                    height: 40.r,
-                                    decoration: BoxDecoration(
-                                      color: AppColors.primary
-                                          .withValues(alpha: 0.15),
-                                      borderRadius: BorderRadius.circular(10.r),
-                                    ),
-                                    child: Center(
-                                      child: Text(
-                                        contest.type,
-                                        style: AppTextStyles.caption.copyWith(
-                                          color: AppColors.primary,
-                                          fontWeight: FontWeight.w700,
-                                          fontSize: 9.sp,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  SizedBox(
-                                    width: 12.w,
-                                  ),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          contest.name,
-                                          style: AppTextStyles.bodyBold,
-                                          maxLines: 2,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                        SizedBox(
-                                          height: 3.h,
-                                        ),
-                                        Text(
-                                          contest.formattedStartTime,
-                                          style: AppTextStyles.caption,
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  SizedBox(
-                                    width: 8.w,
-                                  ),
-                                  Text(
-                                    contest.formattedDuration,
-                                    style: AppTextStyles.monoSmall,
-                                  ),
-                                ],
+                            padding: EdgeInsets.all(16.r),
+                            child: Center(
+                              child: CircularProgressIndicator(
+                                color: AppColors.primary,
+                                strokeWidth: 2,
                               ),
                             ),
                           );
-                        },
-                      ),
-                    ),
-                    // Pagination
-                    Padding(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 20.w,
-                        vertical: 12.h,
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          GestureDetector(
-                            onTap: _currentPage > 0
-                                ? () => setState(() => _currentPage--)
-                                : null,
-                            child: Container(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: 16.w,
-                                vertical: 8.h,
-                              ),
-                              decoration: BoxDecoration(
-                                color: _currentPage > 0
-                                    ? AppColors.primary.withValues(alpha: 0.15)
-                                    : Colors.white.withValues(alpha: 0.05),
-                                borderRadius: BorderRadius.circular(10.r),
-                                border: Border.all(
-                                  color: _currentPage > 0
-                                      ? AppColors.primary
-                                          .withValues(alpha: 0.40)
-                                      : Colors.white.withValues(alpha: 0.10),
-                                ),
-                              ),
-                              child: Text(
-                                'Previous',
-                                style: AppTextStyles.caption.copyWith(
-                                  color: _currentPage > 0
-                                      ? AppColors.primary
-                                      : AppColors.textHint,
-                                ),
+                        }
+                        return Padding(
+                          padding: EdgeInsets.all(16.r),
+                          child: Center(
+                            child: Text(
+                              'No more contests',
+                              style: GoogleFonts.inter(
+                                fontSize: 13.sp,
+                                color: Colors.white.withValues(alpha: 0.40),
                               ),
                             ),
                           ),
-                          Text(
-                            'Page ${_currentPage + 1} of $totalPages',
-                            style: AppTextStyles.caption,
-                          ),
-                          GestureDetector(
-                            onTap: _currentPage < totalPages - 1
-                                ? () => setState(() => _currentPage++)
-                                : null,
-                            child: Container(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: 16.w,
-                                vertical: 8.h,
-                              ),
-                              decoration: BoxDecoration(
-                                color: _currentPage < totalPages - 1
-                                    ? AppColors.primary.withValues(alpha: 0.15)
-                                    : Colors.white.withValues(alpha: 0.05),
-                                borderRadius: BorderRadius.circular(10.r),
-                                border: Border.all(
-                                  color: _currentPage < totalPages - 1
-                                      ? AppColors.primary
-                                          .withValues(alpha: 0.40)
-                                      : Colors.white.withValues(alpha: 0.10),
-                                ),
-                              ),
-                              child: Text(
-                                'Next',
-                                style: AppTextStyles.caption.copyWith(
-                                  color: _currentPage < totalPages - 1
-                                      ? AppColors.primary
-                                      : AppColors.textHint,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                );
-              },
+                        );
+                      }
+
+                      final c = contests[index];
+                      final status = c.isLive
+                          ? ContestStatus.live
+                          : c.isUpcoming
+                              ? ContestStatus.upcoming
+                              : ContestStatus.finished;
+
+                      return ContestCard(
+                        contestId: c.contestId,
+                        name: c.name,
+                        status: status,
+                        difficulty: c.difficulty,
+                        startDateTime: c.startDateTime,
+                        durationFormatted: c.durationFormatted,
+                        hasReminder: false,
+                        onReminderTap: () {},
+                        margin: EdgeInsets.only(
+                          bottom: 12.h,
+                        ),
+                      );
+                    },
+                    childCount: contests.length + 1,
+                  ),
+                ),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

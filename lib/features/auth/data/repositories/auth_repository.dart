@@ -41,7 +41,7 @@ class AuthRepository {
     } on ApiException {
       rethrow;
     } catch (e) {
-      throw ApiException(
+      throw const ApiException(
         message: ApiMessages.unknown,
         type: ApiExceptionType.unknown,
       );
@@ -66,7 +66,7 @@ class AuthRepository {
     } on ApiException {
       rethrow;
     } catch (e) {
-      throw ApiException(
+      throw const ApiException(
         message: ApiMessages.unknown,
         type: ApiExceptionType.unknown,
       );
@@ -95,7 +95,7 @@ class AuthRepository {
     } on ApiException {
       rethrow;
     } catch (e) {
-      throw ApiException(
+      throw const ApiException(
         message: ApiMessages.unknown,
         type: ApiExceptionType.unknown,
       );
@@ -124,7 +124,7 @@ class AuthRepository {
     } on ApiException {
       rethrow;
     } catch (e) {
-      throw ApiException(
+      throw const ApiException(
         message: ApiMessages.unknown,
         type: ApiExceptionType.unknown,
       );
@@ -151,7 +151,7 @@ class AuthRepository {
       rethrow;
     } catch (e) {
       await SecureStorage.clearAll();
-      throw ApiException(
+      throw const ApiException(
         message: ApiMessages.unknown,
         type: ApiExceptionType.unknown,
       );
@@ -177,7 +177,7 @@ class AuthRepository {
       rethrow;
     } catch (e) {
       await SecureStorage.clearAll();
-      throw ApiException(
+      throw const ApiException(
         message: ApiMessages.unknown,
         type: ApiExceptionType.unknown,
       );
@@ -200,7 +200,7 @@ class AuthRepository {
     } on ApiException {
       rethrow;
     } catch (e) {
-      throw ApiException(
+      throw const ApiException(
         message: ApiMessages.unknown,
         type: ApiExceptionType.unknown,
       );
@@ -223,7 +223,7 @@ class AuthRepository {
     } on ApiException {
       rethrow;
     } catch (e) {
-      throw ApiException(
+      throw const ApiException(
         message: ApiMessages.unknown,
         type: ApiExceptionType.unknown,
       );
@@ -246,7 +246,7 @@ class AuthRepository {
     } on ApiException {
       rethrow;
     } catch (e) {
-      throw ApiException(
+      throw const ApiException(
         message: ApiMessages.unknown,
         type: ApiExceptionType.unknown,
       );

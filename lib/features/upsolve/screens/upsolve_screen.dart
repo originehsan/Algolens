@@ -76,11 +76,11 @@ class _UpsolveScreenState extends ConsumerState<UpsolveScreen> {
                   horizontal: 20.w,
                 ),
                 children: [
-                  GlassCardShimmer(height: 30),
+                  const GlassCardShimmer(height: 30),
                   SizedBox(height: 8.h),
                   const ProblemListShimmer(count: 3),
                   SizedBox(height: 16.h),
-                  GlassCardShimmer(height: 30),
+                  const GlassCardShimmer(height: 30),
                   SizedBox(height: 8.h),
                   const ProblemListShimmer(count: 2),
                 ],

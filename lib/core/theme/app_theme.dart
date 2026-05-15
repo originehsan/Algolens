@@ -27,7 +27,7 @@ class AppTheme {
       brightness: Brightness.dark,
 
       // Color scheme
-      colorScheme: ColorScheme.dark(
+      colorScheme: const ColorScheme.dark(
         primary: AppColors.primary,
         secondary: AppColors.success,
         surface: AppColors.bgBase,
@@ -55,17 +55,17 @@ class AppTheme {
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: false,
-        systemOverlayStyle: SystemUiOverlayStyle(
+        systemOverlayStyle: const SystemUiOverlayStyle(
           statusBarColor: Colors.transparent,
           statusBarIconBrightness: Brightness.light,
           statusBarBrightness: Brightness.dark,
         ),
         titleTextStyle: AppTextStyles.h2,
-        iconTheme: IconThemeData(
+        iconTheme: const IconThemeData(
           color: AppColors.textPrimary,
           size: 20,
         ),
-        actionsIconTheme: IconThemeData(
+        actionsIconTheme: const IconThemeData(
           color: AppColors.textPrimary,
           size: 20,
         ),
@@ -83,13 +83,13 @@ class AppTheme {
       ),
 
       // Icons
-      iconTheme: IconThemeData(
+      iconTheme: const IconThemeData(
         color: AppColors.textMuted,
         size: 20,
       ),
 
       // Divider
-      dividerTheme: DividerThemeData(
+      dividerTheme: const DividerThemeData(
         color: AppColors.divider,
         thickness: 0.5,
         space: 0,
@@ -111,14 +111,14 @@ class AppTheme {
         fillColor: Colors.white.withValues(alpha: 0.07),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(
+          borderSide: const BorderSide(
             color: AppColors.glassBorder,
             width: 1.0,
           ),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(
+          borderSide: const BorderSide(
             color: AppColors.glassBorder,
             width: 1.0,
           ),
@@ -171,7 +171,7 @@ class AppTheme {
         backgroundColor: AppColors.bgCenter,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
-          side: BorderSide(
+          side: const BorderSide(
             color: AppColors.glassBorder,
             width: 1.0,
           ),
@@ -181,7 +181,7 @@ class AppTheme {
       ),
 
       // Bottom sheet
-      bottomSheetTheme: BottomSheetThemeData(
+      bottomSheetTheme: const BottomSheetThemeData(
         backgroundColor: AppColors.bgCenter,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(
@@ -189,7 +189,7 @@ class AppTheme {
           ),
         ),
         dragHandleColor: AppColors.textHint,
-        dragHandleSize: const Size(40, 4),
+        dragHandleSize: Size(40, 4),
       ),
 
       // Page transitions

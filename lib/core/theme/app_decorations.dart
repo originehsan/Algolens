@@ -27,7 +27,7 @@ class AppDecorations {
     double? radius,
   }) =>
       BoxDecoration(
-        gradient: LinearGradient(
+        gradient: const LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
@@ -51,10 +51,10 @@ class AppDecorations {
             offset: Offset.zero,
           ),
           // Depth shadow
-          BoxShadow(
+          const BoxShadow(
             color: AppColors.glassShadow,
             blurRadius: 40,
-            offset: const Offset(0, 12),
+            offset: Offset(0, 12),
           ),
         ],
       );
@@ -87,10 +87,10 @@ class AppDecorations {
             spreadRadius: -2,
             offset: Offset.zero,
           ),
-          BoxShadow(
+          const BoxShadow(
             color: AppColors.glassShadow,
             blurRadius: 40,
-            offset: const Offset(0, 12),
+            offset: Offset(0, 12),
           ),
         ],
       );
@@ -102,7 +102,7 @@ class AppDecorations {
     double? radius,
   }) =>
       BoxDecoration(
-        gradient: LinearGradient(
+        gradient: const LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
@@ -117,7 +117,7 @@ class AppDecorations {
         borderRadius: BorderRadius.circular(
           radius ?? 20.r,
         ),
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
             color: AppColors.glowSuccess,
             blurRadius: 16,
@@ -127,7 +127,7 @@ class AppDecorations {
           BoxShadow(
             color: AppColors.glassShadow,
             blurRadius: 40,
-            offset: const Offset(0, 12),
+            offset: Offset(0, 12),
           ),
         ],
       );
@@ -139,7 +139,7 @@ class AppDecorations {
     double? radius,
   }) =>
       BoxDecoration(
-        gradient: LinearGradient(
+        gradient: const LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
@@ -154,7 +154,7 @@ class AppDecorations {
         borderRadius: BorderRadius.circular(
           radius ?? 20.r,
         ),
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
             color: AppColors.glowDanger,
             blurRadius: 16,
@@ -164,7 +164,7 @@ class AppDecorations {
           BoxShadow(
             color: AppColors.glassShadow,
             blurRadius: 40,
-            offset: const Offset(0, 12),
+            offset: Offset(0, 12),
           ),
         ],
       );
@@ -176,7 +176,7 @@ class AppDecorations {
     double? radius,
   }) =>
       BoxDecoration(
-        gradient: LinearGradient(
+        gradient: const LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
@@ -191,7 +191,7 @@ class AppDecorations {
         borderRadius: BorderRadius.circular(
           radius ?? 20.r,
         ),
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
             color: AppColors.glowWarning,
             blurRadius: 16,
@@ -201,7 +201,7 @@ class AppDecorations {
           BoxShadow(
             color: AppColors.glassShadow,
             blurRadius: 40,
-            offset: const Offset(0, 12),
+            offset: Offset(0, 12),
           ),
         ],
       );
@@ -227,7 +227,7 @@ class AppDecorations {
         borderRadius: BorderRadius.circular(
           radius ?? 18.r,
         ),
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
             color: AppColors.glowWarning,
             blurRadius: 16,
@@ -237,7 +237,7 @@ class AppDecorations {
           BoxShadow(
             color: AppColors.glassShadow,
             blurRadius: 32,
-            offset: const Offset(0, 8),
+            offset: Offset(0, 8),
           ),
         ],
       );

@@ -10,7 +10,11 @@ import 'package:algolens/features/auth/screens/forgot_password_screen.dart';
 import 'package:algolens/features/auth/screens/cf_handle_setup_screen.dart';
 import 'package:algolens/features/auth/screens/reset_password_screen.dart';
 import 'package:algolens/features/home/screens/home_screen.dart';
+import 'package:algolens/features/contests/screens/contest_screen.dart';
+import 'package:algolens/features/contests/screens/all_contests_screen.dart';
 import 'package:algolens/features/profile/screens/profile_screen.dart';
+import 'package:algolens/features/friends/screens/friends_screen.dart';
+import 'package:algolens/features/friends/screens/comparison_screen.dart';
 
 // ──────────────────────────────
 // ROUTE NAMES
@@ -190,8 +194,7 @@ abstract class AppRouter {
         GoRoute(
           path: RoutePaths.cfHandleSetup,
           name: RouteNames.cfHandleSetup,
-          builder: (context, state) =>
-              const CfHandleSetupScreen(),
+          builder: (context, state) => const CfHandleSetupScreen(),
         ),
 
         // ──────────────────────
@@ -207,17 +210,13 @@ abstract class AppRouter {
         GoRoute(
           path: RoutePaths.contests,
           name: RouteNames.contests,
-          builder: (context, state) => const _PlaceholderScreen(
-            label: 'Contests',
-          ),
+          builder: (context, state) => const ContestScreen(),
         ),
 
         GoRoute(
           path: RoutePaths.allContests,
           name: RouteNames.allContests,
-          builder: (context, state) => const _PlaceholderScreen(
-            label: 'All Contests',
-          ),
+          builder: (context, state) => const AllContestsScreen(),
         ),
 
         GoRoute(
@@ -253,17 +252,19 @@ abstract class AppRouter {
         GoRoute(
           path: RoutePaths.friends,
           name: RouteNames.friends,
-          builder: (context, state) => const _PlaceholderScreen(
-            label: 'Friends',
-          ),
+          builder: (context, state) => const FriendsScreen(),
         ),
 
         GoRoute(
           path: RoutePaths.comparison,
           name: RouteNames.comparison,
-          builder: (context, state) => const _PlaceholderScreen(
-            label: 'Comparison',
-          ),
+          builder: (context, state) {
+            final handles = state.extra as (String, String)? ?? ('', '');
+            return ComparisonScreen(
+              handle1: handles.$1,
+              handle2: handles.$2,
+            );
+          },
         ),
 
         GoRoute(

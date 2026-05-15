@@ -1,329 +1,255 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:algolens/core/theme/app_colors.dart';
-import 'package:algolens/core/theme/app_text_styles.dart';
-import 'package:algolens/core/widgets/page_wrapper.dart';
+import 'package:algolens/core/widgets/app_background.dart';
+import 'package:algolens/core/widgets/error_widget.dart';
 import 'package:algolens/core/widgets/glass_card.dart';
-import 'package:algolens/core/widgets/app_text_field.dart';
-import 'package:algolens/core/widgets/app_button.dart';
-import 'package:algolens/core/widgets/rank_chip.dart';
-import 'package:algolens/core/widgets/user_avatar.dart';
 import 'package:algolens/features/friends/providers/friends_provider.dart';
 
-class ComparisonScreen extends ConsumerStatefulWidget {
-  const ComparisonScreen({super.key});
+class ComparisonScreen extends ConsumerWidget {
+  const ComparisonScreen({
+    super.key,
+    required this.handle1,
+    required this.handle2,
+  });
+
+  final String handle1;
+  final String handle2;
 
   @override
-  ConsumerState<ComparisonScreen> createState() => _ComparisonScreenState();
-}
+  Widget build(
+    BuildContext context,
+    WidgetRef ref,
+  ) {
+    final compareAsync = ref.watch(
+      compareRatingProvider(
+        (handle1, handle2),
+      ),
+    );
 
-class _ComparisonScreenState extends ConsumerState<ComparisonScreen> {
-  final _handle1Controller = TextEditingController();
-  final _handle2Controller = TextEditingController();
-  Map<String, dynamic>? _comparisonData;
-  bool _isLoading = false;
-
-  @override
-  void dispose() {
-    _handle1Controller.dispose();
-    _handle2Controller.dispose();
-    super.dispose();
-  }
-
-  Future<void> _compare() async {
-    if (_handle1Controller.text.isEmpty || _handle2Controller.text.isEmpty) {
-      return;
-    }
-    setState(() {
-      _isLoading = true;
-      _comparisonData = null;
-    });
-    try {
-      final repo = ref.read(friendsRepositoryProvider);
-      final data = await repo.compareRating(
-        handle1: _handle1Controller.text.trim(),
-        handle2: _handle2Controller.text.trim(),
-      );
-      setState(() {
-        _comparisonData = data;
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() => _isLoading = false);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(e.toString()),
-            backgroundColor: AppColors.danger,
-          ),
-        );
-      }
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return PageWrapper(
-      title: 'Compare',
-      showBackButton: true,
-      child: SingleChildScrollView(
-        padding: EdgeInsets.symmetric(
-          horizontal: 20.w,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(height: 12.h),
-
-            // Input card
-            GlassCard(
-              child: Column(
-                children: [
-                  AppTextField(
-                    label: 'First CF handle',
-                    controller: _handle1Controller,
-                    prefixIcon: Icons.person_outlined,
-                  ),
-                  SizedBox(height: 12.h),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.compare_arrows_rounded,
-                        color: AppColors.primary,
-                        size: 24.r,
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 12.h),
-                  AppTextField(
-                    label: 'Second CF handle',
-                    controller: _handle2Controller,
-                    prefixIcon: Icons.person_outlined,
-                  ),
-                  SizedBox(height: 16.h),
-                  AppButton(
-                    label: 'Compare',
-                    onTap: _compare,
-                    isLoading: _isLoading,
-                  ),
-                ],
+    return AppBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: CustomScrollView(
+          slivers: [
+            SliverAppBar(
+              backgroundColor: Colors.transparent,
+              floating: true,
+              title: Text(
+                'Comparison',
+                style: GoogleFonts.inter(
+                  fontSize: 18.sp,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
               ),
             ),
-            SizedBox(height: 20.h),
-
-            // Results
-            if (_isLoading)
-              GlassCardShimmer(height: 300)
-            else if (_comparisonData != null)
-              _buildComparisonResult(_comparisonData!),
+            SliverPadding(
+              padding: EdgeInsets.symmetric(
+                horizontal: 20.w,
+              ),
+              sliver: SliverList(
+                delegate: SliverChildListDelegate(
+                  [
+                    compareAsync.when(
+                      loading: () => GlassCardShimmer(
+                        height: 300.h,
+                      ),
+                      error: (e, s) => AppErrorWidget(
+                        message: e.toString(),
+                        onRetry: () => ref.invalidate(
+                          compareRatingProvider(
+                            (
+                              handle1,
+                              handle2,
+                            ),
+                          ),
+                        ),
+                      ),
+                      data: (data) => _ComparisonContent(
+                        data: data,
+                        handle1: handle1,
+                        handle2: handle2,
+                      ),
+                    ),
+                    SizedBox(height: 100.h),
+                  ],
+                ),
+              ),
+            ),
           ],
         ),
       ),
     );
   }
+}
 
-  Widget _buildComparisonResult(Map<String, dynamic> data) {
-    final handle1 = data['handle1'] as String;
-    final handle2 = data['handle2'] as String;
-    final rating1 = data['rating1'] as int;
-    final rating2 = data['rating2'] as int;
-    final maxRating1 = data['maxRating1'] as int;
-    final maxRating2 = data['maxRating2'] as int;
-    final rank1 = data['rank1'] as String;
-    final rank2 = data['rank2'] as String;
-    final contests1 = data['contestsParticipated1'] as int;
-    final contests2 = data['contestsParticipated2'] as int;
-    final higher = data['higherRatedHandle'] as String;
+// ─────────────────────────────────
+// COMPARISON CONTENT
+// Side by side stats
+// ─────────────────────────────────
+
+class _ComparisonContent extends StatelessWidget {
+  const _ComparisonContent({
+    required this.data,
+    required this.handle1,
+    required this.handle2,
+  });
+
+  final Map<String, dynamic> data;
+  final String handle1;
+  final String handle2;
+
+  @override
+  Widget build(BuildContext context) {
+    final r1 = data['rating1'] as int? ?? 0;
+    final r2 = data['rating2'] as int? ?? 0;
+    final mr1 = data['maxRating1'] as int? ?? 0;
+    final mr2 = data['maxRating2'] as int? ?? 0;
+    final c1 = data['contestsParticipated1'] as int? ?? 0;
+    final c2 = data['contestsParticipated2'] as int? ?? 0;
+    final p1 = data['problemsSolved1'] as int? ?? 0;
+    final p2 = data['problemsSolved2'] as int? ?? 0;
 
     return Column(
       children: [
-        // Header comparison
+        // Handle headers
         GlassCard(
-          type: GlassCardType.primary,
           child: Row(
             children: [
               Expanded(
-                child: Column(
-                  children: [
-                    UserAvatar(
-                      handle: handle1,
-                      rank: rank1,
-                      size: 48.r,
-                    ),
-                    SizedBox(height: 8.h),
-                    Text(
-                      handle1,
-                      style: AppTextStyles.bodyBold,
-                      textAlign: TextAlign.center,
-                    ),
-                    RankChip(
-                      rank: rank1,
-                      compact: true,
-                    ),
-                  ],
+                child: Text(
+                  handle1,
+                  style: GoogleFonts.inter(
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.primary,
+                  ),
+                  textAlign: TextAlign.center,
                 ),
               ),
-              Container(
-                padding: EdgeInsets.symmetric(
-                  horizontal: 12.w,
-                  vertical: 6.h,
-                ),
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(20.r),
-                ),
-                child: Text(
-                  'VS',
-                  style: AppTextStyles.h2.copyWith(
-                    color: AppColors.primary,
+              Text(
+                'vs',
+                style: GoogleFonts.inter(
+                  fontSize: 14.sp,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white.withValues(
+                    alpha: 0.50,
                   ),
                 ),
               ),
               Expanded(
-                child: Column(
-                  children: [
-                    UserAvatar(
-                      handle: handle2,
-                      rank: rank2,
-                      size: 48.r,
-                    ),
-                    SizedBox(height: 8.h),
-                    Text(
-                      handle2,
-                      style: AppTextStyles.bodyBold,
-                      textAlign: TextAlign.center,
-                    ),
-                    RankChip(
-                      rank: rank2,
-                      compact: true,
-                    ),
-                  ],
+                child: Text(
+                  handle2,
+                  style: GoogleFonts.inter(
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.warning,
+                  ),
+                  textAlign: TextAlign.center,
                 ),
               ),
             ],
           ),
         ),
         SizedBox(height: 12.h),
-
-        // Stats comparison
-        _buildCompareRow(
-          'Current Rating',
-          rating1.toString(),
-          rating2.toString(),
-          rating1 > rating2,
-          rating1 < rating2,
-          isMonospace: true,
+        // Rating comparison
+        _StatRow(
+          label: 'Rating',
+          val1: r1,
+          val2: r2,
         ),
-        SizedBox(height: 8.h),
-        _buildCompareRow(
-          'Max Rating',
-          maxRating1.toString(),
-          maxRating2.toString(),
-          maxRating1 > maxRating2,
-          maxRating1 < maxRating2,
-          isMonospace: true,
+        SizedBox(height: 10.h),
+        // Max rating
+        _StatRow(
+          label: 'Max Rating',
+          val1: mr1,
+          val2: mr2,
         ),
-        SizedBox(height: 8.h),
-        _buildCompareRow(
-          'Contests',
-          contests1.toString(),
-          contests2.toString(),
-          contests1 > contests2,
-          contests1 < contests2,
-          isMonospace: true,
+        SizedBox(height: 10.h),
+        // Contests
+        _StatRow(
+          label: 'Contests',
+          val1: c1,
+          val2: c2,
         ),
-        SizedBox(height: 16.h),
-
-        // Winner card
-        GlassCard(
-          type: GlassCardType.success,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                '🏆',
-                style: TextStyle(fontSize: 24.sp),
-              ),
-              SizedBox(width: 10.w),
-              Column(
-                children: [
-                  Text(
-                    'Higher Rated',
-                    style: AppTextStyles.caption,
-                  ),
-                  Text(
-                    higher,
-                    style: AppTextStyles.h2.copyWith(
-                      color: AppColors.success,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
+        SizedBox(height: 10.h),
+        // Problems solved
+        _StatRow(
+          label: 'Problems',
+          val1: p1,
+          val2: p2,
         ),
-        SizedBox(height: 100.h),
       ],
     );
   }
+}
 
-  Widget _buildCompareRow(
-    String label,
-    String value1,
-    String value2,
-    bool first1Higher,
-    bool first2Higher, {
-    bool isMonospace = false,
-  }) {
+class _StatRow extends StatelessWidget {
+  const _StatRow({
+    required this.label,
+    required this.val1,
+    required this.val2,
+  });
+
+  final String label;
+  final int val1;
+  final int val2;
+
+  @override
+  Widget build(BuildContext context) {
+    final v1Wins = val1 >= val2;
+    final v2Wins = val2 >= val1;
+
     return GlassCard(
-      padding: EdgeInsets.symmetric(
-        horizontal: 14.w,
-        vertical: 12.h,
-      ),
       child: Row(
         children: [
+          // Value 1
           Expanded(
             child: Text(
-              value1,
-              style: isMonospace
-                  ? AppTextStyles.metricSmall.copyWith(
-                      color: first1Higher
-                          ? AppColors.success
-                          : AppColors.textSecondary,
-                      fontSize: 16.sp,
-                    )
-                  : AppTextStyles.bodyBold.copyWith(
-                      color: first1Higher
-                          ? AppColors.success
-                          : AppColors.textSecondary,
-                    ),
+              '$val1',
+              style: GoogleFonts.jetBrainsMono(
+                fontSize: 18.sp,
+                fontWeight: FontWeight.w700,
+                color: v1Wins
+                    ? AppColors.primary
+                    : Colors.white.withValues(
+                        alpha: 0.50,
+                      ),
+              ),
               textAlign: TextAlign.center,
             ),
           ),
-          Expanded(
+          // Label
+          SizedBox(
+            width: 80.w,
             child: Text(
               label,
-              style: AppTextStyles.caption,
+              style: GoogleFonts.inter(
+                fontSize: 11.sp,
+                fontWeight: FontWeight.w600,
+                color: Colors.white.withValues(
+                  alpha: 0.55,
+                ),
+              ),
               textAlign: TextAlign.center,
             ),
           ),
+          // Value 2
           Expanded(
             child: Text(
-              value2,
-              style: isMonospace
-                  ? AppTextStyles.metricSmall.copyWith(
-                      color: first2Higher
-                          ? AppColors.success
-                          : AppColors.textSecondary,
-                      fontSize: 16.sp,
-                    )
-                  : AppTextStyles.bodyBold.copyWith(
-                      color: first2Higher
-                          ? AppColors.success
-                          : AppColors.textSecondary,
-                    ),
+              '$val2',
+              style: GoogleFonts.jetBrainsMono(
+                fontSize: 18.sp,
+                fontWeight: FontWeight.w700,
+                color: v2Wins
+                    ? AppColors.warning
+                    : Colors.white.withValues(
+                        alpha: 0.50,
+                      ),
+              ),
               textAlign: TextAlign.center,
             ),
           ),

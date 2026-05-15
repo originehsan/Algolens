@@ -1,14 +1,9 @@
-import 'package:flutter/material.dart';
-import 'package:algolens/core/theme/app_colors.dart';
+// Pure Dart — no annotations
+// Used by friends_provider (P49)
+// Leaderboard tab in friends_screen
 
-class LeaderboardEntry {
-  final int rank;
-  final String handle;
-  final int rating;
-  final String tier;
-  final int maxRating;
-
-  const LeaderboardEntry({
+class LeaderboardModel {
+  const LeaderboardModel({
     required this.rank,
     required this.handle,
     required this.rating,
@@ -16,17 +11,40 @@ class LeaderboardEntry {
     required this.maxRating,
   });
 
-  factory LeaderboardEntry.fromJson(Map<String, dynamic> json) {
-    return LeaderboardEntry(
-      rank: json['rank'] as int,
-      handle: json['handle'] as String,
-      rating: json['rating'] as int,
-      tier: json['tier'] as String,
-      maxRating: json['maxRating'] as int,
-    );
-  }
+  final int rank;
+  final String handle;
+  final int rating;
+  final String tier;
+  final int maxRating;
 
-  Color get rankColor => AppColors.rankColor(tier);
+  factory LeaderboardModel.fromJson(
+    Map<String, dynamic> json,
+  ) =>
+      LeaderboardModel(
+        rank: json['rank'] as int,
+        handle: json['handle'] as String,
+        rating: json['rating'] as int,
+        tier: (json['tier'] as String?) ?? 'newbie',
+        maxRating: (json['maxRating'] as int?) ?? 0,
+      );
 
-  bool get isCurrentUser => handle == 'ehsan_cf';
+  Map<String, dynamic> toJson() => {
+        'rank': rank,
+        'handle': handle,
+        'rating': rating,
+        'tier': tier,
+        'maxRating': maxRating,
+      };
+
+  // ───────────────────────────────
+  // COMPUTED PROPERTIES
+  // ───────────────────────────────
+
+  /// Rank medal emoji
+  String get rankEmoji => switch (rank) {
+        1 => '🥇',
+        2 => '🥈',
+        3 => '🥉',
+        _ => '#$rank',
+      };
 }

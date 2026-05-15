@@ -33,7 +33,7 @@ class WeakTopicsScreen extends ConsumerWidget {
           ),
           children: [
             SizedBox(height: 12.h),
-            GlassCardShimmer(height: 200),
+            const GlassCardShimmer(height: 200),
             SizedBox(height: 16.h),
             const ProblemListShimmer(count: 4),
           ],

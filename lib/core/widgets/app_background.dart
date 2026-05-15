@@ -34,7 +34,7 @@ class AppBackground extends StatelessWidget {
         // BASE LAYER
         // Deep navy fill
         // ──────────────────────
-        Positioned.fill(child: const ColoredBox(color: AppColors.bgBase)),
+        const Positioned.fill(child: ColoredBox(color: AppColors.bgBase)),
 
         // ──────────────────────
         // ORB 1 — TOP RIGHT

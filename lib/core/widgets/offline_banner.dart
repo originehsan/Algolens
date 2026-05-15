@@ -41,11 +41,11 @@ class OfflineBanner extends ConsumerWidget {
         );
 
         return AnimatedSwitcher(
-          duration: Duration(
+          duration: const Duration(
             milliseconds: 300,
           ),
           child: isOffline
-              ? _BannerContent(
+              ? const _BannerContent(
                   key: ValueKey(
                     'offline',
                   ),
@@ -73,7 +73,7 @@ class _BannerContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SlideTransition(
-      position: AlwaysStoppedAnimation(
+      position: const AlwaysStoppedAnimation(
         Offset(0, -1),
       ),
       child: Container(
