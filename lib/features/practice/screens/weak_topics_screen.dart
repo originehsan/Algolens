@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:algolens/core/router/app_router.dart';
 import 'package:algolens/core/theme/app_colors.dart';
+import 'package:algolens/core/theme/app_text_styles.dart';
 import 'package:algolens/core/widgets/app_background.dart';
 import 'package:algolens/core/widgets/app_button.dart';
 import 'package:algolens/core/widgets/empty_widget.dart';
@@ -33,23 +33,14 @@ class WeakTopicsScreen extends ConsumerWidget {
               floating: true,
               title: Text(
                 'Weak Topics',
-                style: GoogleFonts.inter(
-                  fontSize: 18.sp,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
-                ),
+                style: AppTextStyles.h2,
               ),
               actions: [
                 TextButton(
-                  onPressed: () =>
-                      context.goNamed(RouteNames.recommendations),
+                  onPressed: () => context.goNamed(RouteNames.recommendations),
                   child: Text(
                     'Practice',
-                    style: GoogleFonts.inter(
-                      fontSize: 14.sp,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.primary,
-                    ),
+                    style: AppTextStyles.link,
                   ),
                 ),
               ],
@@ -73,30 +64,22 @@ class WeakTopicsScreen extends ConsumerWidget {
                           subtitle: 'You\'re doing great across all topics.',
                         );
                       }
-
                       return Column(
                         children: [
-                          // Summary
                           _SummaryCard(topics: topics),
                           SizedBox(height: 20.h),
-
                           SectionHeader(
                             title: 'Topics to improve',
-                            actionLabel: '${topics.length} topics',
+                            subtitle: '${topics.length} topics found',
                           ),
                           SizedBox(height: 12.h),
-
                           ...topics.map((t) => _TopicCard(topic: t)),
-
                           SizedBox(height: 12.h),
-
                           AppButton(
                             label: 'Get Practice Problems',
-                            onTap: () =>
-                                context.goNamed(RouteNames.recommendations),
+                            onTap: () => context.goNamed(RouteNames.recommendations),
                             icon: Icons.arrow_forward_rounded,
                           ),
-
                           SizedBox(height: 100.h),
                         ],
                       );
@@ -112,42 +95,22 @@ class WeakTopicsScreen extends ConsumerWidget {
   }
 }
 
-// ─────────────────────────────────
-// SUMMARY CARD
-// Critical/High/Moderate counts
-// ─────────────────────────────────
-
 class _SummaryCard extends StatelessWidget {
   const _SummaryCard({required this.topics});
-
   final List<WeakTopicModel> topics;
 
   @override
   Widget build(BuildContext context) {
-    final critical =
-        topics.where((t) => t.severity == 'critical').length;
+    final critical = topics.where((t) => t.severity == 'critical').length;
     final high = topics.where((t) => t.severity == 'high').length;
-    final moderate =
-        topics.where((t) => t.severity == 'moderate').length;
+    final moderate = topics.where((t) => t.severity == 'moderate').length;
 
     return GlassCard(
       child: Row(
         children: [
-          _SeverityCount(
-            label: 'Critical',
-            count: critical,
-            color: AppColors.danger,
-          ),
-          _SeverityCount(
-            label: 'High',
-            count: high,
-            color: AppColors.warning,
-          ),
-          _SeverityCount(
-            label: 'Moderate',
-            count: moderate,
-            color: AppColors.primary,
-          ),
+          _SeverityCount(label: 'Critical', count: critical, color: AppColors.danger),
+          _SeverityCount(label: 'High', count: high, color: AppColors.warning),
+          _SeverityCount(label: 'Moderate', count: moderate, color: AppColors.primary),
         ],
       ),
     );
@@ -172,31 +135,18 @@ class _SeverityCount extends StatelessWidget {
         children: [
           Text(
             '$count',
-            style: GoogleFonts.jetBrainsMono(
-              fontSize: 24.sp,
-              fontWeight: FontWeight.w700,
-              color: color,
-            ),
+            style: AppTextStyles.metricMedium.copyWith(color: color),
           ),
           SizedBox(height: 4.h),
           Text(
             label,
-            style: GoogleFonts.inter(
-              fontSize: 12.sp,
-              fontWeight: FontWeight.w600,
-              color: Colors.white.withValues(alpha: 0.55),
-            ),
+            style: AppTextStyles.caption,
           ),
         ],
       ),
     );
   }
 }
-
-// ─────────────────────────────────
-// TOPIC CARD
-// Shows topic + AC rate bar
-// ─────────────────────────────────
 
 class _TopicCard extends StatelessWidget {
   const _TopicCard({required this.topic});
@@ -205,9 +155,7 @@ class _TopicCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = Color(
-      int.parse(
-        topic.severityColor.replaceFirst('#', '0xFF'),
-      ),
+      int.parse(topic.severityColor.replaceFirst('#', '0xFF')),
     );
 
     return GlassCard(
@@ -217,7 +165,6 @@ class _TopicCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              // Severity indicator dot
               Container(
                 width: 8.r,
                 height: 8.r,
@@ -227,67 +174,43 @@ class _TopicCard extends StatelessWidget {
                 ),
               ),
               SizedBox(width: 10.w),
-
-              // Topic name
               Expanded(
                 child: Text(
                   topic.tag,
-                  style: GoogleFonts.inter(
-                    fontSize: 14.sp,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                  ),
+                  style: AppTextStyles.bodyBold,
                 ),
               ),
-
-              // AC rate
               Text(
                 topic.acRateFormatted,
-                style: GoogleFonts.jetBrainsMono(
+                style: AppTextStyles.metricSmall.copyWith(
                   fontSize: 13.sp,
-                  fontWeight: FontWeight.w700,
                   color: color,
                 ),
               ),
             ],
           ),
           SizedBox(height: 10.h),
-
-          // AC rate progress bar
-          ProgressBarWidget(
-            value: topic.acRate,
-            color: color,
-          ),
+          ProgressBarWidget(value: topic.acRate, color: color),
           SizedBox(height: 8.h),
-
-          // Stats row
           Row(
             children: [
               Text(
                 '${topic.solvedCount} solved',
-                style: GoogleFonts.inter(
-                  fontSize: 11.sp,
-                  fontWeight: FontWeight.w500,
+                style: AppTextStyles.hint.copyWith(
                   color: AppColors.success.withValues(alpha: 0.80),
                 ),
               ),
               SizedBox(width: 12.w),
               Text(
                 '${topic.unsolvedCount} unsolved',
-                style: GoogleFonts.inter(
-                  fontSize: 11.sp,
-                  fontWeight: FontWeight.w500,
+                style: AppTextStyles.hint.copyWith(
                   color: AppColors.danger.withValues(alpha: 0.80),
                 ),
               ),
               SizedBox(width: 12.w),
               Text(
                 '${topic.totalAttempts} total',
-                style: GoogleFonts.inter(
-                  fontSize: 11.sp,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.white.withValues(alpha: 0.50),
-                ),
+                style: AppTextStyles.hint,
               ),
             ],
           ),

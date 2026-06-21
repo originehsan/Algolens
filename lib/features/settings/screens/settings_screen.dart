@@ -1,411 +1,631 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:go_router/go_router.dart';
+import 'package:algolens/core/local/user_settings_service.dart';
 import 'package:algolens/core/theme/app_colors.dart';
 import 'package:algolens/core/theme/app_text_styles.dart';
-import 'package:algolens/core/widgets/page_wrapper.dart';
-import 'package:algolens/core/widgets/glass_card.dart';
+import 'package:algolens/core/widgets/app_background.dart';
 import 'package:algolens/core/widgets/app_button.dart';
-import 'package:algolens/core/widgets/user_avatar.dart';
-import 'package:algolens/core/widgets/rank_chip.dart';
 import 'package:algolens/core/widgets/coming_soon_badge.dart';
+import 'package:algolens/core/widgets/glass_card.dart';
+import 'package:algolens/core/widgets/rank_chip.dart';
+import 'package:algolens/core/widgets/section_header.dart';
+import 'package:algolens/core/widgets/user_avatar.dart';
 import 'package:algolens/features/auth/providers/auth_provider.dart';
 import 'package:algolens/features/profile/providers/profile_provider.dart';
+import 'package:algolens/features/settings/providers/settings_provider.dart';
 
-class SettingsScreen extends ConsumerStatefulWidget {
+class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
   @override
-  ConsumerState<SettingsScreen> createState() => _SettingsScreenState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final settingsAsync = ref.watch(userSettingsProvider);
+    final handleAsync = ref.watch(cfHandleProvider);
+    final versionAsync = ref.watch(appVersionProvider);
+    final logoutState = ref.watch(logoutProvider);
 
-class _SettingsScreenState extends ConsumerState<SettingsScreen> {
-  bool _contestReminders = true;
-  bool _streakReminders = true;
+    // Router guard handles redirect after logout — no manual navigation needed
+    final isLoggingOut = logoutState is AuthLoading;
 
-  Future<void> _handleLogout() async {
-    final router = GoRouter.of(context);
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.bgMid,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20.r),
-          side: BorderSide(
-            color: Colors.white.withValues(alpha: 0.15),
-          ),
-        ),
-        title: Text(
-          'Logout',
-          style: AppTextStyles.h2,
-        ),
-        content: Text(
-          'Are you sure you want to logout?',
-          style: AppTextStyles.body,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text(
-              'Cancel',
-              style: AppTextStyles.body.copyWith(
-                color: AppColors.textMuted,
-              ),
+    return AppBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: CustomScrollView(
+          slivers: [
+            SliverAppBar(
+              backgroundColor: Colors.transparent,
+              floating: true,
+              title: Text('Settings', style: AppTextStyles.h2),
             ),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: Text(
-              'Logout',
-              style: AppTextStyles.bodyBold.copyWith(
-                color: AppColors.danger,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-    if (confirmed == true) {
-      await ref.read(logoutProvider.notifier).logout();
-      if (!mounted) return;
-      router.go('/onboarding');
-    }
-  }
+            SliverPadding(
+              padding: EdgeInsets.symmetric(horizontal: 20.w),
+              sliver: SliverList(
+                delegate: SliverChildListDelegate([
+                  SizedBox(height: 8.h),
 
-  @override
-  Widget build(BuildContext context) {
-    const handle = 'ehsan_cf';
-    final profileAsync = ref.watch(profileProvider(handle));
+                  // ──────────────────────────────
+                  // PROFILE CARD
+                  // Shows avatar, handle, rank chip
+                  // ──────────────────────────────
+                  handleAsync.when(
+                    loading: () => const SizedBox.shrink(),
+                    error: (_, __) => const SizedBox.shrink(),
+                    data: (handle) {
+                      if (handle == null) return const SizedBox.shrink();
 
-    return PageWrapper(
-      title: 'Settings',
-      showBackButton: true,
-      child: SingleChildScrollView(
-        padding: EdgeInsets.symmetric(
-          horizontal: 20.w,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(height: 12.h),
+                      final profile = ref.watch(profileProvider(handle));
 
-            // Account card
-            profileAsync.when(
-              loading: () => const GlassCardShimmer(height: 80),
-              error: (e, _) => GlassCard(
-                child: Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 24.r,
-                      backgroundColor:
-                          AppColors.primary.withValues(alpha: 0.20),
-                      child: Icon(
-                        Icons.person_rounded,
-                        color: AppColors.primary,
-                        size: 24.r,
-                      ),
-                    ),
-                    SizedBox(width: 12.w),
-                    Text(
-                      handle,
-                      style: AppTextStyles.bodyBold,
-                    ),
-                  ],
-                ),
-              ),
-              data: (profile) => GlassCard(
-                type: GlassCardType.primary,
-                child: Row(
-                  children: [
-                    UserAvatar(
-                      handle: profile.handle,
-                      rank: profile.rank,
-                      size: 48.r,
-                    ),
-                    SizedBox(width: 14.w),
-                    Expanded(
+                      return GlassCard(
+                        child: Row(
+                          children: [
+                            // Show placeholder while profile loads
+                            profile.when(
+                              loading: () => Container(
+                                width: 56.r,
+                                height: 56.r,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: AppColors.primary
+                                      .withValues(alpha: 0.20),
+                                ),
+                              ),
+                              error: (_, __) => UserAvatar(
+                                handle: handle,
+                                rank: '',
+                                size: 56.r,
+                              ),
+                              data: (p) => UserAvatar(
+                                handle: p.handle,
+                                rank: p.rank,
+                                avatarUrl: p.avatar,
+                                size: 56.r,
+                              ),
+                            ),
+                            SizedBox(width: 16.w),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(handle, style: AppTextStyles.h3),
+                                  SizedBox(height: 6.h),
+                                  profile.when(
+                                    loading: () => const SizedBox.shrink(),
+                                    error: (_, __) => const SizedBox.shrink(),
+                                    data: (p) =>
+                                        RankChip(rank: p.rank, compact: true),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+
+                  SizedBox(height: 20.h),
+
+                  // ──────────────────────────────
+                  // NOTIFICATIONS SECTION
+                  // ──────────────────────────────
+                  const SectionHeader(title: 'Notifications'),
+                  SizedBox(height: 12.h),
+
+                  settingsAsync.when(
+                    loading: () => const SizedBox.shrink(),
+                    error: (_, __) => const SizedBox.shrink(),
+                    data: (s) => GlassCard(
                       child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            profile.handle,
-                            style: AppTextStyles.bodyBold,
+                          _ToggleRow(
+                            icon: Icons.notifications_rounded,
+                            iconColor: AppColors.primary,
+                            label: 'Contest Alerts',
+                            subtitle: 'Remind me before contests',
+                            value: s.contestAlertsEnabled,
+                            onChanged: (v) => ref
+                                .read(userSettingsServiceProvider)
+                                .setContestAlerts(v),
                           ),
-                          SizedBox(height: 4.h),
-                          RankChip(
-                            rank: profile.rank,
-                            compact: true,
+                          const _Divider(),
+                          _ToggleRow(
+                            icon: Icons.local_fire_department_rounded,
+                            iconColor: AppColors.warning,
+                            label: 'Streak Reminder',
+                            subtitle: 'Daily streak notification',
+                            value: s.streakReminderEnabled,
+                            onChanged: (v) => ref
+                                .read(userSettingsServiceProvider)
+                                .setStreakReminder(v),
+                          ),
+                          const _Divider(),
+                          _ToggleRow(
+                            icon: Icons.lightbulb_rounded,
+                            iconColor: AppColors.success,
+                            label: 'Upsolve Reminder',
+                            subtitle: 'Weekly upsolve nudge',
+                            value: s.upsolveReminderEnabled,
+                            onChanged: (v) => ref
+                                .read(userSettingsServiceProvider)
+                                .setUpsolveReminder(v),
                           ),
                         ],
                       ),
                     ),
-                    Text(
-                      '${profile.rating}',
-                      style: AppTextStyles.metricSmall.copyWith(
-                        color: AppColors.primary,
-                        fontSize: 18.sp,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            SizedBox(height: 20.h),
+                  ),
 
-            // Notifications section
-            Text(
-              'Notifications',
-              style: AppTextStyles.h3,
-            ),
-            SizedBox(height: 8.h),
-            GlassCard(
-              child: Column(
-                children: [
-                  _buildSwitchTile(
-                    icon: Icons.event_note_rounded,
-                    iconColor: AppColors.primary,
-                    title: 'Contest Reminders',
-                    subtitle: 'Get notified before contests start',
-                    value: _contestReminders,
-                    onChanged: (value) => setState(() {
-                      _contestReminders = value;
-                    }),
-                  ),
-                  const Divider(
-                    color: AppColors.divider,
-                    height: 1,
-                  ),
-                  _buildSwitchTile(
-                    icon: Icons.local_fire_department_rounded,
-                    iconColor: AppColors.warning,
-                    title: 'Streak Reminders',
-                    subtitle: 'Daily reminder to maintain streak',
-                    value: _streakReminders,
-                    onChanged: (value) => setState(() {
-                      _streakReminders = value;
-                    }),
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(height: 20.h),
+                  SizedBox(height: 20.h),
 
-            // App info section
-            Text(
-              'About',
-              style: AppTextStyles.h3,
-            ),
-            SizedBox(height: 8.h),
-            GlassCard(
-              child: Column(
-                children: [
-                  _buildInfoTile(
-                    icon: Icons.info_outline_rounded,
-                    title: 'App Version',
-                    trailing: Text(
-                      '1.0.0',
-                      style: AppTextStyles.metricSmall.copyWith(
-                        fontSize: 12.sp,
-                        color: AppColors.textMuted,
+                  // ──────────────────────────────
+                  // VOICE & SMS SECTION
+                  // SMS/Voice are premium — locked
+                  // ──────────────────────────────
+                  const SectionHeader(title: 'Voice & SMS'),
+                  SizedBox(height: 12.h),
+
+                  settingsAsync.when(
+                    loading: () => const SizedBox.shrink(),
+                    error: (_, __) => const SizedBox.shrink(),
+                    data: (s) => GlassCard(
+                      child: Column(
+                        children: [
+                          _ToggleRow(
+                            icon: Icons.record_voice_over_rounded,
+                            iconColor: AppColors.primary,
+                            label: 'Voice Reminder',
+                            subtitle: 'Speak contest alerts aloud',
+                            value: s.ttsEnabled,
+                            onChanged: (v) => ref
+                                .read(userSettingsServiceProvider)
+                                .setTtsEnabled(v),
+                          ),
+                          const _Divider(),
+                          // SMS — premium feature, shown as Coming Soon
+                          const _LockedRow(
+                            icon: Icons.sms_rounded,
+                            label: 'SMS Alerts',
+                            subtitle: 'Text alerts for contests',
+                          ),
+                          const _Divider(),
+                          // Voice call — premium feature, shown as Coming Soon
+                          const _LockedRow(
+                            icon: Icons.call_rounded,
+                            label: 'Voice Calls',
+                            subtitle: 'Phone alerts for contests',
+                          ),
+                        ],
                       ),
                     ),
                   ),
-                  const Divider(
-                    color: AppColors.divider,
-                    height: 1,
+
+                  SizedBox(height: 20.h),
+
+                  // ──────────────────────────────
+                  // APP SECTION
+                  // Widget, cache, version
+                  // ──────────────────────────────
+                  const SectionHeader(title: 'App'),
+                  SizedBox(height: 12.h),
+
+                  settingsAsync.when(
+                    loading: () => const SizedBox.shrink(),
+                    error: (_, __) => const SizedBox.shrink(),
+                    data: (s) => GlassCard(
+                      child: Column(
+                        children: [
+                          _ToggleRow(
+                            icon: Icons.widgets_rounded,
+                            iconColor: AppColors.primary,
+                            label: 'Home Widget',
+                            subtitle: 'Show rating on home screen',
+                            value: s.widgetEnabled,
+                            onChanged: (v) => ref
+                                .read(userSettingsServiceProvider)
+                                .setWidgetEnabled(v),
+                          ),
+                          const _Divider(),
+
+                          // Clear cache — only removes API response cache
+                          Consumer(
+                            builder: (context, ref, _) {
+                              final cacheState =
+                                  ref.watch(clearCacheProvider);
+                              final isClearing =
+                                  cacheState is AsyncLoading;
+
+                              return _ActionRow(
+                                icon: Icons.cleaning_services_rounded,
+                                iconColor: AppColors.warning,
+                                label: 'Clear Cache',
+                                subtitle:
+                                    'Remove cached profile & contest data',
+                                actionLabel:
+                                    isClearing ? 'Clearing...' : 'Clear',
+                                isLoading: isClearing,
+                                onTap: isClearing
+                                    ? null
+                                    : () async {
+                                        await ref
+                                            .read(clearCacheProvider.notifier)
+                                            .clear();
+                                        if (!context.mounted) return;
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          SnackBar(
+                                            content: Text(
+                                              'Cache cleared!',
+                                              style: AppTextStyles.body
+                                                  .copyWith(
+                                                      color: Colors.white),
+                                            ),
+                                            backgroundColor: AppColors.success,
+                                          ),
+                                        );
+                                      },
+                              );
+                            },
+                          ),
+
+                          const _Divider(),
+
+                          // App version — read-only info row
+                          _InfoRow(
+                            icon: Icons.info_outline_rounded,
+                            label: 'App Version',
+                            value: versionAsync.when(
+                              loading: () => '...',
+                              error: (_, __) => 'Unknown',
+                              data: (v) => v,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
-                  _buildInfoTile(
-                    icon: Icons.code_rounded,
-                    title: 'Backend',
-                    trailing: Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 8.w,
-                        vertical: 3.h,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppColors.success.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(6.r),
-                      ),
-                      child: Text(
-                        'Connected',
-                        style: AppTextStyles.caption.copyWith(
-                          color: AppColors.success,
-                          fontSize: 10.sp,
+
+                  SizedBox(height: 20.h),
+
+                  // ──────────────────────────────
+                  // ACCOUNT SECTION
+                  // Logout + logout all devices
+                  // ──────────────────────────────
+                  const SectionHeader(title: 'Account'),
+                  SizedBox(height: 12.h),
+
+                  GlassCard(
+                    child: Column(
+                      children: [
+                        // Sign out from current device
+                        AppButton(
+                          label: 'Sign Out',
+                          onTap: isLoggingOut
+                              ? null
+                              : () => ref
+                                  .read(logoutProvider.notifier)
+                                  .logout(),
+                          isLoading: isLoggingOut,
+                          type: AppButtonType.outline,
+                          icon: Icons.logout_rounded,
                         ),
-                      ),
+                        SizedBox(height: 12.h),
+                        // Sign out from all devices — clears cfHandle too
+                        AppButton(
+                          label: 'Sign Out All Devices',
+                          onTap: isLoggingOut
+                              ? null
+                              : () => ref
+                                  .read(logoutProvider.notifier)
+                                  .logoutAll(),
+                          isLoading: isLoggingOut,
+                          type: AppButtonType.danger,
+                          icon: Icons.devices_rounded,
+                        ),
+                      ],
                     ),
                   ),
-                  const Divider(
-                    color: AppColors.divider,
-                    height: 1,
-                  ),
-                  _buildInfoTile(
-                    icon: Icons.science_outlined,
-                    title: 'Environment',
-                    trailing: Text(
-                      'Development',
+
+                  SizedBox(height: 40.h),
+
+                  // Footer
+                  Center(
+                    child: Text(
+                      'AlgoLens • Made with ♥ for CP',
                       style: AppTextStyles.caption.copyWith(
-                        color: AppColors.warning,
+                        color: Colors.white.withValues(alpha: 0.30),
                       ),
                     ),
                   ),
-                ],
+
+                  SizedBox(height: 100.h),
+                ]),
               ),
             ),
-            SizedBox(height: 20.h),
-
-            // Coming soon section
-            Text(
-              'Coming Soon',
-              style: AppTextStyles.h3,
-            ),
-            SizedBox(height: 8.h),
-            GlassCard(
-              child: Column(
-                children: [
-                  _buildComingSoonTile(
-                    'Dark / Light Theme',
-                    Icons.palette_outlined,
-                  ),
-                  const Divider(
-                    color: AppColors.divider,
-                    height: 1,
-                  ),
-                  _buildComingSoonTile(
-                    'Export Stats as PDF',
-                    Icons.picture_as_pdf_outlined,
-                  ),
-                  const Divider(
-                    color: AppColors.divider,
-                    height: 1,
-                  ),
-                  _buildComingSoonTile(
-                    'Widget Customization',
-                    Icons.widgets_outlined,
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(height: 24.h),
-
-            // Logout button
-            AppButton(
-              label: 'Logout',
-              onTap: _handleLogout,
-              type: AppButtonType.outline,
-            ),
-            SizedBox(height: 100.h),
           ],
         ),
       ),
     );
   }
+}
 
-  Widget _buildSwitchTile({
-    required IconData icon,
-    required Color iconColor,
-    required String title,
-    required String subtitle,
-    required bool value,
-    required ValueChanged<bool> onChanged,
-  }) {
-    return Padding(
-      padding: EdgeInsets.symmetric(
-        vertical: 4.h,
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: EdgeInsets.all(8.r),
+// ─────────────────────────────────
+// TOGGLE ROW
+// Setting row with on/off switch
+// ─────────────────────────────────
+
+class _ToggleRow extends StatelessWidget {
+  const _ToggleRow({
+    required this.icon,
+    required this.iconColor,
+    required this.label,
+    required this.subtitle,
+    required this.value,
+    required this.onChanged,
+  });
+
+  final IconData icon;
+  final Color iconColor;
+  final String label;
+  final String subtitle;
+  final bool value;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        // Colored icon container
+        Container(
+          width: 36.r,
+          height: 36.r,
+          decoration: BoxDecoration(
+            color: iconColor.withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(10.r),
+          ),
+          child: Icon(icon, color: iconColor, size: 18.r),
+        ),
+        SizedBox(width: 12.w),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(label, style: AppTextStyles.bodyBold),
+              SizedBox(height: 2.h),
+              Text(
+                subtitle,
+                style: AppTextStyles.caption,
+              ),
+            ],
+          ),
+        ),
+        Switch(
+          value: value,
+          onChanged: onChanged,
+          activeThumbColor: AppColors.primary,
+          activeTrackColor: AppColors.primary.withValues(alpha: 0.30),
+          inactiveThumbColor: Colors.white.withValues(alpha: 0.50),
+          inactiveTrackColor: Colors.white.withValues(alpha: 0.10),
+        ),
+      ],
+    );
+  }
+}
+
+// ─────────────────────────────────
+// LOCKED ROW
+// Premium feature — disabled with
+// ComingSoonBadge, switch disabled
+// ─────────────────────────────────
+
+class _LockedRow extends StatelessWidget {
+  const _LockedRow({
+    required this.icon,
+    required this.label,
+    required this.subtitle,
+  });
+
+  final IconData icon;
+  final String label;
+  final String subtitle;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Container(
+          width: 36.r,
+          height: 36.r,
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.06),
+            borderRadius: BorderRadius.circular(10.r),
+          ),
+          child: Icon(
+            icon,
+            color: Colors.white.withValues(alpha: 0.30),
+            size: 18.r,
+          ),
+        ),
+        SizedBox(width: 12.w),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Text(
+                    label,
+                    style: AppTextStyles.bodyBold.copyWith(
+                      color: Colors.white.withValues(alpha: 0.40),
+                    ),
+                  ),
+                  SizedBox(width: 8.w),
+                  const ComingSoonBadge(),
+                ],
+              ),
+              SizedBox(height: 2.h),
+              Text(
+                subtitle,
+                style: AppTextStyles.caption.copyWith(
+                  color: Colors.white.withValues(alpha: 0.30),
+                ),
+              ),
+            ],
+          ),
+        ),
+        // Disabled switch for locked features
+        Switch(
+          value: false,
+          onChanged: null,
+          inactiveThumbColor: Colors.white.withValues(alpha: 0.20),
+          inactiveTrackColor: Colors.white.withValues(alpha: 0.06),
+        ),
+      ],
+    );
+  }
+}
+
+// ─────────────────────────────────
+// ACTION ROW
+// Setting row with tap button
+// e.g. Clear Cache
+// ─────────────────────────────────
+
+class _ActionRow extends StatelessWidget {
+  const _ActionRow({
+    required this.icon,
+    required this.iconColor,
+    required this.label,
+    required this.subtitle,
+    required this.actionLabel,
+    required this.onTap,
+    this.isLoading = false,
+  });
+
+  final IconData icon;
+  final Color iconColor;
+  final String label;
+  final String subtitle;
+  final String actionLabel;
+  final VoidCallback? onTap;
+  final bool isLoading;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Container(
+          width: 36.r,
+          height: 36.r,
+          decoration: BoxDecoration(
+            color: iconColor.withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(10.r),
+          ),
+          child: Icon(icon, color: iconColor, size: 18.r),
+        ),
+        SizedBox(width: 12.w),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(label, style: AppTextStyles.bodyBold),
+              SizedBox(height: 2.h),
+              Text(subtitle, style: AppTextStyles.caption),
+            ],
+          ),
+        ),
+        // Tappable action button with loading state
+        GestureDetector(
+          onTap: onTap,
+          child: Container(
+            padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
             decoration: BoxDecoration(
-              color: iconColor.withValues(alpha: 0.10),
+              color: iconColor.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(8.r),
+              border: Border.all(color: iconColor.withValues(alpha: 0.30)),
             ),
-            child: Icon(
-              icon,
-              color: iconColor,
-              size: 18.r,
-            ),
+            child: isLoading
+                ? SizedBox(
+                    width: 14.r,
+                    height: 14.r,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 1.5,
+                      color: iconColor,
+                    ),
+                  )
+                : Text(
+                    actionLabel,
+                    style: AppTextStyles.captionBold.copyWith(color: iconColor),
+                  ),
           ),
-          SizedBox(width: 12.w),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: AppTextStyles.bodyBold,
-                ),
-                Text(
-                  subtitle,
-                  style: AppTextStyles.caption,
-                ),
-              ],
-            ),
-          ),
-          Switch(
-            value: value,
-            onChanged: onChanged,
-            activeColor: AppColors.primary,
-            activeTrackColor: AppColors.primary.withValues(alpha: 0.30),
-            inactiveThumbColor: AppColors.textMuted,
-            inactiveTrackColor: Colors.white.withValues(alpha: 0.10),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
+}
 
-  Widget _buildInfoTile({
-    required IconData icon,
-    required String title,
-    required Widget trailing,
-  }) {
-    return Padding(
-      padding: EdgeInsets.symmetric(
-        vertical: 10.h,
-      ),
-      child: Row(
-        children: [
-          Icon(
+// ─────────────────────────────────
+// INFO ROW
+// Static read-only info display
+// e.g. App Version
+// ─────────────────────────────────
+
+class _InfoRow extends StatelessWidget {
+  const _InfoRow({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
+
+  final IconData icon;
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Container(
+          width: 36.r,
+          height: 36.r,
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.06),
+            borderRadius: BorderRadius.circular(10.r),
+          ),
+          child: Icon(
             icon,
-            color: AppColors.textMuted,
+            color: Colors.white.withValues(alpha: 0.50),
             size: 18.r,
           ),
-          SizedBox(width: 12.w),
-          Text(
-            title,
-            style: AppTextStyles.body,
+        ),
+        SizedBox(width: 12.w),
+        Expanded(child: Text(label, style: AppTextStyles.bodyBold)),
+        // Version value in monospace font
+        Text(
+          value,
+          style: AppTextStyles.monoSmall.copyWith(
+            color: Colors.white.withValues(alpha: 0.50),
           ),
-          const Spacer(),
-          trailing,
-        ],
-      ),
+        ),
+      ],
     );
   }
+}
 
-  Widget _buildComingSoonTile(String title, IconData icon) {
+// ─────────────────────────────────
+// DIVIDER
+// Subtle separator between rows
+// ─────────────────────────────────
+
+class _Divider extends StatelessWidget {
+  const _Divider();
+
+  @override
+  Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.symmetric(
-        vertical: 10.h,
-      ),
-      child: Row(
-        children: [
-          Icon(
-            icon,
-            color: AppColors.textMuted,
-            size: 18.r,
-          ),
-          SizedBox(width: 12.w),
-          Text(
-            title,
-            style: AppTextStyles.body,
-          ),
-          const Spacer(),
-          const ComingSoonBadge(),
-        ],
+      padding: EdgeInsets.symmetric(vertical: 12.h),
+      child: Divider(
+        color: Colors.white.withValues(alpha: 0.08),
+        height: 1,
       ),
     );
   }

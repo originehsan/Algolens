@@ -35,15 +35,8 @@ class ProblemModel {
         'tags': tags,
       };
 
-  // ───────────────────────────────
-  // COMPUTED PROPERTIES
-  // ───────────────────────────────
-
   String get url =>
-      'https://codeforces.com'
-      '/contest/$contestId'
-      '/problem/$index';
+      'https://codeforces.com/contest/$contestId/problem/$index';
 
-  // Used by upsolve tracking
   String get problemKey => '${contestId}_$index';
 }

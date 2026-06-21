@@ -91,8 +91,7 @@ class FriendsRepository {
       final data = await _client.get(
         ApiEndpoints.getFriends(handle),
       );
-      final list = (data['friends'] as List?) ??
-          (data is List ? data as List : []) as List;
+      final List<dynamic> list = (data['friends'] as List?) ?? <dynamic>[];
       return (list)
           .map(
             (e) => FriendModel.fromJson(
@@ -123,8 +122,7 @@ class FriendsRepository {
           handle,
         ),
       );
-      final list = (data['leaderboard'] as List?) ??
-          (data is List ? data as List : []) as List;
+      final List<dynamic> list = (data['leaderboard'] as List?) ?? <dynamic>[];
       return (list)
           .map(
             (e) => LeaderboardModel.fromJson(
@@ -157,8 +155,7 @@ class FriendsRepository {
           handle,
         ),
       );
-      final list = ((data['problems'] as List?) ??
-          (data is List ? data as List : []) as List) as List;
+      final List<dynamic> list = (data['problems'] as List?) ?? <dynamic>[];
       return list.cast<Map<String, dynamic>>();
     } on ApiException {
       rethrow;

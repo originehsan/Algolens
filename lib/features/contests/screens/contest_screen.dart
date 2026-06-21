@@ -346,33 +346,30 @@ class _ReminderBottomSheetState extends ConsumerState<_ReminderBottomSheet> {
           AppButton(
             label: 'Add Reminder',
             onTap: () async {
-              final added = await ref
-                  .read(
-                    addReminderProvider.notifier,
-                  )
-                  .add(
+              // Capture messenger and navigator before async gap
+              final messenger = ScaffoldMessenger.of(context);
+              final navigator = Navigator.of(context);
+
+              final added = await ref.read(addReminderProvider.notifier).add(
                     contestId: widget.contest.contestId,
                     contestName: widget.contest.name,
                     minutesBefore: _sliderValue.toInt(),
                     startDateTime: widget.contest.startDateTime,
                   );
+
               if (!mounted) return;
               if (!added) {
-                ScaffoldMessenger.of(context).showSnackBar(
+                messenger.showSnackBar(
                   SnackBar(
                     content: Text(
                       'Max 3 reminders per contest',
-                      style: GoogleFonts.inter(
-                        color: Colors.white,
-                      ),
+                      style: GoogleFonts.inter(color: Colors.white),
                     ),
                     backgroundColor: AppColors.danger,
                   ),
                 );
               }
-              if (mounted) {
-                Navigator.pop(context);
-              }
+              navigator.pop();
             },
           ),
 

@@ -5,26 +5,16 @@ import 'package:algolens/core/network/dio_client.dart';
 import 'package:algolens/features/practice/data/models/problem_model.dart';
 import 'package:algolens/features/practice/data/models/weak_topic_model.dart';
 
-// ─────────────────────────────────
-// PROVIDER
-// ─────────────────────────────────
-
 final practiceRepositoryProvider = Provider<PracticeRepository>(
   (ref) => PracticeRepository(
     ref.watch(dioClientProvider),
   ),
 );
 
-// ─────────────────────────────────
-// REPOSITORY
-// ─────────────────────────────────
-
 class PracticeRepository {
   PracticeRepository(this._client);
   final DioClient _client;
 
-  // GET /insights/{handle}/weak-topics
-  // No cache — always fresh
   Future<List<WeakTopicModel>> getWeakTopics(String handle) async {
     try {
       final data = await _client.get(
@@ -34,11 +24,7 @@ class PracticeRepository {
           (data['weakTopics'] as List?) ??
           (data is List ? data as List : const <dynamic>[]);
       return list
-          .map(
-            (e) => WeakTopicModel.fromJson(
-              e as Map<String, dynamic>,
-            ),
-          )
+          .map((e) => WeakTopicModel.fromJson(e as Map<String, dynamic>))
           .toList();
     } on ApiException {
       rethrow;
@@ -50,8 +36,6 @@ class PracticeRepository {
     }
   }
 
-  // GET /insights/{handle}/recommendations
-  // No cache — always fresh
   Future<List<ProblemModel>> getRecommendations(String handle) async {
     try {
       final data = await _client.get(
@@ -61,11 +45,7 @@ class PracticeRepository {
           (data['recommendations'] as List?) ??
           (data is List ? data as List : const <dynamic>[]);
       return list
-          .map(
-            (e) => ProblemModel.fromJson(
-              e as Map<String, dynamic>,
-            ),
-          )
+          .map((e) => ProblemModel.fromJson(e as Map<String, dynamic>))
           .toList();
     } on ApiException {
       rethrow;

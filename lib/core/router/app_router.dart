@@ -17,18 +17,11 @@ import 'package:algolens/features/friends/screens/friends_screen.dart';
 import 'package:algolens/features/friends/screens/comparison_screen.dart';
 import 'package:algolens/features/practice/screens/weak_topics_screen.dart';
 import 'package:algolens/features/practice/screens/recommendations_screen.dart';
+import 'package:algolens/features/upsolve/screens/upsolve_screen.dart';
+import 'package:algolens/features/analysis/screens/ai_analysis_screen.dart';
+import 'package:algolens/features/settings/screens/settings_screen.dart';
 
-// ──────────────────────────────
-// ROUTE NAMES
-// All named routes as constants
-// ──────────────────────────────
-
-/// All route name constants
-///
-/// Usage:
-/// context.goNamed(
-///   RouteNames.home,
-/// );
+// All route name constants
 abstract class RouteNames {
   RouteNames._();
 
@@ -53,12 +46,7 @@ abstract class RouteNames {
   static const String settings = 'settings';
 }
 
-// ──────────────────────────────
-// ROUTE PATHS
-// All path strings as constants
-// ──────────────────────────────
-
-/// All route path constants
+// All route path constants
 abstract class RoutePaths {
   RoutePaths._();
 
@@ -83,34 +71,11 @@ abstract class RoutePaths {
   static const String settings = '/settings';
 }
 
-// ──────────────────────────────
-// ROUTER PROVIDER
-// ──────────────────────────────
-
 /// GoRouter provider
-///
-/// Usage in main.dart:
-/// MaterialApp.router(
-///   routerConfig: ref.watch(
-///     routerProvider,
-///   ),
-/// )
 final routerProvider = Provider<GoRouter>((ref) {
   return AppRouter.router(ref);
 });
 
-// ──────────────────────────────
-// APP ROUTER
-// ──────────────────────────────
-
-/// GoRouter configuration
-///
-/// Auth guard logic:
-/// → Check accessToken in
-///   SecureStorage
-/// → Check cfHandle in
-///   SecureStorage
-/// → Redirect accordingly
 abstract class AppRouter {
   AppRouter._();
 
@@ -119,140 +84,99 @@ abstract class AppRouter {
       initialLocation: RoutePaths.splash,
       debugLogDiagnostics: true,
 
-      // ────────────────────────
-      // AUTH REDIRECT
-      // Simplified - splash handles auth
-      // ────────────────────────
-
-      redirect: (context, state) {
-        /// Always allow splash on startup
-        /// Splash screen handles auth logic
-        /// and redirects appropriately
-        return null;
-      },
-
-      // ────────────────────────
-      // ROUTES
-      // All app screens
-      // ────────────────────────
+      // Splash screen handles all auth logic and redirects
+      redirect: (context, state) => null,
 
       routes: [
-        // ──────────────────────
-        // AUTH ROUTES
-        // ──────────────────────
-
+        // Auth routes
         GoRoute(
           path: RoutePaths.splash,
           name: RouteNames.splash,
           builder: (context, state) => const SplashScreen(),
         ),
-
         GoRoute(
           path: RoutePaths.onboarding,
           name: RouteNames.onboarding,
           builder: (context, state) => const OnboardingScreen(),
         ),
-
         GoRoute(
           path: RoutePaths.register,
           name: RouteNames.register,
           builder: (context, state) => const RegisterScreen(),
         ),
-
         GoRoute(
           path: RoutePaths.emailVerification,
           name: RouteNames.emailVerification,
           builder: (context, state) {
             final email = state.extra as String? ?? '';
-            return EmailVerificationScreen(
-              email: email,
-            );
+            return EmailVerificationScreen(email: email);
           },
         ),
-
         GoRoute(
           path: RoutePaths.login,
           name: RouteNames.login,
           builder: (context, state) => const LoginScreen(),
         ),
-
         GoRoute(
           path: RoutePaths.forgotPassword,
           name: RouteNames.forgotPassword,
           builder: (context, state) => const ForgotPasswordScreen(),
         ),
-
         GoRoute(
           path: RoutePaths.resetPassword,
           name: RouteNames.resetPassword,
           builder: (context, state) {
             final email = state.extra as String? ?? '';
-            return ResetPasswordScreen(
-              email: email,
-            );
+            return ResetPasswordScreen(email: email);
           },
         ),
-
         GoRoute(
           path: RoutePaths.cfHandleSetup,
           name: RouteNames.cfHandleSetup,
           builder: (context, state) => const CfHandleSetupScreen(),
         ),
 
-        // ──────────────────────
-        // MAIN APP ROUTES
-        // ──────────────────────
-
+        // Main app routes
         GoRoute(
           path: RoutePaths.home,
           name: RouteNames.home,
           builder: (context, state) => const HomeScreen(),
         ),
-
         GoRoute(
           path: RoutePaths.contests,
           name: RouteNames.contests,
           builder: (context, state) => const ContestScreen(),
         ),
-
         GoRoute(
           path: RoutePaths.allContests,
           name: RouteNames.allContests,
           builder: (context, state) => const AllContestsScreen(),
         ),
-
         GoRoute(
           path: RoutePaths.practice,
           name: RouteNames.practice,
           builder: (context, state) => const WeakTopicsScreen(),
         ),
-
         GoRoute(
           path: RoutePaths.recommendations,
           name: RouteNames.recommendations,
           builder: (context, state) => const RecommendationsScreen(),
         ),
-
         GoRoute(
           path: RoutePaths.upsolve,
           name: RouteNames.upsolve,
-          builder: (context, state) => const _PlaceholderScreen(
-            label: 'Upsolve',
-          ),
+          builder: (context, state) => const UpsolveScreen(),
         ),
-
         GoRoute(
           path: RoutePaths.profile,
           name: RouteNames.profile,
           builder: (context, state) => const ProfileScreen(),
         ),
-
         GoRoute(
           path: RoutePaths.friends,
           name: RouteNames.friends,
           builder: (context, state) => const FriendsScreen(),
         ),
-
         GoRoute(
           path: RoutePaths.comparison,
           name: RouteNames.comparison,
@@ -264,28 +188,19 @@ abstract class AppRouter {
             );
           },
         ),
-
         GoRoute(
           path: RoutePaths.aiAnalysis,
           name: RouteNames.aiAnalysis,
-          builder: (context, state) => const _PlaceholderScreen(
-            label: 'AI Analysis',
-          ),
+          builder: (context, state) => const AiAnalysisScreen(),
         ),
-
         GoRoute(
           path: RoutePaths.settings,
           name: RouteNames.settings,
-          builder: (context, state) => const _PlaceholderScreen(
-            label: 'Settings',
-          ),
+          builder: (context, state) => const SettingsScreen(),
         ),
       ],
 
-      // ────────────────────────
-      // ERROR ROUTE
-      // ────────────────────────
-
+      // Error route — _PlaceholderScreen still used here
       errorBuilder: (context, state) => _PlaceholderScreen(
         label: 'Error: ${state.error}',
       ),
@@ -293,22 +208,9 @@ abstract class AppRouter {
   }
 }
 
-// ──────────────────────────────
-// PLACEHOLDER SCREEN
-// Temp until real screens built
-// Replace one by one per prompt
-// ──────────────────────────────
-
-/// Temporary placeholder screen
-///
-/// Shows route label in center
-/// Replace with real screen
-/// when building that feature
+// Kept only for errorBuilder above
 class _PlaceholderScreen extends StatelessWidget {
-  const _PlaceholderScreen({
-    required this.label,
-  });
-
+  const _PlaceholderScreen({required this.label});
   final String label;
 
   @override
@@ -318,10 +220,7 @@ class _PlaceholderScreen extends StatelessWidget {
       body: Center(
         child: Text(
           label,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 24,
-          ),
+          style: const TextStyle(color: Colors.white, fontSize: 24),
         ),
       ),
     );

@@ -46,8 +46,8 @@ class AllContestsScreen extends ConsumerWidget {
                 horizontal: 20.w,
               ),
               sliver: contestsAsync.when(
-                loading: () => SliverToBoxAdapter(
-                  child: const ContestListShimmer(
+                loading: () => const SliverToBoxAdapter(
+                  child: ContestListShimmer(
                     count: 8,
                   ),
                 ),
@@ -66,7 +66,7 @@ class AllContestsScreen extends ConsumerWidget {
                           notifier.loadMore();
                           return Padding(
                             padding: EdgeInsets.all(16.r),
-                            child: Center(
+                            child: const Center(
                               child: CircularProgressIndicator(
                                 color: AppColors.primary,
                                 strokeWidth: 2,

@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:algolens/core/theme/app_text_styles.dart';
 import 'package:algolens/core/widgets/app_background.dart';
 import 'package:algolens/core/widgets/empty_widget.dart';
 import 'package:algolens/core/widgets/error_widget.dart';
@@ -28,11 +27,7 @@ class RecommendationsScreen extends ConsumerWidget {
               floating: true,
               title: Text(
                 'Recommendations',
-                style: GoogleFonts.inter(
-                  fontSize: 18.sp,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
-                ),
+                style: AppTextStyles.h2,
               ),
             ),
             SliverPadding(
@@ -44,48 +39,34 @@ class RecommendationsScreen extends ConsumerWidget {
                     loading: () => const PracticeListShimmer(),
                     error: (e, s) => AppErrorWidget(
                       message: e.toString(),
-                      onRetry: () =>
-                          ref.invalidate(recommendationsProvider),
+                      onRetry: () => ref.invalidate(recommendationsProvider),
                     ),
                     data: (problems) {
                       if (problems.isEmpty) {
                         return const EmptyWidget(
                           icon: Icons.check_circle_rounded,
                           message: 'All caught up!',
-                          subtitle:
-                              'No recommendations right now. Keep solving problems!',
+                          subtitle: 'No recommendations right now. Keep solving problems!',
                         );
                       }
-
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           SectionHeader(
                             title: 'For you',
-                            actionLabel: '${problems.length} problems',
+                            subtitle: '${problems.length} problems',
                           ),
                           SizedBox(height: 12.h),
-
                           ...problems.map(
                             (p) => ProblemRow(
+                              contestId: p.contestId,
+                              index: p.index,
                               name: p.name,
                               rating: p.rating,
                               tags: p.tags,
-                              contestId: p.contestId,
-                              index: p.index,
                               url: p.url,
-                              onTap: () async {
-                                final uri = Uri.parse(p.url);
-                                if (await canLaunchUrl(uri)) {
-                                  await launchUrl(
-                                    uri,
-                                    mode: LaunchMode.externalApplication,
-                                  );
-                                }
-                              },
                             ),
                           ),
-
                           SizedBox(height: 100.h),
                         ],
                       );

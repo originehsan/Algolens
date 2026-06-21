@@ -1,10 +1,7 @@
-PROMPT 52 OF 68
+PROMPT 53 OF 68
 AlgoLens — Competitive Programming Tracker
-Job: Create/Update practice_provider.dart
-     weak_topics_screen.dart
-     recommendations_screen.dart
-     Update app_router.dart for both
-     practice + recommendations routes.
+Job: Create/Update upsolve_model.dart
+     and upsolve_repository.dart
 Do NOT touch any other file
 EXCEPT files listed in RIPPLE EFFECT.
 create file only when does not exist  ,  else update file as per prompt
@@ -61,8 +58,42 @@ google_fonts: ^6.2.1
 HIVE REFERENCE
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-// No Hive for practice data
-// All fetched fresh from API
+// upsolveLocalState box tracks
+// done/undone per problem
+// Key: problemKey (contestId_index)
+// Value: JSON string
+
+// Check if done:
+final box =
+  HiveService.upsolveLocalState;
+final raw =
+  box.get(problemKey) as String?;
+bool isCompleted = false;
+if (raw != null) {
+  final map = jsonDecode(raw)
+    as Map<String, dynamic>;
+  isCompleted =
+    map['isCompleted'] as bool;
+}
+
+// Mark as done:
+await box.put(
+  problemKey,
+  jsonEncode({
+    'isCompleted': true,
+    'completedAt': DateTime.now()
+      .toIso8601String(),
+  }),
+);
+
+// Mark as undone:
+await box.put(
+  problemKey,
+  jsonEncode({
+    'isCompleted': false,
+    'completedAt': null,
+  }),
+);
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 SECURE STORAGE REFERENCE
@@ -78,936 +109,460 @@ final handle =
 CONTEXT — ALREADY BUILT
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-P51 — Models:
-  ProblemModel:
-    contestId, index, name,
-    rating, tags
-    computed: url, problemKey
+ProblemModel (P51):
+  contestId, index, name,
+  rating, tags
+  computed: url, problemKey
 
-  WeakTopicModel:
-    tag, totalAttempts, solvedCount,
-    unsolvedCount, acRate, severity
-    computed: severityColor,
-    acRateFormatted, isCritical
+DioClient (P13):
+  dioClientProvider
+  client.get(path)
+  throws ApiException on error
 
-P51 — PracticeRepository:
-  practiceRepositoryProvider
-  getWeakTopics(handle)
-    → List<WeakTopicModel>
-  getRecommendations(handle)
-    → List<ProblemModel>
+ApiEndpoints (P12):
+  ApiEndpoints.upsolve(handle)
+  → GET /insights/{handle}/upsolve
+  Response: Map<String,List>
+  Keys = contestId strings
+  Values = List of problems
+  MUST flatten to List<UpsolveModel>
 
-SecureStorage (P08):
-  secureStorageProvider
-  getCfHandle()
-
-cfHandleProvider (P41):
-  FutureProvider<String?>
-
-Widgets available:
-  AppBackground, GlassCard,
-  SectionHeader, ProblemRow,
-  ProgressBarWidget,
-  AppErrorWidget, EmptyWidget,
-  GlassCardShimmer,
-  PracticeListShimmer,
-  AppButton, RankChip
-
-RouteNames (P17):
-  RouteNames.practice
-  RouteNames.recommendations
+HiveService (P09):
+  HiveService.upsolveLocalState
+  Key: problemKey (contestId_index)
+  Value: JSON with isCompleted flag
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 RIPPLE EFFECT
 (Changes in already-built files)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-core/router/app_router.dart:
-→ ADD import for WeakTopicsScreen
-→ ADD import for
-  RecommendationsScreen
-→ FIND practice GoRoute
-→ REPLACE _PlaceholderScreen
-  with WeakTopicsScreen()
-→ FIND recommendations GoRoute
-→ REPLACE _PlaceholderScreen
-  with RecommendationsScreen()
-→ DO NOT touch other routes
+No changes needed in any
+already-built file for this prompt.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 CASCADING EFFECT
 (Future files that depend on this)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-practice_provider.dart →
-  No future prompts depend
-  on practice providers directly
+upsolve_model.dart →
+  P54 upsolve_provider.dart
+    upsolveProvider returns
+    List<UpsolveModel>
+  P54 upsolve_screen.dart
+    displays pending/solved tabs
 
-weak_topics_screen.dart →
-  No future prompts depend
-  on this screen directly
+upsolve_repository.dart →
+  P54 upsolve_provider.dart
+    upsolveRepositoryProvider
+    used by upsolve providers
 
-recommendations_screen.dart →
-  No future prompts depend
-  on this screen directly
+⚠️ API returns Map<String,List>
+   MUST flatten in repository:
+   map.forEach((contestId, problems)
+   for each problem:
+     UpsolveModel.fromJson(p)
+   isCompleted from Hive ONLY
+   Backend has NO endpoint for this
 
-⚠️ Provider names MUST stay:
-  weakTopicsProvider
-  recommendationsProvider
-  Used in both screens.
+⚠️ DO NOT rename:
+  UpsolveModel fields:
+    contestId, index, name,
+    rating, tags, bestVerdict,
+    url, isCompleted, isWeakTopic
+  Repository methods:
+    getUpsolveList(handle)
+    toggleDone(problemKey)
+    isDone(problemKey)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 TASK
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 File 1 (CREATE/UPDATE):
-→ features/practice/providers/
-  practice_provider.dart
+→ features/upsolve/data/models/
+  upsolve_model.dart
 
 File 2 (CREATE/UPDATE):
-→ features/practice/screens/
-  weak_topics_screen.dart
-
-File 3 (CREATE/UPDATE):
-→ features/practice/screens/
-  recommendations_screen.dart
-
-File 4 (UPDATE only):
-→ core/router/app_router.dart
-  practice + recommendations routes
-  Do NOT touch other routes
+→ features/upsolve/data/repositories/
+  upsolve_repository.dart
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-EXACT CODE — practice_provider.dart
+EXACT CODE — upsolve_model.dart
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
+// Pure Dart — no annotations
+// isCompleted from Hive only
+// Backend has NO endpoint for this
+// API response is Map<String, List>
+// Flattened in repository
+
+class UpsolveModel {
+  const UpsolveModel({
+    required this.contestId,
+    required this.index,
+    required this.name,
+    required this.rating,
+    required this.tags,
+    required this.bestVerdict,
+    required this.url,
+    required this.isCompleted,
+    required this.isWeakTopic,
+  });
+
+  final int contestId;
+  final String index;
+  final String name;
+  final int rating;
+  final List<String> tags;
+
+  /// Best verdict from CF
+  /// e.g. 'WRONG_ANSWER', 'TLE'
+  final String bestVerdict;
+
+  /// Direct CF problem URL
+  final String url;
+
+  /// Done/undone — Hive only
+  /// NOT from API
+  final bool isCompleted;
+
+  /// True if topic is in
+  /// user's weak topics list
+  final bool isWeakTopic;
+
+  factory UpsolveModel.fromJson(
+    Map<String, dynamic> json, {
+    bool isCompleted = false,
+    bool isWeakTopic = false,
+  }) {
+    final contestId =
+      (json['contestId'] as int?) ??
+      0;
+    final index =
+      (json['index'] as String?) ?? '';
+
+    return UpsolveModel(
+      contestId: contestId,
+      index: index,
+      name:
+        (json['name'] as String?) ??
+        '',
+      rating:
+        (json['rating'] as int?) ?? 0,
+      tags: (json['tags'] as List?)
+        ?.map((e) => e as String)
+        .toList() ?? [],
+      bestVerdict:
+        (json['bestVerdict']
+          as String?) ?? '',
+      url:
+        (json['url'] as String?) ??
+        'https://codeforces.com'
+        '/contest/$contestId'
+        '/problem/$index',
+      isCompleted: isCompleted,
+      isWeakTopic: isWeakTopic,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'contestId': contestId,
+    'index': index,
+    'name': name,
+    'rating': rating,
+    'tags': tags,
+    'bestVerdict': bestVerdict,
+    'url': url,
+    'isCompleted': isCompleted,
+    'isWeakTopic': isWeakTopic,
+  };
+
+  // ───────────────────────────────
+  // COMPUTED PROPERTIES
+  // ───────────────────────────────
+
+  /// Unique key for Hive
+  String get problemKey =>
+    '${contestId}_$index';
+
+  /// Copy with updated isCompleted
+  UpsolveModel copyWith({
+    bool? isCompleted,
+  }) =>
+    UpsolveModel(
+      contestId: contestId,
+      index: index,
+      name: name,
+      rating: rating,
+      tags: tags,
+      bestVerdict: bestVerdict,
+      url: url,
+      isCompleted:
+        isCompleted ?? this.isCompleted,
+      isWeakTopic: isWeakTopic,
+    );
+
+  /// Verdict short label for UI
+  String get verdictLabel =>
+    switch (bestVerdict) {
+      'WRONG_ANSWER' => 'WA',
+      'TIME_LIMIT_EXCEEDED' => 'TLE',
+      'MEMORY_LIMIT_EXCEEDED'
+        => 'MLE',
+      'RUNTIME_ERROR' => 'RE',
+      'COMPILATION_ERROR' => 'CE',
+      _ => bestVerdict.isNotEmpty
+        ? bestVerdict
+            .substring(0, 2)
+            .toUpperCase()
+        : '??',
+    };
+}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+EXACT CODE — upsolve_repository.dart
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+import 'dart:convert';
 import 'package:flutter_riverpod/
   flutter_riverpod.dart';
-import 'package:algolens/core/storage/
-  secure_storage.dart';
+import 'package:algolens/core/errors/
+  app_exceptions.dart';
+import 'package:algolens/core/local/
+  hive_service.dart';
+import 'package:algolens/core/network/
+  api_endpoints.dart';
+import 'package:algolens/core/network/
+  dio_client.dart';
 import 'package:algolens/features/
-  practice/data/models/
-  problem_model.dart';
-import 'package:algolens/features/
-  practice/data/models/
-  weak_topic_model.dart';
-import 'package:algolens/features/
-  practice/data/repositories/
-  practice_repository.dart';
+  upsolve/data/models/
+  upsolve_model.dart';
 
 // ─────────────────────────────────
-// WEAK TOPICS PROVIDER
-// Fetches weak topics for own handle
+// PROVIDER
 // ─────────────────────────────────
 
-/// Weak topics provider
-///
-/// Returns sorted list:
-/// critical first, then high,
-/// then moderate
-///
-/// Usage:
-/// ref.watch(
-///   weakTopicsProvider,
-/// ).when(...)
-final weakTopicsProvider =
-  FutureProvider<List<WeakTopicModel>>(
-    (ref) async {
-      final storage = ref.read(
-        secureStorageProvider,
+final upsolveRepositoryProvider =
+  Provider<UpsolveRepository>(
+    (ref) => UpsolveRepository(
+      ref.watch(dioClientProvider),
+    ),
+  );
+
+// ─────────────────────────────────
+// REPOSITORY
+// ─────────────────────────────────
+
+class UpsolveRepository {
+
+  UpsolveRepository(this._client);
+  final DioClient _client;
+
+  // ───────────────────────────────
+  // GET UPSOLVE LIST
+  // Response is Map<String,List>
+  // Keys = contestId strings
+  // Values = List of problems
+  // Flatten to List<UpsolveModel>
+  // Merge isCompleted from Hive
+  // Sort: weak topics first
+  // ───────────────────────────────
+
+  Future<List<UpsolveModel>>
+    getUpsolveList(
+      String handle,
+    ) async {
+    try {
+      final data = await _client.get(
+        ApiEndpoints.upsolve(handle),
       );
-      final handle =
-        await storage.getCfHandle();
-      if (handle == null ||
-        handle.isEmpty) {
-        return [];
-      }
-      final repo = ref.read(
-        practiceRepositoryProvider,
-      );
-      final topics =
-        await repo.getWeakTopics(
-          handle,
+
+      final items = <UpsolveModel>[];
+
+      // API returns
+      // Map<String, dynamic>
+      // Keys are contestId strings
+      if (data is Map) {
+        data.forEach(
+          (contestId, problems) {
+            if (problems is List) {
+              for (final p in problems) {
+                if (p is Map
+                  String,
+                  dynamic
+                >) {
+                  final key =
+                    '${p['contestId'] ?? contestId}'
+                    '_${p['index'] ?? ''}';
+                  final done =
+                    isDone(key);
+                  items.add(
+                    UpsolveModel
+                      .fromJson(
+                        p,
+                        isCompleted:
+                          done,
+                      ),
+                  );
+                }
+              }
+            }
+          },
         );
+      }
 
-      // Sort: critical → high
-      // → moderate
-      topics.sort((a, b) {
-        const order = {
-          'critical': 0,
-          'high': 1,
-          'moderate': 2,
-        };
-        return (order[a.severity] ?? 3)
-          .compareTo(
-            order[b.severity] ?? 3,
-          );
+      // Sort: weak topics first
+      // then by rating ascending
+      items.sort((a, b) {
+        if (a.isWeakTopic &&
+          !b.isWeakTopic) return -1;
+        if (!a.isWeakTopic &&
+          b.isWeakTopic) return 1;
+        return a.rating
+          .compareTo(b.rating);
       });
 
-      return topics;
-    },
-  );
-
-// ─────────────────────────────────
-// RECOMMENDATIONS PROVIDER
-// Fetches recommended problems
-// for own handle
-// ─────────────────────────────────
-
-/// Problem recommendations provider
-///
-/// Returns problems sorted by
-/// rating ascending
-///
-/// Usage:
-/// ref.watch(
-///   recommendationsProvider,
-/// ).when(...)
-final recommendationsProvider =
-  FutureProvider<List<ProblemModel>>(
-    (ref) async {
-      final storage = ref.read(
-        secureStorageProvider,
+      return items;
+    } on ApiException {
+      rethrow;
+    } catch (e) {
+      throw ApiException.unknown(
+        e.toString(),
       );
-      final handle =
-        await storage.getCfHandle();
-      if (handle == null ||
-        handle.isEmpty) {
-        return [];
-      }
-      final repo = ref.read(
-        practiceRepositoryProvider,
-      );
-      final problems =
-        await repo.getRecommendations(
-          handle,
-        );
+    }
+  }
 
-      // Sort by rating ascending
-      problems.sort(
-        (a, b) =>
-          a.rating.compareTo(b.rating),
-      );
+  // ───────────────────────────────
+  // IS DONE
+  // Reads from Hive only
+  // Backend has NO endpoint
+  // ───────────────────────────────
 
-      return problems;
-    },
-  );
+  bool isDone(String problemKey) {
+    final box =
+      HiveService.upsolveLocalState;
+    final raw =
+      box.get(problemKey) as String?;
+    if (raw == null) return false;
+    try {
+      final map = jsonDecode(raw)
+        as Map<String, dynamic>;
+      return
+        (map['isCompleted']
+          as bool?) ?? false;
+    } catch (_) {
+      return false;
+    }
+  }
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-EXACT CODE — weak_topics_screen.dart
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // ───────────────────────────────
+  // TOGGLE DONE
+  // Saves to Hive only
+  // Backend has NO endpoint
+  // ───────────────────────────────
 
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/
-  flutter_riverpod.dart';
-import 'package:flutter_screenutil/
-  flutter_screenutil.dart';
-import 'package:go_router/
-  go_router.dart';
-import 'package:google_fonts/
-  google_fonts.dart';
-import 'package:algolens/core/router/
-  app_router.dart';
-import 'package:algolens/core/theme/
-  app_colors.dart';
-import 'package:algolens/core/widgets/
-  app_background.dart';
-import 'package:algolens/core/widgets/
-  app_button.dart';
-import 'package:algolens/core/widgets/
-  empty_widget.dart';
-import 'package:algolens/core/widgets/
-  error_widget.dart';
-import 'package:algolens/core/widgets/
-  glass_card.dart';
-import 'package:algolens/core/widgets/
-  loading_shimmer.dart';
-import 'package:algolens/core/widgets/
-  progress_bar_widget.dart';
-import 'package:algolens/core/widgets/
-  section_header.dart';
-import 'package:algolens/features/
-  practice/data/models/
-  weak_topic_model.dart';
-import 'package:algolens/features/
-  practice/providers/
-  practice_provider.dart';
+  Future<void> toggleDone(
+    String problemKey,
+  ) async {
+    final box =
+      HiveService.upsolveLocalState;
+    final current = isDone(problemKey);
 
-class WeakTopicsScreen
-  extends ConsumerWidget {
-  const WeakTopicsScreen({super.key});
-
-  @override
-  Widget build(
-    BuildContext context,
-    WidgetRef ref,
-  ) {
-    final topicsAsync = ref.watch(
-      weakTopicsProvider,
+    await box.put(
+      problemKey,
+      jsonEncode({
+        'isCompleted': !current,
+        'completedAt': !current
+          ? DateTime.now()
+            .toIso8601String()
+          : null,
+      }),
     );
+  }
 
-    return AppBackground(
-      child: Scaffold(
-        backgroundColor:
-          Colors.transparent,
-        body: CustomScrollView(
-          slivers: [
+  // ───────────────────────────────
+  // MARK DONE
+  // Explicitly mark as done
+  // ───────────────────────────────
 
-            SliverAppBar(
-              backgroundColor:
-                Colors.transparent,
-              floating: true,
-              title: Text(
-                'Weak Topics',
-                style: GoogleFonts.inter(
-                  fontSize: 18.sp,
-                  fontWeight:
-                    FontWeight.w700,
-                  color: Colors.white,
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () =>
-                    context.goNamed(
-                      RouteNames
-                        .recommendations,
-                    ),
-                  child: Text(
-                    'Practice',
-                    style: GoogleFonts
-                      .inter(
-                        fontSize: 14.sp,
-                        fontWeight:
-                          FontWeight.w600,
-                        color:
-                          AppColors
-                            .primary,
-                      ),
-                  ),
-                ),
-              ],
-            ),
+  Future<void> markDone(
+    String problemKey,
+  ) async {
+    final box =
+      HiveService.upsolveLocalState;
+    await box.put(
+      problemKey,
+      jsonEncode({
+        'isCompleted': true,
+        'completedAt': DateTime.now()
+          .toIso8601String(),
+      }),
+    );
+  }
 
-            SliverPadding(
-              padding:
-                EdgeInsets.symmetric(
-                  horizontal: 20.w,
-                ),
-              sliver: SliverList(
-                delegate:
-                  SliverChildListDelegate(
-                    [
+  // ───────────────────────────────
+  // MARK UNDONE
+  // Explicitly mark as not done
+  // ───────────────────────────────
 
-                  SizedBox(height: 8.h),
-
-                  topicsAsync.when(
-                    loading: () =>
-                      const PracticeListShimmer(),
-                    error: (e, s) =>
-                      AppErrorWidget(
-                        message:
-                          e.toString(),
-                        onRetry: () =>
-                          ref.invalidate(
-                            weakTopicsProvider,
-                          ),
-                      ),
-                    data: (topics) {
-                      if (topics
-                        .isEmpty) {
-                        return EmptyWidget(
-                          icon: Icons
-                            .auto_awesome_rounded,
-                          message:
-                            'No weak topics!',
-                          subtitle:
-                            'You\'re doing '
-                            'great across '
-                            'all topics.',
-                        );
-                      }
-
-                      return Column(
-                        children: [
-
-                          // Summary
-                          _SummaryCard(
-                            topics:
-                              topics,
-                          ),
-
-                          SizedBox(
-                            height: 20.h,
-                          ),
-
-                          SectionHeader(
-                            title:
-                              'Topics to improve',
-                            subtitle:
-                              '${topics.length} '
-                              'topics found',
-                          ),
-
-                          SizedBox(
-                            height: 12.h,
-                          ),
-
-                          ...topics.map(
-                            (t) =>
-                              _TopicCard(
-                                topic: t,
-                              ),
-                          ),
-
-                          SizedBox(
-                            height: 12.h,
-                          ),
-
-                          AppButton(
-                            label:
-                              'Get Practice '
-                              'Problems',
-                            onTap: () =>
-                              context
-                                .goNamed(
-                                  RouteNames
-                                    .recommendations,
-                                ),
-                            icon: Icons
-                              .arrow_forward_rounded,
-                          ),
-
-                          SizedBox(
-                            height:
-                              100.h,
-                          ),
-                        ],
-                      );
-                    },
-                  ),
-                ]),
-              ),
-            ),
-          ],
-        ),
-      ),
+  Future<void> markUndone(
+    String problemKey,
+  ) async {
+    final box =
+      HiveService.upsolveLocalState;
+    await box.put(
+      problemKey,
+      jsonEncode({
+        'isCompleted': false,
+        'completedAt': null,
+      }),
     );
   }
 }
-
-// ─────────────────────────────────
-// SUMMARY CARD
-// Critical/High/Moderate counts
-// ─────────────────────────────────
-
-class _SummaryCard
-  extends StatelessWidget {
-
-  const _SummaryCard({
-    required this.topics,
-  });
-
-  final List<WeakTopicModel> topics;
-
-  @override
-  Widget build(BuildContext context) {
-    final critical = topics
-      .where((t) => t.severity ==
-        'critical')
-      .length;
-    final high = topics
-      .where((t) => t.severity ==
-        'high')
-      .length;
-    final moderate = topics
-      .where((t) => t.severity ==
-        'moderate')
-      .length;
-
-    return GlassCard(
-      child: Row(
-        children: [
-          _SeverityCount(
-            label: 'Critical',
-            count: critical,
-            color: AppColors.error,
-          ),
-          _SeverityCount(
-            label: 'High',
-            count: high,
-            color: AppColors.warning,
-          ),
-          _SeverityCount(
-            label: 'Moderate',
-            count: moderate,
-            color: AppColors.blue,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _SeverityCount
-  extends StatelessWidget {
-
-  const _SeverityCount({
-    required this.label,
-    required this.count,
-    required this.color,
-  });
-
-  final String label;
-  final int count;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: Column(
-        children: [
-          Text(
-            '$count',
-            style: GoogleFonts
-              .jetBrainsMono(
-                fontSize: 24.sp,
-                fontWeight:
-                  FontWeight.w700,
-                color: color,
-              ),
-          ),
-          SizedBox(height: 4.h),
-          Text(
-            label,
-            style: GoogleFonts.inter(
-              fontSize: 12.sp,
-              fontWeight:
-                FontWeight.w600,
-              color: Colors.white
-                .withValues(alpha: 0.55),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ─────────────────────────────────
-// TOPIC CARD
-// Shows topic + AC rate bar
-// ─────────────────────────────────
-
-class _TopicCard
-  extends StatelessWidget {
-
-  const _TopicCard({required this.topic});
-  final WeakTopicModel topic;
-
-  @override
-  Widget build(BuildContext context) {
-    final color = Color(
-      int.parse(
-        topic.severityColor
-          .replaceFirst('#', '0xFF'),
-      ),
-    );
-
-    return GlassCard(
-      margin: EdgeInsets.only(
-        bottom: 10.h,
-      ),
-      child: Column(
-        crossAxisAlignment:
-          CrossAxisAlignment.start,
-        children: [
-
-          Row(
-            children: [
-
-              // Severity indicator
-              Container(
-                width: 8.r,
-                height: 8.r,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: color,
-                ),
-              ),
-
-              SizedBox(width: 10.w),
-
-              // Topic name
-              Expanded(
-                child: Text(
-                  topic.tag,
-                  style: GoogleFonts
-                    .inter(
-                      fontSize: 14.sp,
-                      fontWeight:
-                        FontWeight.w600,
-                      color: Colors.white,
-                    ),
-                ),
-              ),
-
-              // AC rate
-              Text(
-                topic.acRateFormatted,
-                style: GoogleFonts
-                  .jetBrainsMono(
-                    fontSize: 13.sp,
-                    fontWeight:
-                      FontWeight.w700,
-                    color: color,
-                  ),
-              ),
-            ],
-          ),
-
-          SizedBox(height: 10.h),
-
-          // AC rate progress bar
-          ProgressBarWidget(
-            value: topic.acRate,
-            color: color,
-          ),
-
-          SizedBox(height: 8.h),
-
-          // Stats row
-          Row(
-            children: [
-              Text(
-                '${topic.solvedCount} '
-                'solved',
-                style: GoogleFonts.inter(
-                  fontSize: 11.sp,
-                  fontWeight:
-                    FontWeight.w500,
-                  color: AppColors.success
-                    .withValues(
-                      alpha: 0.80,
-                    ),
-                ),
-              ),
-              SizedBox(width: 12.w),
-              Text(
-                '${topic.unsolvedCount} '
-                'unsolved',
-                style: GoogleFonts.inter(
-                  fontSize: 11.sp,
-                  fontWeight:
-                    FontWeight.w500,
-                  color: AppColors.error
-                    .withValues(
-                      alpha: 0.80,
-                    ),
-                ),
-              ),
-              SizedBox(width: 12.w),
-              Text(
-                '${topic.totalAttempts} '
-                'total',
-                style: GoogleFonts.inter(
-                  fontSize: 11.sp,
-                  fontWeight:
-                    FontWeight.w500,
-                  color: Colors.white
-                    .withValues(
-                      alpha: 0.50,
-                    ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-EXACT CODE — recommendations_screen.dart
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/
-  flutter_riverpod.dart';
-import 'package:flutter_screenutil/
-  flutter_screenutil.dart';
-import 'package:google_fonts/
-  google_fonts.dart';
-import 'package:url_launcher/
-  url_launcher.dart';
-import 'package:algolens/core/theme/
-  app_colors.dart';
-import 'package:algolens/core/widgets/
-  app_background.dart';
-import 'package:algolens/core/widgets/
-  empty_widget.dart';
-import 'package:algolens/core/widgets/
-  error_widget.dart';
-import 'package:algolens/core/widgets/
-  loading_shimmer.dart';
-import 'package:algolens/core/widgets/
-  problem_row.dart';
-import 'package:algolens/core/widgets/
-  section_header.dart';
-import 'package:algolens/features/
-  practice/providers/
-  practice_provider.dart';
-
-class RecommendationsScreen
-  extends ConsumerWidget {
-  const RecommendationsScreen({
-    super.key,
-  });
-
-  @override
-  Widget build(
-    BuildContext context,
-    WidgetRef ref,
-  ) {
-    final problemsAsync = ref.watch(
-      recommendationsProvider,
-    );
-
-    return AppBackground(
-      child: Scaffold(
-        backgroundColor:
-          Colors.transparent,
-        body: CustomScrollView(
-          slivers: [
-
-            SliverAppBar(
-              backgroundColor:
-                Colors.transparent,
-              floating: true,
-              title: Text(
-                'Recommendations',
-                style: GoogleFonts.inter(
-                  fontSize: 18.sp,
-                  fontWeight:
-                    FontWeight.w700,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-
-            SliverPadding(
-              padding:
-                EdgeInsets.symmetric(
-                  horizontal: 20.w,
-                ),
-              sliver: SliverList(
-                delegate:
-                  SliverChildListDelegate(
-                    [
-
-                  SizedBox(height: 8.h),
-
-                  problemsAsync.when(
-                    loading: () =>
-                      const PracticeListShimmer(),
-                    error: (e, s) =>
-                      AppErrorWidget(
-                        message:
-                          e.toString(),
-                        onRetry: () =>
-                          ref.invalidate(
-                            recommendationsProvider,
-                          ),
-                      ),
-                    data: (problems) {
-                      if (problems
-                        .isEmpty) {
-                        return EmptyWidget(
-                          icon: Icons
-                            .check_circle_rounded,
-                          message:
-                            'All caught up!',
-                          subtitle:
-                            'No recommendations '
-                            'right now. Keep '
-                            'solving problems!',
-                        );
-                      }
-
-                      return Column(
-                        crossAxisAlignment:
-                          CrossAxisAlignment
-                            .start,
-                        children: [
-
-                          SectionHeader(
-                            title:
-                              'For you',
-                            subtitle:
-                              '${problems.length} '
-                              'problems',
-                          ),
-
-                          SizedBox(
-                            height: 12.h,
-                          ),
-
-                          ...problems
-                            .map(
-                              (p) =>
-                                ProblemRow(
-                                  name:
-                                    p.name,
-                                  rating:
-                                    p.rating,
-                                  tags:
-                                    p.tags,
-                                  contestId:
-                                    p.contestId,
-                                  index:
-                                    p.index,
-                                  onTap:
-                                    () async {
-                                      final uri =
-                                        Uri.parse(
-                                          p.url,
-                                        );
-                                      if (await canLaunchUrl(
-                                        uri,
-                                      )) {
-                                        await launchUrl(
-                                          uri,
-                                          mode: LaunchMode
-                                            .externalApplication,
-                                        );
-                                      }
-                                    },
-                                ),
-                            ),
-
-                          SizedBox(
-                            height:
-                              100.h,
-                          ),
-                        ],
-                      );
-                    },
-                  ),
-                ]),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-UPDATE app_router.dart
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-ADD imports at top:
-import 'package:algolens/features/
-  practice/screens/
-  weak_topics_screen.dart';
-import 'package:algolens/features/
-  practice/screens/
-  recommendations_screen.dart';
-
-FIND practice GoRoute:
-GoRoute(
-  path: RoutePaths.practice,
-  name: RouteNames.practice,
-  builder: (context, state) =>
-    const _PlaceholderScreen(
-      label: 'Practice',
-    ),
-),
-
-REPLACE with:
-GoRoute(
-  path: RoutePaths.practice,
-  name: RouteNames.practice,
-  builder: (context, state) =>
-    const WeakTopicsScreen(),
-),
-
-FIND recommendations GoRoute:
-GoRoute(
-  path: RoutePaths.recommendations,
-  name: RouteNames.recommendations,
-  builder: (context, state) =>
-    const _PlaceholderScreen(
-      label: 'Recommendations',
-    ),
-),
-
-REPLACE with:
-GoRoute(
-  path: RoutePaths.recommendations,
-  name: RouteNames.recommendations,
-  builder: (context, state) =>
-    const RecommendationsScreen(),
-),
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 VERIFY
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-□ practice_provider.dart
+□ upsolve_model.dart
   created/updated ✓
-□ weakTopicsProvider
-  FutureProvider
-  List<WeakTopicModel>> ✓
-□ Sorted: critical → high
-  → moderate ✓
-□ Returns [] if no handle ✓
-□ recommendationsProvider
-  FutureProvider
-  List<ProblemModel>> ✓
-□ Sorted by rating asc ✓
-□ Returns [] if no handle ✓
+□ 9 fields present ✓
+□ isCompleted defaults false ✓
+□ isWeakTopic defaults false ✓
+□ fromJson() handles all
+  nullable fields ✓
+□ url fallback to CF URL
+  if not in JSON ✓
+□ toJson() present ✓
+□ problemKey computed ✓
+□ copyWith() present ✓
+□ verdictLabel computed ✓
+□ WA/TLE/MLE/RE/CE
+  short labels ✓
 
-□ weak_topics_screen.dart
+□ upsolve_repository.dart
   created/updated ✓
-□ weakTopicsProvider watched ✓
-□ _SummaryCard with
-  critical/high/moderate
-  counts ✓
-□ _TopicCard per topic ✓
-□ Severity dot indicator ✓
-□ Topic name ✓
-□ AC rate % shown ✓
-□ ProgressBarWidget ✓
-□ solved/unsolved/total
-  counts ✓
-□ "Get Practice Problems"
-  → /recommendations ✓
-□ Empty state ✓
-□ Error + retry ✓
-□ Loading shimmer ✓
-
-□ recommendations_screen.dart
-  created/updated ✓
-□ recommendationsProvider
-  watched ✓
-□ ProblemRow per problem ✓
-□ onTap → launchUrl
-  to CF problem ✓
-□ url_launcher used ✓
-□ Empty state ✓
-□ Error + retry ✓
-□ Loading shimmer ✓
-
-□ app_router.dart practice
-  route updated ✓
-□ app_router.dart
-  recommendations route
-  updated ✓
-□ Other routes untouched ✓
+□ upsolveRepositoryProvider ✓
+□ getUpsolveList() flattens
+  Map<String,List> correctly ✓
+□ isCompleted merged from
+  Hive for each item ✓
+□ Sort: weak topics first
+  then rating asc ✓
+□ isDone() reads from
+  Hive only ✓
+□ Returns false on
+  corrupted data ✓
+□ toggleDone() flips
+  isCompleted in Hive ✓
+□ markDone() explicitly
+  sets true ✓
+□ markUndone() explicitly
+  sets false ✓
+□ dart:convert imported ✓
+□ HiveService imported ✓
 □ No Isar imports ✓
 □ flutter analyze 0 errors ✓
 
-PROMPT 52 DONE. WAIT FOR PROMPT 53.
+PROMPT 53 DONE. WAIT FOR PROMPT 54.

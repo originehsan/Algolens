@@ -16,7 +16,7 @@ import 'package:algolens/core/theme/app_text_styles.dart';
 enum AppButtonType {
   primary,
   outline,
-  ghost,
+  ghost, danger,
 }
 
 // ──────────────────────────────
@@ -139,55 +139,67 @@ class _AppButtonState extends State<AppButton>
   // ────────────────────────────
 
   Color get _bgColor {
-    if (!_isInteractable) {
-      return switch (widget.type) {
-        AppButtonType.primary => AppColors.primary.withValues(alpha: 0.40),
-        AppButtonType.outline => Colors.transparent,
-        AppButtonType.ghost => Colors.transparent,
-      };
-    }
+  if (!_isInteractable) {
     return switch (widget.type) {
-      AppButtonType.primary => AppColors.primary,
+      AppButtonType.primary => AppColors.primary.withValues(alpha: 0.40),
       AppButtonType.outline => Colors.transparent,
       AppButtonType.ghost => Colors.transparent,
+      AppButtonType.danger => AppColors.danger.withValues(alpha: 0.40),
     };
   }
+  return switch (widget.type) {
+    AppButtonType.primary => AppColors.primary,
+    AppButtonType.outline => Colors.transparent,
+    AppButtonType.ghost => Colors.transparent,
+    AppButtonType.danger => AppColors.danger.withValues(alpha: 0.12),
+  };
+}
 
   Color get _borderColor {
-    if (!_isInteractable) {
-      return AppColors.primary.withValues(alpha: 0.30);
-    }
-    return switch (widget.type) {
-      AppButtonType.primary => Colors.transparent,
-      AppButtonType.outline => AppColors.primary,
-      AppButtonType.ghost => Colors.transparent,
-    };
+  if (!_isInteractable) {
+    return AppColors.primary.withValues(alpha: 0.30);
   }
+  return switch (widget.type) {
+    AppButtonType.primary => Colors.transparent,
+    AppButtonType.outline => AppColors.primary,
+    AppButtonType.ghost => Colors.transparent,
+    AppButtonType.danger => AppColors.danger,
+  };
+}
 
-  Color get _labelColor {
-    if (!_isInteractable) {
-      return Colors.white.withValues(alpha: 0.40);
-    }
-    return switch (widget.type) {
-      AppButtonType.primary => Colors.white,
-      AppButtonType.outline => AppColors.primary,
-      AppButtonType.ghost => AppColors.primary,
-    };
+ Color get _labelColor {
+  if (!_isInteractable) {
+    return Colors.white.withValues(alpha: 0.40);
   }
-
+  return switch (widget.type) {
+    AppButtonType.primary => Colors.white,
+    AppButtonType.outline => AppColors.primary,
+    AppButtonType.ghost => AppColors.primary,
+    AppButtonType.danger => AppColors.danger,
+  };
+}
   List<BoxShadow> get _shadows {
-    if (!_isInteractable || widget.type != AppButtonType.primary) {
-      return [];
-    }
-    return [
-      BoxShadow(
-        color: AppColors.primary.withValues(alpha: 0.35),
-        blurRadius: 16,
-        spreadRadius: 0,
-        offset: const Offset(0, 4),
-      ),
-    ];
-  }
+  if (!_isInteractable) return [];
+  return switch (widget.type) {
+    AppButtonType.primary => [
+        BoxShadow(
+          color: AppColors.primary.withValues(alpha: 0.35),
+          blurRadius: 16,
+          spreadRadius: 0,
+          offset: const Offset(0, 4),
+        ),
+      ],
+    AppButtonType.danger => [
+        BoxShadow(
+          color: AppColors.danger.withValues(alpha: 0.30),
+          blurRadius: 16,
+          spreadRadius: 0,
+          offset: const Offset(0, 4),
+        ),
+      ],
+    AppButtonType.outline || AppButtonType.ghost => [],
+  };
+}
 
   @override
   Widget build(BuildContext context) {

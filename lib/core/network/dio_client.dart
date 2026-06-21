@@ -6,108 +6,41 @@ import 'package:algolens/core/network/auth_interceptor.dart';
 import 'package:algolens/core/network/connectivity_interceptor.dart';
 import 'package:algolens/core/network/mock_interceptor.dart';
 
-// ──────────────────────────────
-// DIO PROVIDER
-// App-wide singleton
-// ──────────────────────────────
+final dioProvider = Provider<Dio>((ref) {
+  final dio = Dio(
+    BaseOptions(
+      baseUrl: EnvConfig.baseUrl,
+      connectTimeout: const Duration(seconds: 10),
+      receiveTimeout: const Duration(seconds: 30),
+      sendTimeout: const Duration(seconds: 10),
+      headers: const {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+    ),
+  );
 
-/// Global Dio client provider
-///
-/// Usage:
-/// final dio = ref.watch(dioProvider);
-/// final res = await dio.get(
-///   ApiEndpoints.upcomingContests,
-/// );
-final dioProvider = Provider<Dio>(
-  (ref) {
-    final dio = Dio(
-      BaseOptions(
-        baseUrl: EnvConfig.baseUrl,
-        connectTimeout: const Duration(
-          seconds: 10,
-        ),
-        receiveTimeout: const Duration(
-          seconds: 30,
-        ),
-        sendTimeout: const Duration(
-          seconds: 10,
-        ),
-        headers: const {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-      ),
-    );
+  dio.interceptors.add(ConnectivityInterceptor());
 
-    // ──────────────────────────
-    // INTERCEPTORS
-    // Order matters:
-    // 1. Connectivity check first
-    // 2. Mock (if enabled)
-    // 3. Auth token injection
-    // ──────────────────────────
+  if (EnvConfig.useMock) {
+    dio.interceptors.add(MockInterceptor());
+  }
 
-    /// 1. Check internet first
-    /// Throws DioException for no connection
-    /// before any network call
-    dio.interceptors.add(
-      ConnectivityInterceptor(),
-    );
+  dio.interceptors.add(AuthInterceptor());
 
-    /// 2. Mock responses
-    /// Only active when
-    /// EnvConfig.useMock = true
-    /// Bypasses real network
-    if (EnvConfig.useMock) {
-      dio.interceptors.add(
-        MockInterceptor(),
-      );
-    }
+  dio.interceptors.add(
+    LogInterceptor(
+      requestBody: true,
+      responseBody: true,
+      requestHeader: true,
+      responseHeader: false,
+      error: true,
+    ),
+  );
 
-    /// 3. Auth token injection
-    /// Adds Bearer token to headers
-    /// Handles 401 auto refresh
-    /// Force logout on expiry
-    dio.interceptors.add(
-      AuthInterceptor(),
-    );
+  return dio;
+});
 
-    /// 4. Logging (for debugging)
-    /// Full request/response logs
-    dio.interceptors.add(
-      LogInterceptor(
-        requestBody: true,
-        responseBody: true,
-        requestHeader: true,
-        responseHeader: false,
-        error: true,
-      ),
-    );
-
-    return dio;
-  },
-);
-
-// ──────────────────────────────
-// DIO CLIENT HELPER
-// Wraps common Dio calls
-// Converts DioException →
-// ApiException automatically
-// ──────────────────────────────
-
-/// Helper class for Dio requests
-///
-/// Wraps Dio with error handling
-/// Converts all errors to
-/// ApiException for clean repos
-///
-/// Usage:
-/// final client = ref.watch(
-///   dioClientProvider,
-/// );
-/// final data = await client.get(
-///   ApiEndpoints.profile('tourist'),
-/// );
 final dioClientProvider = Provider<DioClient>((ref) {
   final dio = ref.watch(dioProvider);
   return DioClient(dio);
@@ -117,13 +50,6 @@ class DioClient {
   DioClient(this._dio);
   final Dio _dio;
 
-  // ────────────────────────────
-  // GET
-  // ────────────────────────────
-
-  /// HTTP GET request
-  ///
-  /// Throws ApiException on error
   Future<Map<String, dynamic>> get(
     String path, {
     Map<String, dynamic>? queryParameters,
@@ -139,13 +65,6 @@ class DioClient {
     }
   }
 
-  // ────────────────────────────
-  // POST
-  // ────────────────────────────
-
-  /// HTTP POST request
-  ///
-  /// Throws ApiException on error
   Future<Map<String, dynamic>> post(
     String path, {
     Map<String, dynamic>? body,
@@ -161,13 +80,6 @@ class DioClient {
     }
   }
 
-  // ────────────────────────────
-  // DELETE
-  // ────────────────────────────
-
-  /// HTTP DELETE request
-  ///
-  /// Throws ApiException on error
   Future<Map<String, dynamic>> delete(
     String path, {
     Map<String, dynamic>? body,
@@ -183,26 +95,7 @@ class DioClient {
     }
   }
 
-  // ────────────────────────────
-  // ERROR HANDLER
-  // DioException → ApiException
-  // ────────────────────────────
-
-  /// Convert DioException to
-  /// ApiException
-  ///
-  /// Maps status codes:
-  /// 400 → badRequest
-  /// 401 → unauthorized
-  /// 403 → forbidden
-  /// 404 → notFound
-  /// 429 → rateLimited
-  /// 500 → serverError
-  /// no internet → noInternet
-  /// timeout → timeout
-  ApiException _handleError(
-    DioException e,
-  ) {
+  ApiException _handleError(DioException e) {
     switch (e.type) {
       case DioExceptionType.connectionError:
         return const ApiException(
@@ -218,8 +111,8 @@ class DioClient {
         );
       case DioExceptionType.badResponse:
         final code = e.response?.statusCode;
-        final msg =
-            e.response?.data?['message'] as String? ?? 'Something went wrong';
+        final msg = e.response?.data?['message'] as String? ??
+            'Something went wrong';
         return switch (code) {
           400 => ApiException(
               message: msg,

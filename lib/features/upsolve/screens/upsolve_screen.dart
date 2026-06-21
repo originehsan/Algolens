@@ -1,19 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:algolens/core/theme/app_colors.dart';
 import 'package:algolens/core/theme/app_text_styles.dart';
-import 'package:algolens/core/widgets/page_wrapper.dart';
-import 'package:algolens/core/widgets/glass_card.dart';
-import 'package:algolens/core/widgets/section_header.dart';
-import 'package:algolens/core/widgets/segmented_tab.dart';
-import 'package:algolens/core/widgets/loading_shimmer.dart';
-import 'package:algolens/core/widgets/error_widget.dart';
+import 'package:algolens/core/widgets/app_background.dart';
 import 'package:algolens/core/widgets/empty_widget.dart';
-import 'package:algolens/features/upsolve/providers/upsolve_provider.dart';
+import 'package:algolens/core/widgets/error_widget.dart';
+import 'package:algolens/core/widgets/glass_card.dart';
+import 'package:algolens/core/widgets/loading_shimmer.dart';
+import 'package:algolens/core/widgets/segmented_tab.dart';
 import 'package:algolens/features/upsolve/data/models/upsolve_model.dart';
+import 'package:algolens/features/upsolve/providers/upsolve_provider.dart';
 
 class UpsolveScreen extends ConsumerStatefulWidget {
   const UpsolveScreen({super.key});
@@ -23,396 +21,253 @@ class UpsolveScreen extends ConsumerStatefulWidget {
 }
 
 class _UpsolveScreenState extends ConsumerState<UpsolveScreen> {
-  int _selectedTab = 0;
-  final Set<String> _solvedProblems = {};
-
-  Future<void> _launchUrl(String url) async {
-    final uri = Uri.parse(url);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(
-        uri,
-        mode: LaunchMode.externalApplication,
-      );
-    }
-  }
-
-  GlassCardType _getCardTypeForVerdict(Color verdictColor) {
-    if (verdictColor == AppColors.success) {
-      return GlassCardType.success;
-    } else if (verdictColor == AppColors.danger) {
-      return GlassCardType.danger;
-    } else if (verdictColor == AppColors.warning) {
-      return GlassCardType.warning;
-    }
-    return GlassCardType.defaultCard;
-  }
+  // 0 = Pending tab, 1 = Solved tab
+  int _tabIndex = 0;
 
   @override
   Widget build(BuildContext context) {
-    const handle = 'ehsan_cf';
-    final upsolveAsync = ref.watch(upsolveProvider(handle));
+    final upsolveAsync = ref.watch(upsolveProvider);
 
-    return PageWrapper(
-      title: 'Upsolve Queue',
-      child: Column(
-        children: [
-          Padding(
-            padding: EdgeInsets.symmetric(
-              horizontal: 20.w,
-              vertical: 12.h,
+    return AppBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: CustomScrollView(
+          slivers: [
+            SliverAppBar(
+              backgroundColor: Colors.transparent,
+              floating: true,
+              title: Text('Upsolve', style: AppTextStyles.h2),
             ),
-            child: SegmentedTab(
-              tabs: const ['Pending', 'Solved'],
-              currentIndex: _selectedTab,
-              onChanged: (index) => setState(
-                () => _selectedTab = index,
+            SliverPadding(
+              padding: EdgeInsets.symmetric(horizontal: 20.w),
+              sliver: SliverList(
+                delegate: SliverChildListDelegate([
+                  SizedBox(height: 8.h),
+
+                  // Tab switcher — filters list by isCompleted flag
+                  SegmentedTab(
+                    tabs: const ['Pending', 'Solved'],
+                    currentIndex: _tabIndex,
+                    onChanged: (i) => setState(() => _tabIndex = i),
+                  ),
+
+                  SizedBox(height: 16.h),
+
+                  upsolveAsync.when(
+                    loading: () => const PracticeListShimmer(),
+                    error: (e, s) => AppErrorWidget(
+                      message: e.toString(),
+                      onRetry: () => ref.invalidate(upsolveProvider),
+                    ),
+                    data: (all) {
+                      // Filter by tab — Pending = not done, Solved = done
+                      final filtered = _tabIndex == 0
+                          ? all.where((p) => !p.isCompleted).toList()
+                          : all.where((p) => p.isCompleted).toList();
+
+                      if (filtered.isEmpty) {
+                        return _tabIndex == 0
+                            ? const EmptyWidget(
+                                icon: Icons.check_circle_rounded,
+                                message: 'All done!',
+                                subtitle: 'No pending upsolves.',
+                              )
+                            : const EmptyWidget(
+                                icon: Icons.hourglass_empty_rounded,
+                                message: 'Nothing solved yet',
+                                subtitle:
+                                    'Mark problems as done to see them here.',
+                              );
+                      }
+
+                      return Column(
+                        children: filtered
+                            .map((p) => _UpsolveCard(item: p))
+                            .toList(),
+                      );
+                    },
+                  ),
+
+                  SizedBox(height: 100.h),
+                ]),
               ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _UpsolveCard extends ConsumerWidget {
+  const _UpsolveCard({required this.item});
+  final UpsolveModel item;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Watch only this problem's toggle state to avoid full rebuild
+    final isToggling = ref.watch(
+      toggleUpsolveProvider.select((s) => s.contains(item.problemKey)),
+    );
+
+    return GlassCard(
+      margin: EdgeInsets.only(bottom: 10.h),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Circle checkmark — tap to toggle done state in Hive
+          GestureDetector(
+            onTap: isToggling
+                ? null
+                : () => ref
+                    .read(toggleUpsolveProvider.notifier)
+                    .toggle(item.problemKey),
+            child: Container(
+              width: 28.r,
+              height: 28.r,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: item.isCompleted
+                    ? AppColors.success.withValues(alpha: 0.20)
+                    : Colors.white.withValues(alpha: 0.06),
+                border: Border.all(
+                  color: item.isCompleted
+                      ? AppColors.success
+                      : Colors.white.withValues(alpha: 0.20),
+                  width: 1.5,
+                ),
+              ),
+              child: isToggling
+                  ? Padding(
+                      padding: EdgeInsets.all(6.r),
+                      child: const CircularProgressIndicator(
+                        strokeWidth: 1.5,
+                        color: AppColors.success,
+                      ),
+                    )
+                  : item.isCompleted
+                      ? Icon(
+                          Icons.check_rounded,
+                          color: AppColors.success,
+                          size: 16.r,
+                        )
+                      : null,
             ),
           ),
+
+          SizedBox(width: 12.w),
+
+          // Problem details — tap opens CF problem in browser
           Expanded(
-            child: upsolveAsync.when(
-              loading: () => ListView(
-                padding: EdgeInsets.symmetric(
-                  horizontal: 20.w,
-                ),
-                children: [
-                  const GlassCardShimmer(height: 30),
-                  SizedBox(height: 8.h),
-                  const ProblemListShimmer(count: 3),
-                  SizedBox(height: 16.h),
-                  const GlassCardShimmer(height: 30),
-                  SizedBox(height: 8.h),
-                  const ProblemListShimmer(count: 2),
-                ],
-              ),
-              error: (error, _) => AppErrorWidget(
-                message: error.toString(),
-                onRetry: () => ref.refresh(
-                  upsolveProvider(handle),
-                ),
-              ),
-              data: (contests) {
-                // Filter all problems
-                final allProblems = contests.expand((c) => c.problems).toList();
-
-                final pendingProblems = allProblems
-                    .where((p) =>
-                        !_solvedProblems.contains('${p.contestId}_${p.index}'))
-                    .toList();
-
-                final solvedProblems = allProblems
-                    .where((p) =>
-                        _solvedProblems.contains('${p.contestId}_${p.index}'))
-                    .toList();
-
-                if (_selectedTab == 0) {
-                  return _buildPendingTab(
-                    contests,
-                    pendingProblems,
-                    context,
-                  );
-                } else {
-                  return _buildSolvedTab(
-                    solvedProblems,
-                    context,
-                  );
+            child: GestureDetector(
+              onTap: () async {
+                final uri = Uri.parse(item.url);
+                if (await canLaunchUrl(uri)) {
+                  await launchUrl(uri, mode: LaunchMode.externalApplication);
                 }
               },
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Strike-through text when problem is marked done
+                  Text(
+                    item.name,
+                    style: AppTextStyles.bodyBold.copyWith(
+                      color: item.isCompleted
+                          ? Colors.white.withValues(alpha: 0.50)
+                          : Colors.white,
+                      decoration: item.isCompleted
+                          ? TextDecoration.lineThrough
+                          : null,
+                    ),
+                  ),
+
+                  SizedBox(height: 6.h),
+
+                  // Rating + verdict + weak topic badges
+                  Wrap(
+                    spacing: 6.w,
+                    runSpacing: 4.h,
+                    children: [
+                      _Badge(
+                        label: '${item.rating}',
+                        color: AppColors.primary,
+                      ),
+                      // Only show verdict if available
+                      if (item.bestVerdict.isNotEmpty)
+                        _Badge(
+                          label: item.verdictLabel,
+                          color: AppColors.danger,
+                        ),
+                      // Highlight if this is a known weak topic
+                      if (item.isWeakTopic)
+                      const  _Badge(
+                          label: 'Weak Topic',
+                          color: AppColors.warning,
+                        ),
+                    ],
+                  ),
+
+                  // Show max 3 tags to avoid overflow
+                  if (item.tags.isNotEmpty) ...[
+                    SizedBox(height: 6.h),
+                    Wrap(
+                      spacing: 4.w,
+                      runSpacing: 4.h,
+                      children: item.tags
+                          .take(3)
+                          .map((t) => _Badge(
+                                label: t,
+                                color: Colors.white.withValues(alpha: 0.30),
+                                small: true,
+                              ))
+                          .toList(),
+                    ),
+                  ],
+                ],
+              ),
             ),
           ),
         ],
       ),
     );
   }
+}
 
-  Widget _buildPendingTab(
-    List<UpsolveContest> contests,
-    List<UpsolveItem> pendingProblems,
-    BuildContext context,
-  ) {
-    if (pendingProblems.isEmpty) {
-      return EmptyWidget(
-        message: 'All Caught Up!',
-        subtitle: 'You have solved all upsolve problems',
-        icon: Icons.check_circle_outline_rounded,
-        actionLabel: 'Browse Contests',
-        onAction: () => context.push('/contests'),
-      );
-    }
+class _Badge extends StatelessWidget {
+  const _Badge({
+    required this.label,
+    required this.color,
+    this.small = false,
+  });
 
-    return ListView(
+  final String label;
+  final Color color;
+  final bool small;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
       padding: EdgeInsets.symmetric(
-        horizontal: 20.w,
+        horizontal: small ? 6.w : 8.w,
+        vertical: small ? 2.h : 3.h,
       ),
-      children: [
-        // Summary bar
-        GlassCard(
-          padding: EdgeInsets.symmetric(
-            horizontal: 14.w,
-            vertical: 10.h,
-          ),
-          child: Row(
-            children: [
-              Icon(
-                Icons.queue_rounded,
-                color: AppColors.primary,
-                size: 18.r,
-              ),
-              SizedBox(width: 8.w),
-              Text(
-                '${pendingProblems.length} problems to upsolve',
-                style: AppTextStyles.bodyBold,
-              ),
-              const Spacer(),
-              Text(
-                '${_solvedProblems.length} solved',
-                style: AppTextStyles.caption.copyWith(
-                  color: AppColors.success,
-                ),
-              ),
-            ],
-          ),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(6.r),
+        border: Border.all(
+          color: color.withValues(alpha: 0.30),
+          width: 1,
         ),
-        SizedBox(height: 16.h),
-
-        // Contest groups
-        ...contests.asMap().entries.map((entry) {
-          final contest = entry.value;
-          final pendingInContest = contest.problems
-              .where((p) => !_solvedProblems.contains(
-                    '${p.contestId}_${p.index}',
-                  ))
-              .toList();
-
-          if (pendingInContest.isEmpty) {
-            return const SizedBox.shrink();
-          }
-
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SectionHeader(
-                title: 'Contest ${contest.contestId}',
-              ),
-              SizedBox(height: 8.h),
-              ...pendingInContest.asMap().entries.map((problemEntry) {
-                final problem = problemEntry.value;
-                final key = '${problem.contestId}_${problem.index}';
-
-                return Padding(
-                  padding: EdgeInsets.only(
-                    bottom: 10.h,
-                  ),
-                  child: GlassCard(
-                    type: _getCardTypeForVerdict(
-                      problem.verdictColor,
-                    ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                '${problem.index}. ${problem.name}',
-                                style: AppTextStyles.bodyBold,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              SizedBox(height: 6.h),
-                              Row(
-                                children: [
-                                  Container(
-                                    padding: EdgeInsets.symmetric(
-                                      horizontal: 6.w,
-                                      vertical: 2.h,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: problem.verdictColor
-                                          .withValues(alpha: 0.15),
-                                      borderRadius: BorderRadius.circular(6.r),
-                                    ),
-                                    child: Text(
-                                      problem.verdictShort,
-                                      style: AppTextStyles.caption.copyWith(
-                                        color: problem.verdictColor,
-                                        fontWeight: FontWeight.w700,
-                                        fontSize: 10.sp,
-                                      ),
-                                    ),
-                                  ),
-                                  SizedBox(width: 6.w),
-                                  Text(
-                                    '${problem.rating}',
-                                    style: AppTextStyles.metricSmall.copyWith(
-                                      fontSize: 12.sp,
-                                      color: AppColors.textMuted,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              SizedBox(height: 6.h),
-                              Wrap(
-                                spacing: 4.w,
-                                runSpacing: 4.h,
-                                children: problem.tags
-                                    .take(2)
-                                    .map(
-                                      (tag) => Container(
-                                        padding: EdgeInsets.symmetric(
-                                          horizontal: 6.w,
-                                          vertical: 2.h,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: Colors.white
-                                              .withValues(alpha: 0.06),
-                                          borderRadius:
-                                              BorderRadius.circular(6.r),
-                                        ),
-                                        child: Text(
-                                          tag,
-                                          style: AppTextStyles.caption.copyWith(
-                                            fontSize: 10.sp,
-                                          ),
-                                        ),
-                                      ),
-                                    )
-                                    .toList(),
-                              ),
-                            ],
-                          ),
-                        ),
-                        SizedBox(width: 8.w),
-                        Column(
-                          children: [
-                            GestureDetector(
-                              onTap: () => _launchUrl(problem.url),
-                              child: Container(
-                                padding: EdgeInsets.all(8.r),
-                                decoration: BoxDecoration(
-                                  color:
-                                      AppColors.primary.withValues(alpha: 0.15),
-                                  borderRadius: BorderRadius.circular(8.r),
-                                  border: Border.all(
-                                    color: AppColors.primary
-                                        .withValues(alpha: 0.40),
-                                  ),
-                                ),
-                                child: Icon(
-                                  Icons.open_in_new_rounded,
-                                  color: AppColors.primary,
-                                  size: 16.r,
-                                ),
-                              ),
-                            ),
-                            SizedBox(height: 6.h),
-                            GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  _solvedProblems.add(key);
-                                });
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      '${problem.index} marked as solved!',
-                                    ),
-                                    backgroundColor: AppColors.success,
-                                  ),
-                                );
-                              },
-                              child: Container(
-                                padding: EdgeInsets.all(8.r),
-                                decoration: BoxDecoration(
-                                  color:
-                                      AppColors.success.withValues(alpha: 0.15),
-                                  borderRadius: BorderRadius.circular(8.r),
-                                  border: Border.all(
-                                    color: AppColors.success
-                                        .withValues(alpha: 0.40),
-                                  ),
-                                ),
-                                child: Icon(
-                                  Icons.check_rounded,
-                                  color: AppColors.success,
-                                  size: 16.r,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              }),
-              SizedBox(height: 8.h),
-            ],
-          );
-        }),
-        SizedBox(height: 100.h),
-      ],
-    );
-  }
-
-  Widget _buildSolvedTab(
-    List<UpsolveItem> solvedProblems,
-    BuildContext context,
-  ) {
-    if (solvedProblems.isEmpty) {
-      return const EmptyWidget(
-        message: 'No Solved Problems Yet',
-        subtitle: 'Mark problems as solved from Pending tab',
-        icon: Icons.check_circle_outline_rounded,
-      );
-    }
-
-    return ListView.builder(
-      padding: EdgeInsets.symmetric(
-        horizontal: 20.w,
       ),
-      itemCount: solvedProblems.length,
-      itemBuilder: (context, index) {
-        final problem = solvedProblems[index];
-        return Padding(
-          padding: EdgeInsets.only(bottom: 10.h),
-          child: GlassCard(
-            type: GlassCardType.success,
-            child: Row(
-              children: [
-                Icon(
-                  Icons.check_circle_rounded,
-                  color: AppColors.success,
-                  size: 20.r,
-                ),
-                SizedBox(width: 10.w),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '${problem.index}. ${problem.name}',
-                        style: AppTextStyles.bodyBold,
-                      ),
-                      Text(
-                        'Contest ${problem.contestId} • ${problem.rating}',
-                        style: AppTextStyles.caption,
-                      ),
-                    ],
-                  ),
-                ),
-                GestureDetector(
-                  onTap: () => _launchUrl(problem.url),
-                  child: Icon(
-                    Icons.open_in_new_rounded,
-                    color: AppColors.primary,
-                    size: 16.r,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
+      child: Text(
+        label,
+        style: AppTextStyles.caption.copyWith(
+          fontSize: small ? 10.sp : 11.sp,
+          fontWeight: FontWeight.w600,
+          color: color,
+        ),
+      ),
     );
   }
 }

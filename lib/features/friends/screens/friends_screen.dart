@@ -155,8 +155,8 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> {
                       _FriendsList(
                         ownHandleAsync: handleAsync,
                       ),
-                    if (_tabIndex == 1) _LeaderboardList(),
-                    if (_tabIndex == 2) _StreaksList(),
+                    if (_tabIndex == 1)  const  _LeaderboardList(),
+                    if (_tabIndex == 2)    const  _StreaksList(),
                     SizedBox(height: 100.h),
                   ],
                 ),
@@ -199,7 +199,7 @@ class _FriendsList extends ConsumerWidget {
       ),
       data: (friends) {
         if (friends.isEmpty) {
-          return EmptyWidget(
+          return const EmptyWidget(
             icon: Icons.people_outline,
             message: 'No friends yet',
             subtitle: 'Add friends by their CF handle above',
@@ -570,7 +570,7 @@ class _StreaksList extends ConsumerWidget {
                       backgroundColor: Colors.white.withValues(
                         alpha: 0.10,
                       ),
-                      valueColor: AlwaysStoppedAnimation(
+                      valueColor: const AlwaysStoppedAnimation(
                         AppColors.warning,
                       ),
                       borderRadius: BorderRadius.circular(4.r),
