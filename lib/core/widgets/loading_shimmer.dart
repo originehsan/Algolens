@@ -13,11 +13,7 @@ import 'package:algolens/core/widgets/glass_card.dart';
 
 /// Contest list placeholder (3 items)
 class ContestListShimmer extends StatelessWidget {
-  const ContestListShimmer({
-    super.key,
-    this.count = 3,
-  });
-
+  const ContestListShimmer({super.key, this.count = 3});
   final int count;
 
   @override
@@ -26,12 +22,8 @@ class ContestListShimmer extends StatelessWidget {
       children: List.generate(
         count,
         (index) => Padding(
-          padding: EdgeInsets.only(
-            bottom: index < count - 1 ? 12.h : 0,
-          ),
-          child: const GlassCardShimmer(
-            height: 110,
-          ),
+          padding: EdgeInsets.only(bottom: index < count - 1 ? 12.h : 0),
+          child: GlassCardShimmer(height: 110.h),
         ),
       ),
     );
@@ -44,11 +36,7 @@ class ContestListShimmer extends StatelessWidget {
 
 /// Problem list placeholder (5 items)
 class ProblemListShimmer extends StatelessWidget {
-  const ProblemListShimmer({
-    super.key,
-    this.count = 5,
-  });
-
+  const ProblemListShimmer({super.key, this.count = 5});
   final int count;
 
   @override
@@ -57,12 +45,8 @@ class ProblemListShimmer extends StatelessWidget {
       children: List.generate(
         count,
         (index) => Padding(
-          padding: EdgeInsets.only(
-            bottom: index < count - 1 ? 12.h : 0,
-          ),
-          child: const GlassCardShimmer(
-            height: 80,
-          ),
+          padding: EdgeInsets.only(bottom: index < count - 1 ? 12.h : 0),
+          child: GlassCardShimmer(height: 80.h),
         ),
       ),
     );
@@ -84,12 +68,8 @@ class StatsRowShimmer extends StatelessWidget {
         3,
         (index) => Expanded(
           child: Padding(
-            padding: EdgeInsets.only(
-              right: index < 2 ? 12.w : 0,
-            ),
-            child: const GlassCardShimmer(
-              height: 100,
-            ),
+            padding: EdgeInsets.only(right: index < 2 ? 12.w : 0),
+            child: GlassCardShimmer(height: 100.h),
           ),
         ),
       ),
@@ -111,34 +91,15 @@ class ProfileShimmer extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        // Hero section
-        const GlassCardShimmer(
-          height: 160,
-        ),
-
+        GlassCardShimmer(height: 160.h),
         SizedBox(height: 20.h),
-
-        // Chart
-        const GlassCardShimmer(
-          height: 200,
-        ),
-
+        GlassCardShimmer(height: 200.h),
         SizedBox(height: 20.h),
-
-        // Stats grid
         Row(
           children: [
-            const Expanded(
-              child: GlassCardShimmer(
-                height: 80,
-              ),
-            ),
+            Expanded(child: GlassCardShimmer(height: 80.h)),
             SizedBox(width: 12.w),
-            const Expanded(
-              child: GlassCardShimmer(
-                height: 80,
-              ),
-            ),
+            Expanded(child: GlassCardShimmer(height: 80.h)),
           ],
         ),
       ],
@@ -148,15 +109,12 @@ class ProfileShimmer extends StatelessWidget {
 
 // ──────────────────────────────────────────
 // PRACTICE LIST SHIMMER
+// Used by upsolve_screen
 // ──────────────────────────────────────────
 
-/// Practice/weak-topics placeholder (4 items)
+/// Practice/upsolve list placeholder (4 items)
 class PracticeListShimmer extends StatelessWidget {
-  const PracticeListShimmer({
-    super.key,
-    this.count = 4,
-  });
-
+  const PracticeListShimmer({super.key, this.count = 4});
   final int count;
 
   @override
@@ -165,12 +123,8 @@ class PracticeListShimmer extends StatelessWidget {
       children: List.generate(
         count,
         (index) => Padding(
-          padding: EdgeInsets.only(
-            bottom: index < count - 1 ? 12.h : 0,
-          ),
-          child: const GlassCardShimmer(
-            height: 90,
-          ),
+          padding: EdgeInsets.only(bottom: index < count - 1 ? 12.h : 0),
+          child: GlassCardShimmer(height: 90.h),
         ),
       ),
     );
@@ -183,11 +137,7 @@ class PracticeListShimmer extends StatelessWidget {
 
 /// Friends list placeholder (4 items)
 class FriendsListShimmer extends StatelessWidget {
-  const FriendsListShimmer({
-    super.key,
-    this.count = 4,
-  });
-
+  const FriendsListShimmer({super.key, this.count = 4});
   final int count;
 
   @override
@@ -196,12 +146,8 @@ class FriendsListShimmer extends StatelessWidget {
       children: List.generate(
         count,
         (index) => Padding(
-          padding: EdgeInsets.only(
-            bottom: index < count - 1 ? 12.h : 0,
-          ),
-          child: const GlassCardShimmer(
-            height: 72,
-          ),
+          padding: EdgeInsets.only(bottom: index < count - 1 ? 12.h : 0),
+          child: GlassCardShimmer(height: 72.h),
         ),
       ),
     );

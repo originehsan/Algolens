@@ -19,11 +19,6 @@ import 'package:algolens/features/home/providers/home_provider.dart';
 import 'package:algolens/features/profile/data/models/profile_model.dart';
 import 'package:algolens/features/profile/providers/profile_provider.dart';
 
-// ─────────────────────────────────
-// HOME SCREEN
-// Main dashboard screen
-// ─────────────────────────────────
-
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
@@ -36,12 +31,10 @@ class HomeScreen extends ConsumerWidget {
         backgroundColor: Colors.transparent,
         body: Column(
           children: [
-            // Offline banner — always at top
             const OfflineBanner(),
-
             Expanded(
               child: handleAsync.when(
-                loading: () => _LoadingBody(),
+                loading: () => const _LoadingBody(),
                 error: (e, s) => _ErrorBody(
                   error: e.toString(),
                   onRetry: () => ref.invalidate(cfHandleProvider),
@@ -64,14 +57,8 @@ class HomeScreen extends ConsumerWidget {
   }
 }
 
-// ─────────────────────────────────
-// HOME BODY
-// Main content when handle loaded
-// ─────────────────────────────────
-
 class _HomeBody extends ConsumerWidget {
   const _HomeBody({required this.handle});
-
   final String handle;
 
   @override
@@ -98,22 +85,13 @@ class _HomeBody extends ConsumerWidget {
             ),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
-                // ──────────────────────
-                // HEADER
-                // Greeting + Avatar
-                // ──────────────────────
                 _Header(
                   handle: handle,
                   profileAsync: profileAsync,
-                  onAvatarTap: () => context.goNamed(RouteNames.profile),
+                  // push so user can go back to home
+                  onAvatarTap: () => context.pushNamed(RouteNames.profile),
                 ),
-
                 SizedBox(height: 20.h),
-
-                // ──────────────────────
-                // RATING HERO CARD
-                // Rating + readiness bar
-                // ──────────────────────
                 profileAsync.when(
                   loading: () => GlassCardShimmer(height: 140.h),
                   error: (e, s) => const SizedBox.shrink(),
@@ -123,34 +101,19 @@ class _HomeBody extends ConsumerWidget {
                     deltaAsync: deltaAsync,
                   ),
                 ),
-
                 SizedBox(height: 16.h),
-
-                // ──────────────────────
-                // STATS ROW
-                // Solved / Contests / Streak
-                // ──────────────────────
                 profileAsync.when(
                   loading: () => const StatsRowShimmer(),
                   error: (e, s) => const SizedBox.shrink(),
                   data: (profile) => _StatsRow(profile: profile),
                 ),
-
                 SizedBox(height: 24.h),
-
-                // ──────────────────────
-                // UPCOMING CONTESTS
-                // Placeholder until P46
-                // ──────────────────────
                 SectionHeader(
                   title: 'Upcoming Contests',
                   actionLabel: 'See all',
                   onAction: () => context.goNamed(RouteNames.contests),
                 ),
-
                 SizedBox(height: 12.h),
-
-                // Placeholder until upcomingContestsProvider (P46)
                 GlassCard(
                   child: Center(
                     child: Padding(
@@ -176,7 +139,6 @@ class _HomeBody extends ConsumerWidget {
                     ),
                   ),
                 ),
-
                 SizedBox(height: 100.h),
               ]),
             ),
@@ -186,11 +148,6 @@ class _HomeBody extends ConsumerWidget {
     );
   }
 }
-
-// ─────────────────────────────────
-// HEADER
-// Time-based greeting + avatar
-// ─────────────────────────────────
 
 class _Header extends StatelessWidget {
   const _Header({
@@ -214,7 +171,6 @@ class _Header extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        // Greeting + handle
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -239,8 +195,6 @@ class _Header extends StatelessWidget {
             ],
           ),
         ),
-
-        // Avatar → /profile
         profileAsync.when(
           loading: () => Container(
             width: 44.r,
@@ -269,11 +223,6 @@ class _Header extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────
-// RATING HERO CARD
-// Rating + rank + delta + readiness
-// ─────────────────────────────────
-
 class _RatingHeroCard extends StatelessWidget {
   const _RatingHeroCard({
     required this.profile,
@@ -295,7 +244,6 @@ class _RatingHeroCard extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Rating number
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -318,10 +266,7 @@ class _RatingHeroCard extends StatelessWidget {
                   ),
                 ],
               ),
-
               const Spacer(),
-
-              // Rank + delta
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
@@ -348,10 +293,7 @@ class _RatingHeroCard extends StatelessWidget {
               ),
             ],
           ),
-
           SizedBox(height: 16.h),
-
-          // Readiness score bar
           readinessAsync.when(
             loading: () => const SizedBox.shrink(),
             error: (_, __) => const SizedBox.shrink(),
@@ -393,14 +335,8 @@ class _RatingHeroCard extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────
-// STATS ROW
-// Solved / Contests / Streak
-// ─────────────────────────────────
-
 class _StatsRow extends StatelessWidget {
   const _StatsRow({required this.profile});
-
   final ProfileModel profile;
 
   @override
@@ -438,12 +374,9 @@ class _StatsRow extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────
-// LOADING BODY
-// Shimmer placeholders
-// ─────────────────────────────────
-
 class _LoadingBody extends StatelessWidget {
+  const _LoadingBody();
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -460,11 +393,6 @@ class _LoadingBody extends StatelessWidget {
     );
   }
 }
-
-// ─────────────────────────────────
-// ERROR BODY
-// Inline error with retry
-// ─────────────────────────────────
 
 class _ErrorBody extends StatelessWidget {
   const _ErrorBody({

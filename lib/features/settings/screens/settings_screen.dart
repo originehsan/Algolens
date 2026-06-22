@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
 import 'package:algolens/core/local/user_settings_service.dart';
+import 'package:algolens/core/router/app_router.dart';
 import 'package:algolens/core/theme/app_colors.dart';
 import 'package:algolens/core/theme/app_text_styles.dart';
 import 'package:algolens/core/widgets/app_background.dart';
@@ -25,7 +27,15 @@ class SettingsScreen extends ConsumerWidget {
     final versionAsync = ref.watch(appVersionProvider);
     final logoutState = ref.watch(logoutProvider);
 
-    // Router guard handles redirect after logout — no manual navigation needed
+    // Navigate to login after logout success
+    ref.listen(logoutProvider, (_, next) {
+      if (next is AuthSuccess) {
+        if (!context.mounted) return;
+        ref.invalidate(cfHandleProvider);
+        context.goNamed(RouteNames.login);
+      }
+    });
+
     final isLoggingOut = logoutState is AuthLoading;
 
     return AppBackground(
@@ -36,6 +46,15 @@ class SettingsScreen extends ConsumerWidget {
             SliverAppBar(
               backgroundColor: Colors.transparent,
               floating: true,
+              // Back button — settings is pushed from profile
+              leading: IconButton(
+                onPressed: () => context.pop(),
+                icon: Icon(
+                  Icons.arrow_back_ios_new_rounded,
+                  color: Colors.white,
+                  size: 20.r,
+                ),
+              ),
               title: Text('Settings', style: AppTextStyles.h2),
             ),
             SliverPadding(
@@ -44,22 +63,16 @@ class SettingsScreen extends ConsumerWidget {
                 delegate: SliverChildListDelegate([
                   SizedBox(height: 8.h),
 
-                  // ──────────────────────────────
-                  // PROFILE CARD
-                  // Shows avatar, handle, rank chip
-                  // ──────────────────────────────
+                  // Profile card
                   handleAsync.when(
                     loading: () => const SizedBox.shrink(),
                     error: (_, __) => const SizedBox.shrink(),
                     data: (handle) {
                       if (handle == null) return const SizedBox.shrink();
-
                       final profile = ref.watch(profileProvider(handle));
-
                       return GlassCard(
                         child: Row(
                           children: [
-                            // Show placeholder while profile loads
                             profile.when(
                               loading: () => Container(
                                 width: 56.r,
@@ -92,8 +105,10 @@ class SettingsScreen extends ConsumerWidget {
                                   profile.when(
                                     loading: () => const SizedBox.shrink(),
                                     error: (_, __) => const SizedBox.shrink(),
-                                    data: (p) =>
-                                        RankChip(rank: p.rank, compact: true),
+                                    data: (p) => RankChip(
+                                      rank: p.rank,
+                                      compact: true,
+                                    ),
                                   ),
                                 ],
                               ),
@@ -106,12 +121,9 @@ class SettingsScreen extends ConsumerWidget {
 
                   SizedBox(height: 20.h),
 
-                  // ──────────────────────────────
-                  // NOTIFICATIONS SECTION
-                  // ──────────────────────────────
+                  // Notifications
                   const SectionHeader(title: 'Notifications'),
                   SizedBox(height: 12.h),
-
                   settingsAsync.when(
                     loading: () => const SizedBox.shrink(),
                     error: (_, __) => const SizedBox.shrink(),
@@ -157,13 +169,9 @@ class SettingsScreen extends ConsumerWidget {
 
                   SizedBox(height: 20.h),
 
-                  // ──────────────────────────────
-                  // VOICE & SMS SECTION
-                  // SMS/Voice are premium — locked
-                  // ──────────────────────────────
+                  // Voice & SMS
                   const SectionHeader(title: 'Voice & SMS'),
                   SizedBox(height: 12.h),
-
                   settingsAsync.when(
                     loading: () => const SizedBox.shrink(),
                     error: (_, __) => const SizedBox.shrink(),
@@ -181,14 +189,12 @@ class SettingsScreen extends ConsumerWidget {
                                 .setTtsEnabled(v),
                           ),
                           const _Divider(),
-                          // SMS — premium feature, shown as Coming Soon
                           const _LockedRow(
                             icon: Icons.sms_rounded,
                             label: 'SMS Alerts',
                             subtitle: 'Text alerts for contests',
                           ),
                           const _Divider(),
-                          // Voice call — premium feature, shown as Coming Soon
                           const _LockedRow(
                             icon: Icons.call_rounded,
                             label: 'Voice Calls',
@@ -201,13 +207,9 @@ class SettingsScreen extends ConsumerWidget {
 
                   SizedBox(height: 20.h),
 
-                  // ──────────────────────────────
-                  // APP SECTION
-                  // Widget, cache, version
-                  // ──────────────────────────────
+                  // App
                   const SectionHeader(title: 'App'),
                   SizedBox(height: 12.h),
-
                   settingsAsync.when(
                     loading: () => const SizedBox.shrink(),
                     error: (_, __) => const SizedBox.shrink(),
@@ -225,15 +227,10 @@ class SettingsScreen extends ConsumerWidget {
                                 .setWidgetEnabled(v),
                           ),
                           const _Divider(),
-
-                          // Clear cache — only removes API response cache
                           Consumer(
                             builder: (context, ref, _) {
-                              final cacheState =
-                                  ref.watch(clearCacheProvider);
-                              final isClearing =
-                                  cacheState is AsyncLoading;
-
+                              final cacheState = ref.watch(clearCacheProvider);
+                              final isClearing = cacheState is AsyncLoading;
                               return _ActionRow(
                                 icon: Icons.cleaning_services_rounded,
                                 iconColor: AppColors.warning,
@@ -266,10 +263,7 @@ class SettingsScreen extends ConsumerWidget {
                               );
                             },
                           ),
-
                           const _Divider(),
-
-                          // App version — read-only info row
                           _InfoRow(
                             icon: Icons.info_outline_rounded,
                             label: 'App Version',
@@ -286,30 +280,23 @@ class SettingsScreen extends ConsumerWidget {
 
                   SizedBox(height: 20.h),
 
-                  // ──────────────────────────────
-                  // ACCOUNT SECTION
-                  // Logout + logout all devices
-                  // ──────────────────────────────
+                  // Account
                   const SectionHeader(title: 'Account'),
                   SizedBox(height: 12.h),
-
                   GlassCard(
                     child: Column(
                       children: [
-                        // Sign out from current device
                         AppButton(
                           label: 'Sign Out',
                           onTap: isLoggingOut
                               ? null
-                              : () => ref
-                                  .read(logoutProvider.notifier)
-                                  .logout(),
+                              : () =>
+                                  ref.read(logoutProvider.notifier).logout(),
                           isLoading: isLoggingOut,
                           type: AppButtonType.outline,
                           icon: Icons.logout_rounded,
                         ),
                         SizedBox(height: 12.h),
-                        // Sign out from all devices — clears cfHandle too
                         AppButton(
                           label: 'Sign Out All Devices',
                           onTap: isLoggingOut
@@ -327,7 +314,6 @@ class SettingsScreen extends ConsumerWidget {
 
                   SizedBox(height: 40.h),
 
-                  // Footer
                   Center(
                     child: Text(
                       'AlgoLens • Made with ♥ for CP',
@@ -350,7 +336,6 @@ class SettingsScreen extends ConsumerWidget {
 
 // ─────────────────────────────────
 // TOGGLE ROW
-// Setting row with on/off switch
 // ─────────────────────────────────
 
 class _ToggleRow extends StatelessWidget {
@@ -374,7 +359,6 @@ class _ToggleRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        // Colored icon container
         Container(
           width: 36.r,
           height: 36.r,
@@ -391,10 +375,7 @@ class _ToggleRow extends StatelessWidget {
             children: [
               Text(label, style: AppTextStyles.bodyBold),
               SizedBox(height: 2.h),
-              Text(
-                subtitle,
-                style: AppTextStyles.caption,
-              ),
+              Text(subtitle, style: AppTextStyles.caption),
             ],
           ),
         ),
@@ -413,8 +394,6 @@ class _ToggleRow extends StatelessWidget {
 
 // ─────────────────────────────────
 // LOCKED ROW
-// Premium feature — disabled with
-// ComingSoonBadge, switch disabled
 // ─────────────────────────────────
 
 class _LockedRow extends StatelessWidget {
@@ -472,7 +451,6 @@ class _LockedRow extends StatelessWidget {
             ],
           ),
         ),
-        // Disabled switch for locked features
         Switch(
           value: false,
           onChanged: null,
@@ -486,8 +464,6 @@ class _LockedRow extends StatelessWidget {
 
 // ─────────────────────────────────
 // ACTION ROW
-// Setting row with tap button
-// e.g. Clear Cache
 // ─────────────────────────────────
 
 class _ActionRow extends StatelessWidget {
@@ -533,7 +509,6 @@ class _ActionRow extends StatelessWidget {
             ],
           ),
         ),
-        // Tappable action button with loading state
         GestureDetector(
           onTap: onTap,
           child: Container(
@@ -541,7 +516,8 @@ class _ActionRow extends StatelessWidget {
             decoration: BoxDecoration(
               color: iconColor.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(8.r),
-              border: Border.all(color: iconColor.withValues(alpha: 0.30)),
+              border:
+                  Border.all(color: iconColor.withValues(alpha: 0.30)),
             ),
             child: isLoading
                 ? SizedBox(
@@ -554,7 +530,8 @@ class _ActionRow extends StatelessWidget {
                   )
                 : Text(
                     actionLabel,
-                    style: AppTextStyles.captionBold.copyWith(color: iconColor),
+                    style: AppTextStyles.captionBold
+                        .copyWith(color: iconColor),
                   ),
           ),
         ),
@@ -565,8 +542,6 @@ class _ActionRow extends StatelessWidget {
 
 // ─────────────────────────────────
 // INFO ROW
-// Static read-only info display
-// e.g. App Version
 // ─────────────────────────────────
 
 class _InfoRow extends StatelessWidget {
@@ -599,7 +574,6 @@ class _InfoRow extends StatelessWidget {
         ),
         SizedBox(width: 12.w),
         Expanded(child: Text(label, style: AppTextStyles.bodyBold)),
-        // Version value in monospace font
         Text(
           value,
           style: AppTextStyles.monoSmall.copyWith(
@@ -613,7 +587,6 @@ class _InfoRow extends StatelessWidget {
 
 // ─────────────────────────────────
 // DIVIDER
-// Subtle separator between rows
 // ─────────────────────────────────
 
 class _Divider extends StatelessWidget {

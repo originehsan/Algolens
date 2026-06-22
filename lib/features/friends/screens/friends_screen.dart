@@ -155,8 +155,8 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> {
                       _FriendsList(
                         ownHandleAsync: handleAsync,
                       ),
-                    if (_tabIndex == 1)  const  _LeaderboardList(),
-                    if (_tabIndex == 2)    const  _StreaksList(),
+                    if (_tabIndex == 1) const _LeaderboardList(),
+                    if (_tabIndex == 2) const _StreaksList(),
                     SizedBox(height: 100.h),
                   ],
                 ),
@@ -570,7 +570,7 @@ class _StreaksList extends ConsumerWidget {
                       backgroundColor: Colors.white.withValues(
                         alpha: 0.10,
                       ),
-                      valueColor: const AlwaysStoppedAnimation(
+                      valueColor: const AlwaysStoppedAnimation<Color>(
                         AppColors.warning,
                       ),
                       borderRadius: BorderRadius.circular(4.r),

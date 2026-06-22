@@ -56,9 +56,7 @@ class ContestModel {
   String get durationFormatted {
     final hours = durationSeconds ~/ 3600;
     final minutes = (durationSeconds % 3600) ~/ 60;
-    if (minutes == 0) {
-      return '${hours}h';
-    }
+    if (minutes == 0) return '${hours}h';
     return '${hours}h ${minutes}m';
   }
 
@@ -72,27 +70,14 @@ class ContestModel {
   /// True if contest finished
   bool get isFinished => relativeTimeSeconds >= durationSeconds;
 
-  /// Difficulty from name string
-  /// Calculated locally — no API
+  /// Difficulty from name string — no API call needed
   String get difficulty {
-    if (name.contains('Div. 1 +')) {
-      return 'Hard';
-    }
-    if (name.contains('Div. 1')) {
-      return 'Hard';
-    }
-    if (name.contains('Div. 2')) {
-      return 'Moderate';
-    }
-    if (name.contains('Div. 3')) {
-      return 'Easy';
-    }
-    if (name.contains('Div. 4')) {
-      return 'Easy';
-    }
-    if (name.toLowerCase().contains('educational')) {
-      return 'Moderate';
-    }
+    if (name.contains('Div. 1 +')) return 'Hard';
+    if (name.contains('Div. 1')) return 'Hard';
+    if (name.contains('Div. 2')) return 'Moderate';
+    if (name.contains('Div. 3')) return 'Easy';
+    if (name.contains('Div. 4')) return 'Easy';
+    if (name.toLowerCase().contains('educational')) return 'Moderate';
     return 'Moderate';
   }
 
@@ -100,20 +85,11 @@ class ContestModel {
   String get formattedStartTime {
     try {
       final dt = startDateTime;
-      return '${dt.day}/${dt.month}/${dt.year} ${dt.hour}:${dt.minute.toString().padLeft(2, '0')}';
+      return '${dt.day}/${dt.month}/${dt.year} '
+          '${dt.hour}:${dt.minute.toString().padLeft(2, '0')}';
     } catch (_) {
       return 'Time not available';
     }
-  }
-
-  /// Duration formatted: "2h 0m"
-  String get formattedDuration {
-    final hours = durationSeconds ~/ 3600;
-    final minutes = (durationSeconds % 3600) ~/ 60;
-    if (minutes == 0) {
-      return '${hours}h';
-    }
-    return '${hours}h ${minutes}m';
   }
 
   /// Suitability label based on difficulty

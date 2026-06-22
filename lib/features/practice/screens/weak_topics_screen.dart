@@ -31,17 +31,13 @@ class WeakTopicsScreen extends ConsumerWidget {
             SliverAppBar(
               backgroundColor: Colors.transparent,
               floating: true,
-              title: Text(
-                'Weak Topics',
-                style: AppTextStyles.h2,
-              ),
+              title: Text('Weak Topics', style: AppTextStyles.h2),
               actions: [
                 TextButton(
-                  onPressed: () => context.goNamed(RouteNames.recommendations),
-                  child: Text(
-                    'Practice',
-                    style: AppTextStyles.link,
-                  ),
+                  // push — recommendations is outside ShellRoute
+                  onPressed: () =>
+                      context.pushNamed(RouteNames.recommendations),
+                  child: Text('Practice', style: AppTextStyles.link),
                 ),
               ],
             ),
@@ -77,7 +73,9 @@ class WeakTopicsScreen extends ConsumerWidget {
                           SizedBox(height: 12.h),
                           AppButton(
                             label: 'Get Practice Problems',
-                            onTap: () => context.goNamed(RouteNames.recommendations),
+                            // push — recommendations outside ShellRoute
+                            onTap: () =>
+                                context.pushNamed(RouteNames.recommendations),
                             icon: Icons.arrow_forward_rounded,
                           ),
                           SizedBox(height: 100.h),
@@ -108,9 +106,21 @@ class _SummaryCard extends StatelessWidget {
     return GlassCard(
       child: Row(
         children: [
-          _SeverityCount(label: 'Critical', count: critical, color: AppColors.danger),
-          _SeverityCount(label: 'High', count: high, color: AppColors.warning),
-          _SeverityCount(label: 'Moderate', count: moderate, color: AppColors.primary),
+          _SeverityCount(
+            label: 'Critical',
+            count: critical,
+            color: AppColors.danger,
+          ),
+          _SeverityCount(
+            label: 'High',
+            count: high,
+            color: AppColors.warning,
+          ),
+          _SeverityCount(
+            label: 'Moderate',
+            count: moderate,
+            color: AppColors.primary,
+          ),
         ],
       ),
     );
@@ -138,10 +148,7 @@ class _SeverityCount extends StatelessWidget {
             style: AppTextStyles.metricMedium.copyWith(color: color),
           ),
           SizedBox(height: 4.h),
-          Text(
-            label,
-            style: AppTextStyles.caption,
-          ),
+          Text(label, style: AppTextStyles.caption),
         ],
       ),
     );
@@ -175,10 +182,7 @@ class _TopicCard extends StatelessWidget {
               ),
               SizedBox(width: 10.w),
               Expanded(
-                child: Text(
-                  topic.tag,
-                  style: AppTextStyles.bodyBold,
-                ),
+                child: Text(topic.tag, style: AppTextStyles.bodyBold),
               ),
               Text(
                 topic.acRateFormatted,

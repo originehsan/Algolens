@@ -20,9 +20,7 @@ class AllContestsScreen extends ConsumerWidget {
     final contestsAsync = ref.watch(
       allContestsProvider,
     );
-    final notifier = ref.read(
-      allContestsProvider.notifier,
-    );
+    final notifier = ref.watch(allContestsProvider.notifier);
 
     return AppBackground(
       child: Scaffold(

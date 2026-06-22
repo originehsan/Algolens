@@ -11,10 +11,6 @@ import 'package:algolens/core/widgets/app_button.dart';
 import 'package:algolens/core/widgets/glass_card.dart';
 import 'package:algolens/features/auth/providers/auth_provider.dart';
 
-// ─────────────────────────────────
-// EMAIL VERIFICATION SCREEN
-// ─────────────────────────────────
-
 class EmailVerificationScreen extends ConsumerStatefulWidget {
   const EmailVerificationScreen({
     super.key,
@@ -40,21 +36,12 @@ class _EmailVerificationScreenState
     super.dispose();
   }
 
-  // ───────────────────────────────
-  // RESEND
-  // 60s cooldown timer
-  // ───────────────────────────────
-
   Future<void> _resend() async {
     if (_cooldown > 0) return;
 
     await ref
-        .read(
-          resendVerificationProvider.notifier,
-        )
-        .resendVerification(
-          widget.email,
-        );
+        .read(resendVerificationProvider.notifier)
+        .resendVerification(widget.email);
 
     if (!mounted) return;
 
@@ -70,21 +57,15 @@ class _EmailVerificationScreenState
           t.cancel();
           return;
         }
-        setState(() {
-          _cooldown--;
-        });
-        if (_cooldown <= 0) {
-          t.cancel();
-        }
+        setState(() => _cooldown--);
+        if (_cooldown <= 0) t.cancel();
       },
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final resendState = ref.watch(
-      resendVerificationProvider,
-    );
+    final resendState = ref.watch(resendVerificationProvider);
     final isLoading = resendState is AuthLoading;
     final canResend = _cooldown <= 0 && !isLoading;
 
@@ -93,9 +74,7 @@ class _EmailVerificationScreenState
         backgroundColor: Colors.transparent,
         body: SafeArea(
           child: Padding(
-            padding: EdgeInsets.symmetric(
-              horizontal: 20.w,
-            ),
+            padding: EdgeInsets.symmetric(horizontal: 20.w),
             child: Column(
               children: [
                 SizedBox(height: 60.h),
@@ -106,13 +85,9 @@ class _EmailVerificationScreenState
                   height: 100.r,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: AppColors.primary.withValues(
-                      alpha: 0.12,
-                    ),
+                    color: AppColors.primary.withValues(alpha: 0.12),
                     border: Border.all(
-                      color: AppColors.primary.withValues(
-                        alpha: 0.35,
-                      ),
+                      color: AppColors.primary.withValues(alpha: 0.35),
                       width: 1.5,
                     ),
                   ),
@@ -125,7 +100,6 @@ class _EmailVerificationScreenState
 
                 SizedBox(height: 32.h),
 
-                // Title
                 Text(
                   'Check your email',
                   style: GoogleFonts.inter(
@@ -138,16 +112,12 @@ class _EmailVerificationScreenState
 
                 SizedBox(height: 12.h),
 
-                // Subtitle
                 Text(
-                  'We sent a verification '
-                  'link to\n${widget.email}',
+                  'We sent a verification link to\n${widget.email}',
                   style: GoogleFonts.inter(
                     fontSize: 14.sp,
                     fontWeight: FontWeight.w500,
-                    color: Colors.white.withValues(
-                      alpha: 0.60,
-                    ),
+                    color: Colors.white.withValues(alpha: 0.60),
                     height: 1.6,
                   ),
                   textAlign: TextAlign.center,
@@ -166,22 +136,15 @@ class _EmailVerificationScreenState
                             color: AppColors.primary,
                             size: 18.r,
                           ),
-                          SizedBox(
-                            width: 10.w,
-                          ),
+                          SizedBox(width: 10.w),
                           Expanded(
                             child: Text(
-                              'Click the link in '
-                              'the email to verify '
-                              'your account. '
-                              'Check spam if '
-                              'not received.',
+                              'Click the link in the email to verify '
+                              'your account. Check spam if not received.',
                               style: GoogleFonts.inter(
                                 fontSize: 13.sp,
                                 fontWeight: FontWeight.w500,
-                                color: Colors.white.withValues(
-                                  alpha: 0.70,
-                                ),
+                                color: Colors.white.withValues(alpha: 0.70),
                                 height: 1.5,
                               ),
                             ),
@@ -189,9 +152,7 @@ class _EmailVerificationScreenState
                         ],
                       ),
                       if (_resent) ...[
-                        SizedBox(
-                          height: 12.h,
-                        ),
+                        SizedBox(height: 12.h),
                         Row(
                           children: [
                             Icon(
@@ -199,12 +160,9 @@ class _EmailVerificationScreenState
                               color: AppColors.success,
                               size: 16.r,
                             ),
-                            SizedBox(
-                              width: 8.w,
-                            ),
+                            SizedBox(width: 8.w),
                             Text(
-                              'Verification '
-                              'email sent!',
+                              'Verification email sent!',
                               style: GoogleFonts.inter(
                                 fontSize: 13.sp,
                                 fontWeight: FontWeight.w600,
@@ -223,8 +181,7 @@ class _EmailVerificationScreenState
                 // Resend button
                 AppButton(
                   label: _cooldown > 0
-                      ? 'Resend in '
-                          '${_cooldown}s'
+                      ? 'Resend in ${_cooldown}s'
                       : 'Resend Email',
                   onTap: canResend ? _resend : null,
                   isLoading: isLoading,
@@ -234,14 +191,11 @@ class _EmailVerificationScreenState
 
                 SizedBox(height: 16.h),
 
-                // Already verified link
+                // Already verified — go to login (replaces stack)
                 GestureDetector(
-                  onTap: () => context.goNamed(
-                    RouteNames.login,
-                  ),
+                  onTap: () => context.goNamed(RouteNames.login),
                   child: Text(
-                    'Already verified? '
-                    'Sign In',
+                    'Already verified? Sign In',
                     style: GoogleFonts.inter(
                       fontSize: 14.sp,
                       fontWeight: FontWeight.w600,
@@ -254,26 +208,20 @@ class _EmailVerificationScreenState
 
                 const Spacer(),
 
-                // Back button
+                // Back to register — pop back to filled form
                 TextButton.icon(
-                  onPressed: () => context.goNamed(
-                    RouteNames.register,
-                  ),
+                  onPressed: () => context.pop(),
                   icon: Icon(
                     Icons.arrow_back_rounded,
                     size: 16.r,
-                    color: Colors.white.withValues(
-                      alpha: 0.50,
-                    ),
+                    color: Colors.white.withValues(alpha: 0.50),
                   ),
                   label: Text(
                     'Back to Register',
                     style: GoogleFonts.inter(
                       fontSize: 13.sp,
                       fontWeight: FontWeight.w500,
-                      color: Colors.white.withValues(
-                        alpha: 0.50,
-                      ),
+                      color: Colors.white.withValues(alpha: 0.50),
                     ),
                   ),
                 ),

@@ -1,17 +1,5 @@
 import 'package:algolens/core/network/api_endpoints.dart';
 
-// ──────────────────────────────
-// MOCK DATA
-// Fake responses for all endpoints
-// ──────────────────────────────
-
-/// Static mock responses
-///
-/// Rules:
-/// → Exact shape as real API
-/// → Realistic fake data
-/// → Used by MockInterceptor
-/// → Never used in production
 abstract class MockData {
   MockData._();
 
@@ -35,148 +23,234 @@ abstract class MockData {
 
   // ────────────────────────────
   // PROFILE
+  // Using Ehsan's mock profile
   // ────────────────────────────
 
   static const Map<String, dynamic> profileResponse = {
-    'handle': 'tourist',
-    'rating': 3979,
-    'maxRating': 4006,
-    'rank': 'legendary grandmaster',
-    'maxRank': 'legendary grandmaster',
-    'problemsSolved': 1842,
-    'contestsParticipated': 312,
-    'streakDays': 14,
-    'lastActiveDate': '2024-12-01T00:00:00.000Z',
-    'avatar': 'https://userpic.codeforces.org/422/title/tourist.jpg',
+    'handle': 'ehsan_cf',
+    'rating': 1487,
+    'maxRating': 1523,
+    'rank': 'specialist',
+    'maxRank': 'specialist',
+    'problemsSolved': 347,
+    'contestsParticipated': 34,
+    'streakDays': 12,
+    'lastActiveDate': '2026-06-20T00:00:00.000Z',
+    'avatar': '',
   };
 
   static const List<Map<String, dynamic>> ratingGraphResponse = [
     {
-      'contestId': 1991,
-      'contestName': 'Codeforces Round 957 (Div. 1)',
-      'rating': 3979,
-      'date': '2024-07-15T14:35:00.000Z',
-    },
-    {
-      'contestId': 1981,
-      'contestName': 'Codeforces Round 950 (Div. 1)',
-      'rating': 3962,
-      'date': '2024-06-10T14:35:00.000Z',
-    },
-    {
-      'contestId': 1960,
-      'contestName': 'Codeforces Round 940 (Div. 1)',
-      'rating': 3944,
-      'date': '2024-05-05T14:35:00.000Z',
+      'contestId': 1910,
+      'contestName': 'Codeforces Round 915 (Div. 3)',
+      'rating': 1102,
+      'date': '2024-02-10T14:35:00.000Z',
     },
     {
       'contestId': 1935,
-      'contestName': 'Codeforces Round 928 (Div. 1)',
-      'rating': 3921,
+      'contestName': 'Codeforces Round 928 (Div. 3)',
+      'rating': 1198,
       'date': '2024-03-20T14:35:00.000Z',
     },
     {
-      'contestId': 1910,
-      'contestName': 'Codeforces Round 915 (Div. 1)',
-      'rating': 3898,
-      'date': '2024-02-10T14:35:00.000Z',
+      'contestId': 1960,
+      'contestName': 'Codeforces Round 940 (Div. 3)',
+      'rating': 1285,
+      'date': '2024-05-05T14:35:00.000Z',
+    },
+    {
+      'contestId': 1981,
+      'contestName': 'Codeforces Round 950 (Div. 3)',
+      'rating': 1354,
+      'date': '2024-06-10T14:35:00.000Z',
+    },
+    {
+      'contestId': 1991,
+      'contestName': 'Codeforces Round 957 (Div. 3)',
+      'rating': 1412,
+      'date': '2024-07-15T14:35:00.000Z',
+    },
+    {
+      'contestId': 2010,
+      'contestName': 'Codeforces Round 968 (Div. 3)',
+      'rating': 1445,
+      'date': '2024-09-01T14:35:00.000Z',
+    },
+    {
+      'contestId': 2035,
+      'contestName': 'Codeforces Round 980 (Div. 2)',
+      'rating': 1487,
+      'date': '2024-11-15T14:35:00.000Z',
     },
   ];
 
   static const Map<String, dynamic> submissionStatsResponse = {
-    'totalSubmissions': 4821,
-    'solvedProblems': 1842,
-    'unSolvedProblems': 312,
+    'totalSubmissions': 892,
+    'solvedProblems': 347,
+    'unSolvedProblems': 545,
     'verdictsCount': {
-      'OK': 1842,
-      'WRONG_ANSWER': 198,
-      'TIME_LIMIT_EXCEEDED': 67,
-      'MEMORY_LIMIT_EXCEEDED': 23,
-      'RUNTIME_ERROR': 24,
+      'OK': 347,
+      'WRONG_ANSWER': 312,
+      'TIME_LIMIT_EXCEEDED': 98,
+      'MEMORY_LIMIT_EXCEEDED': 34,
+      'RUNTIME_ERROR': 101,
     },
   };
 
   static const List<Map<String, dynamic>> contestHistoryResponse = [
     {
+      'contestId': 2035,
+      'contestName': 'Codeforces Round 980 (Div. 2)',
+      'rank': 1842,
+      'oldRating': 1445,
+      'newRating': 1487,
+      'ratingChange': 42,
+    },
+    {
+      'contestId': 2010,
+      'contestName': 'Codeforces Round 968 (Div. 3)',
+      'rank': 956,
+      'oldRating': 1412,
+      'newRating': 1445,
+      'ratingChange': 33,
+    },
+    {
       'contestId': 1991,
-      'contestName': 'Codeforces Round 957 (Div. 1)',
-      'rank': 1,
-      'oldRating': 3962,
-      'newRating': 3979,
-      'ratingChange': 17,
+      'contestName': 'Codeforces Round 957 (Div. 3)',
+      'rank': 1243,
+      'oldRating': 1354,
+      'newRating': 1412,
+      'ratingChange': 58,
     },
     {
       'contestId': 1981,
-      'contestName': 'Codeforces Round 950 (Div. 1)',
-      'rank': 2,
-      'oldRating': 3944,
-      'newRating': 3962,
-      'ratingChange': 18,
+      'contestName': 'Codeforces Round 950 (Div. 3)',
+      'rank': 2341,
+      'oldRating': 1285,
+      'newRating': 1354,
+      'ratingChange': 69,
     },
     {
       'contestId': 1960,
-      'contestName': 'Codeforces Round 940 (Div. 1)',
-      'rank': 1,
-      'oldRating': 3921,
-      'newRating': 3944,
-      'ratingChange': 23,
+      'contestName': 'Codeforces Round 940 (Div. 3)',
+      'rank': 3102,
+      'oldRating': 1198,
+      'newRating': 1285,
+      'ratingChange': 87,
+    },
+    {
+      'contestId': 1935,
+      'contestName': 'Codeforces Round 928 (Div. 3)',
+      'rank': 4521,
+      'oldRating': 1102,
+      'newRating': 1198,
+      'ratingChange': 96,
     },
   ];
 
   // ────────────────────────────
   // CONTESTS
+  // relativeTimeSeconds < 0 = upcoming
+  // Use large negative values so
+  // contests always show as upcoming
+  // regardless of when app runs
   // ────────────────────────────
 
-  static const List<Map<String, dynamic>> upcomingContestsResponse = [
-    {
-      'contestId': 2050,
-      'name': 'Codeforces Round 992 (Div. 2)',
-      'type': 'CF',
-      'durationSeconds': 7200,
-      'startTimeSeconds': 1735200000,
-      'relativeTimeSeconds': -86400,
-    },
-    {
-      'contestId': 2051,
-      'name': 'Educational Codeforces Round 175',
-      'type': 'ICPC',
-      'durationSeconds': 7200,
-      'startTimeSeconds': 1735286400,
-      'relativeTimeSeconds': -172800,
-    },
-    {
-      'contestId': 2052,
-      'name': 'Codeforces Round 993 (Div. 1)',
-      'type': 'CF',
-      'durationSeconds': 9000,
-      'startTimeSeconds': 1735372800,
-      'relativeTimeSeconds': -259200,
-    },
-  ];
+  static List<Map<String, dynamic>> get upcomingContestsResponse {
+    // Current time in seconds
+    final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
 
-  static const Map<String, dynamic> allContestsResponse = {
-    'contests': [
+    return [
+      // Contest 1: starts in 2 days
       {
-        'contestId': 1991,
-        'name': 'Codeforces Round 957 (Div. 1)',
+        'contestId': 2100,
+        'name': 'Codeforces Round 1001 (Div. 2)',
+        'type': 'CF',
+        'durationSeconds': 7200,
+        'startTimeSeconds': now + (2 * 24 * 3600),
+        'relativeTimeSeconds': -(2 * 24 * 3600),
+      },
+      // Contest 2: starts in 4 days
+      {
+        'contestId': 2101,
+        'name': 'Educational Codeforces Round 180',
+        'type': 'ICPC',
+        'durationSeconds': 7200,
+        'startTimeSeconds': now + (4 * 24 * 3600),
+        'relativeTimeSeconds': -(4 * 24 * 3600),
+      },
+      // Contest 3: starts in 6 days
+      {
+        'contestId': 2102,
+        'name': 'Codeforces Round 1002 (Div. 1)',
         'type': 'CF',
         'durationSeconds': 9000,
-        'startTimeSeconds': 1721051700,
-        'relativeTimeSeconds': 999999,
+        'startTimeSeconds': now + (6 * 24 * 3600),
+        'relativeTimeSeconds': -(6 * 24 * 3600),
       },
+      // Contest 4: starts in 1 hour (nearly live)
       {
-        'contestId': 1981,
-        'name': 'Codeforces Round 950 (Div. 1)',
+        'contestId': 2103,
+        'name': 'Codeforces Round 1003 (Div. 3)',
+        'type': 'CF',
+        'durationSeconds': 7200,
+        'startTimeSeconds': now + 3600,
+        'relativeTimeSeconds': -3600,
+      },
+      // Contest 5: LIVE right now
+      {
+        'contestId': 2104,
+        'name': 'Codeforces Round 1000 (Div. 1 + Div. 2)',
         'type': 'CF',
         'durationSeconds': 9000,
-        'startTimeSeconds': 1717942500,
-        'relativeTimeSeconds': 999999,
+        'startTimeSeconds': now - 1800,
+        'relativeTimeSeconds': 1800,
       },
-    ],
-    'total': 2,
-    'page': 1,
-    'size': 20,
-  };
+    ];
+  }
+
+  static Map<String, dynamic> get allContestsResponse {
+    final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+    return {
+      'contests': [
+        {
+          'contestId': 2100,
+          'name': 'Codeforces Round 1001 (Div. 2)',
+          'type': 'CF',
+          'durationSeconds': 7200,
+          'startTimeSeconds': now + (2 * 24 * 3600),
+          'relativeTimeSeconds': -(2 * 24 * 3600),
+        },
+        {
+          'contestId': 2101,
+          'name': 'Educational Codeforces Round 180',
+          'type': 'ICPC',
+          'durationSeconds': 7200,
+          'startTimeSeconds': now + (4 * 24 * 3600),
+          'relativeTimeSeconds': -(4 * 24 * 3600),
+        },
+        {
+          'contestId': 1991,
+          'name': 'Codeforces Round 957 (Div. 1)',
+          'type': 'CF',
+          'durationSeconds': 9000,
+          'startTimeSeconds': now - (7 * 24 * 3600),
+          'relativeTimeSeconds': 999999,
+        },
+        {
+          'contestId': 1981,
+          'name': 'Codeforces Round 950 (Div. 1)',
+          'type': 'CF',
+          'durationSeconds': 9000,
+          'startTimeSeconds': now - (14 * 24 * 3600),
+          'relativeTimeSeconds': 999999,
+        },
+      ],
+      'total': 4,
+      'page': 1,
+      'size': 20,
+    };
+  }
 
   // ────────────────────────────
   // FRIENDS
@@ -212,56 +286,56 @@ abstract class MockData {
   static const List<Map<String, dynamic>> leaderboardResponse = [
     {
       'rank': 1,
-      'handle': 'tourist',
-      'rating': 3979,
-      'maxRating': 4006,
-      'tier': 'legendary grandmaster',
-    },
-    {
-      'rank': 2,
       'handle': 'jiangly',
       'rating': 3827,
       'maxRating': 3859,
       'tier': 'legendary grandmaster',
     },
     {
-      'rank': 3,
+      'rank': 2,
       'handle': 'Petr',
       'rating': 3547,
       'maxRating': 3602,
       'tier': 'legendary grandmaster',
     },
     {
-      'rank': 4,
+      'rank': 3,
       'handle': 'Um_nik',
       'rating': 3439,
       'maxRating': 3523,
       'tier': 'legendary grandmaster',
+    },
+    {
+      'rank': 4,
+      'handle': 'ehsan_cf',
+      'rating': 1487,
+      'maxRating': 1523,
+      'tier': 'specialist',
     },
   ];
 
   static const List<Map<String, dynamic>> unsolvedByMeResponse = [
     {
       'contestId': 1991,
-      'index': 'F',
-      'name': 'Cyclic Cover',
-      'rating': 3200,
-      'tags': ['graphs', 'dfs and similar', 'trees'],
+      'index': 'D',
+      'name': 'Minimize the Difference',
+      'rating': 1800,
+      'tags': ['dp', 'greedy'],
     },
     {
       'contestId': 1981,
-      'index': 'G',
-      'name': 'Strange Beauty',
-      'rating': 2900,
-      'tags': ['dp', 'number theory'],
+      'index': 'C',
+      'name': 'ada and the Game',
+      'rating': 1600,
+      'tags': ['binary search', 'greedy'],
     },
   ];
 
   static const Map<String, dynamic> streakCompareResponse = {
     'streaks': [
       {
-        'handle': 'tourist',
-        'streakDays': 14,
+        'handle': 'ehsan_cf',
+        'streakDays': 12,
       },
       {
         'handle': 'Petr',
@@ -271,6 +345,10 @@ abstract class MockData {
         'handle': 'Um_nik',
         'streakDays': 21,
       },
+      {
+        'handle': 'jiangly',
+        'streakDays': 30,
+      },
     ],
   };
 
@@ -278,9 +356,9 @@ abstract class MockData {
     'contestId': 1991,
     'participants': [
       {
-        'handle': 'tourist',
-        'rank': 1,
-        'ratingChange': 17,
+        'handle': 'ehsan_cf',
+        'rank': 1243,
+        'ratingChange': 58,
       },
       {
         'handle': 'Petr',
@@ -295,21 +373,21 @@ abstract class MockData {
   // ────────────────────────────
 
   static const Map<String, dynamic> compareRatingResponse = {
-    'handle1': 'tourist',
+    'handle1': 'ehsan_cf',
     'handle2': 'Petr',
-    'rating1': 3979,
+    'rating1': 1487,
     'rating2': 3547,
-    'maxRating1': 4006,
+    'maxRating1': 1523,
     'maxRating2': 3602,
-    'contestsParticipated1': 312,
+    'contestsParticipated1': 34,
     'contestsParticipated2': 198,
-    'problemsSolved1': 1842,
+    'problemsSolved1': 347,
     'problemsSolved2': 1456,
   };
 
   static const Map<String, dynamic> findSubmissionResponse = {
     'found': true,
-    'handle': 'tourist',
+    'handle': 'ehsan_cf',
     'contestId': 1991,
     'problemIndex': 'A',
     'verdict': 'OK',
@@ -338,6 +416,14 @@ abstract class MockData {
       'severity': 'high',
     },
     {
+      'tag': 'binary search',
+      'totalAttempts': 24,
+      'solvedCount': 11,
+      'unsolvedCount': 13,
+      'acRate': 0.46,
+      'severity': 'critical',
+    },
+    {
       'tag': 'number theory',
       'totalAttempts': 28,
       'solvedCount': 17,
@@ -345,29 +431,51 @@ abstract class MockData {
       'acRate': 0.61,
       'severity': 'moderate',
     },
+    {
+      'tag': 'greedy',
+      'totalAttempts': 38,
+      'solvedCount': 22,
+      'unsolvedCount': 16,
+      'acRate': 0.58,
+      'severity': 'high',
+    },
   ];
 
   static const List<Map<String, dynamic>> recommendationsResponse = [
     {
       'contestId': 1234,
       'index': 'C',
-      'name': 'Knapsack',
-      'rating': 1800,
+      'name': 'Knapsack Problem',
+      'rating': 1600,
       'tags': ['dp', 'greedy'],
     },
     {
       'contestId': 1456,
-      'index': 'D',
+      'index': 'B',
       'name': 'Tree Queries',
-      'rating': 2000,
+      'rating': 1700,
       'tags': ['trees', 'dfs and similar'],
     },
     {
       'contestId': 1678,
       'index': 'C',
       'name': 'Graph Coloring',
-      'rating': 1900,
+      'rating': 1800,
       'tags': ['graphs', 'greedy'],
+    },
+    {
+      'contestId': 1399,
+      'index': 'C',
+      'name': 'Binary Search on Array',
+      'rating': 1500,
+      'tags': ['binary search', 'sortings'],
+    },
+    {
+      'contestId': 1512,
+      'index': 'D',
+      'name': 'Factorial Divisibility',
+      'rating': 1600,
+      'tags': ['number theory', 'math'],
     },
   ];
 
@@ -381,6 +489,7 @@ abstract class MockData {
         'tags': ['dp', 'greedy'],
         'bestVerdict': 'WRONG_ANSWER',
         'url': 'https://codeforces.com/contest/1991/problem/D',
+        'isWeakTopic': true,
       },
       {
         'contestId': 1991,
@@ -390,6 +499,7 @@ abstract class MockData {
         'tags': ['constructive algorithms', 'greedy'],
         'bestVerdict': 'TIME_LIMIT_EXCEEDED',
         'url': 'https://codeforces.com/contest/1991/problem/E',
+        'isWeakTopic': false,
       },
     ],
     '1981': [
@@ -401,6 +511,19 @@ abstract class MockData {
         'tags': ['binary search', 'greedy'],
         'bestVerdict': 'WRONG_ANSWER',
         'url': 'https://codeforces.com/contest/1981/problem/C',
+        'isWeakTopic': true,
+      },
+    ],
+    '1960': [
+      {
+        'contestId': 1960,
+        'index': 'D',
+        'name': 'Graph Problem',
+        'rating': 1900,
+        'tags': ['graphs', 'dfs and similar'],
+        'bestVerdict': 'TIME_LIMIT_EXCEEDED',
+        'url': 'https://codeforces.com/contest/1960/problem/D',
+        'isWeakTopic': true,
       },
     ],
   };
@@ -411,7 +534,9 @@ abstract class MockData {
 
   static const Map<String, dynamic> analysisResponse = {
     'overallRecommendation':
-        'Focus on dynamic programming fundamentals. Your weak spots are state transition design and memoization. Practice Div.2 D-level DP problems daily for 2 weeks.',
+        'Focus on dynamic programming and binary search fundamentals. '
+            'Your weak spots are state transition design and boundary conditions. '
+            'Practice Div.2 C-D level problems daily for 2 weeks to reach Expert.',
     'problemAnalyses': [
       {
         'contestId': 1991,
@@ -428,9 +553,18 @@ abstract class MockData {
         'problemIndex': 'E',
         'problemName': 'Permutation of Rows',
         'likelyIssue': 'TLE due to O(n²) simulation instead of O(n log n) sort',
-        'conceptToStudy': 'Constructive + sorting to avoid brute force',
+        'conceptToStudy': 'Constructive algorithms + sorting to avoid brute force',
         'actionableTip':
             'Think about what the final arrangement must look like before simulating.',
+      },
+      {
+        'contestId': 1981,
+        'problemIndex': 'C',
+        'problemName': 'ada and the Game',
+        'likelyIssue': 'Binary search boundary off by one — check lo/hi carefully',
+        'conceptToStudy': 'Binary search on answer + predicate design',
+        'actionableTip':
+            'Write the check() function first, then wrap binary search around it.',
       },
     ],
   };
@@ -440,110 +574,58 @@ abstract class MockData {
   // Used by MockInterceptor
   // ────────────────────────────
 
-  /// Returns mock data for a
-  /// given request path
-  ///
-  /// Matches by path prefix
-  /// to handle dynamic routes
   static dynamic getResponse(
     String path,
     String method,
   ) {
     // AUTH
     if (path.contains(ApiEndpoints.login)) return loginResponse;
-
     if (path.contains(ApiEndpoints.register)) return messageResponse;
-
     if (path.contains(ApiEndpoints.refresh)) return refreshResponse;
-
     if (path.contains(ApiEndpoints.logout)) return messageResponse;
-
     if (path.contains(ApiEndpoints.forgotPassword)) return messageResponse;
-
     if (path.contains(ApiEndpoints.verifyResetToken)) return messageResponse;
-
     if (path.contains(ApiEndpoints.resetPassword)) return messageResponse;
-
     if (path.contains(ApiEndpoints.resendVerification)) return messageResponse;
 
-    // PROFILE
-    if (path.contains('/rating-graph')) {
-      return ratingGraphResponse;
-    }
-
+    // PROFILE — check specific paths before generic /profile
+    if (path.contains('/rating-graph')) return ratingGraphResponse;
     if (path.contains('/submission-stats')) return submissionStatsResponse;
-
     if (path.contains('/contest-history')) return contestHistoryResponse;
-
-    if (path.contains('/profile')) {
-      return profileResponse;
-    }
+    if (path.contains('/profile')) return profileResponse;
 
     // CONTESTS
     if (path.contains(ApiEndpoints.upcomingContests)) {
       return upcomingContestsResponse;
     }
+    if (path == ApiEndpoints.allContests) return allContestsResponse;
 
-    if (path == ApiEndpoints.allContests) {
-      return allContestsResponse;
-    }
-
-    // FRIENDS
+    // FRIENDS — check specific paths before generic /friends/
     if (path.contains(ApiEndpoints.addFriend)) return messageResponse;
-
-    if (path.contains('/remove/')) {
-      return messageResponse;
-    }
-
+    if (path.contains('/remove/')) return messageResponse;
     if (path.contains('/unsolved-by-me')) return unsolvedByMeResponse;
-
     if (path.contains('/streak-compare')) return streakCompareResponse;
-
     if (path.contains('/contest-overlap')) return contestOverlapResponse;
-
-    if (path.contains('/leaderboard')) {
-      return leaderboardResponse;
-    }
-
-    if (path.contains('/friends/')) {
-      return friendsResponse;
-    }
+    if (path.contains('/leaderboard')) return leaderboardResponse;
+    if (path.contains('/friends/')) return friendsResponse;
 
     // COMPARE
-    if (path.contains(ApiEndpoints.compareRating)) {
-      return compareRatingResponse;
-    }
+    if (path.contains(ApiEndpoints.compareRating)) return compareRatingResponse;
+    if (path.contains(ApiEndpoints.findSubmission)) return findSubmissionResponse;
 
-    if (path.contains(ApiEndpoints.findSubmission)) {
-      return findSubmissionResponse;
-    }
-
-    // INSIGHTS
-    if (path.contains('/weak-topics')) {
-      return weakTopicsResponse;
-    }
-
-    if (path.contains('/recommendations')) {
-      return recommendationsResponse;
-    }
-
+    // INSIGHTS — check /upsolve before /analysis
+    if (path.contains('/weak-topics')) return weakTopicsResponse;
+    if (path.contains('/recommendations')) return recommendationsResponse;
     if (path.contains('/upsolve') && !path.contains('/analysis')) {
       return upsolveResponse;
     }
 
     // ANALYSIS
-    if (path.contains('/analysis/')) {
-      return analysisResponse;
-    }
+    if (path.contains('/analysis/')) return analysisResponse;
 
     // VERIFICATION
-    if (path.contains('/verification/')) {
-      return messageResponse;
-    }
+    if (path.contains('/verification/')) return messageResponse;
 
-    /// Unknown endpoint
-    return <String, dynamic>{
-      'message': 'Mock not found',
-    };
+    return <String, dynamic>{'message': 'Mock not found'};
   }
 }

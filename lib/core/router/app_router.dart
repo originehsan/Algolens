@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:algolens/core/widgets/main_scaffold.dart';
 import 'package:algolens/features/auth/screens/splash_screen.dart';
 import 'package:algolens/features/auth/screens/onboarding_screen.dart';
 import 'package:algolens/features/auth/screens/register_screen.dart';
@@ -21,7 +22,10 @@ import 'package:algolens/features/upsolve/screens/upsolve_screen.dart';
 import 'package:algolens/features/analysis/screens/ai_analysis_screen.dart';
 import 'package:algolens/features/settings/screens/settings_screen.dart';
 
-// All route name constants
+// ──────────────────────────────
+// ROUTE NAMES
+// ──────────────────────────────
+
 abstract class RouteNames {
   RouteNames._();
 
@@ -46,7 +50,10 @@ abstract class RouteNames {
   static const String settings = 'settings';
 }
 
-// All route path constants
+// ──────────────────────────────
+// ROUTE PATHS
+// ──────────────────────────────
+
 abstract class RoutePaths {
   RoutePaths._();
 
@@ -83,12 +90,15 @@ abstract class AppRouter {
     return GoRouter(
       initialLocation: RoutePaths.splash,
       debugLogDiagnostics: true,
-
-      // Splash screen handles all auth logic and redirects
       redirect: (context, state) => null,
 
       routes: [
-        // Auth routes
+
+        // ──────────────────────
+        // AUTH ROUTES
+        // No bottom nav
+        // ──────────────────────
+
         GoRoute(
           path: RoutePaths.splash,
           name: RouteNames.splash,
@@ -136,26 +146,48 @@ abstract class AppRouter {
           builder: (context, state) => const CfHandleSetupScreen(),
         ),
 
-        // Main app routes
-        GoRoute(
-          path: RoutePaths.home,
-          name: RouteNames.home,
-          builder: (context, state) => const HomeScreen(),
+        // ──────────────────────
+        // SHELL — BOTTOM NAV
+        // Home/Contests/Practice
+        // /Friends tabs
+        // ──────────────────────
+
+        ShellRoute(
+          builder: (context, state, child) => MainScaffold(child: child),
+          routes: [
+            GoRoute(
+              path: RoutePaths.home,
+              name: RouteNames.home,
+              builder: (context, state) => const HomeScreen(),
+            ),
+            GoRoute(
+              path: RoutePaths.contests,
+              name: RouteNames.contests,
+              builder: (context, state) => const ContestScreen(),
+            ),
+            GoRoute(
+              path: RoutePaths.practice,
+              name: RouteNames.practice,
+              builder: (context, state) => const WeakTopicsScreen(),
+            ),
+            GoRoute(
+              path: RoutePaths.friends,
+              name: RouteNames.friends,
+              builder: (context, state) => const FriendsScreen(),
+            ),
+          ],
         ),
-        GoRoute(
-          path: RoutePaths.contests,
-          name: RouteNames.contests,
-          builder: (context, state) => const ContestScreen(),
-        ),
+
+        // ──────────────────────
+        // STANDALONE ROUTES
+        // No bottom nav
+        // Push on top of shell
+        // ──────────────────────
+
         GoRoute(
           path: RoutePaths.allContests,
           name: RouteNames.allContests,
           builder: (context, state) => const AllContestsScreen(),
-        ),
-        GoRoute(
-          path: RoutePaths.practice,
-          name: RouteNames.practice,
-          builder: (context, state) => const WeakTopicsScreen(),
         ),
         GoRoute(
           path: RoutePaths.recommendations,
@@ -171,11 +203,6 @@ abstract class AppRouter {
           path: RoutePaths.profile,
           name: RouteNames.profile,
           builder: (context, state) => const ProfileScreen(),
-        ),
-        GoRoute(
-          path: RoutePaths.friends,
-          name: RouteNames.friends,
-          builder: (context, state) => const FriendsScreen(),
         ),
         GoRoute(
           path: RoutePaths.comparison,
@@ -200,7 +227,6 @@ abstract class AppRouter {
         ),
       ],
 
-      // Error route — _PlaceholderScreen still used here
       errorBuilder: (context, state) => _PlaceholderScreen(
         label: 'Error: ${state.error}',
       ),
@@ -208,7 +234,7 @@ abstract class AppRouter {
   }
 }
 
-// Kept only for errorBuilder above
+// Kept only for errorBuilder
 class _PlaceholderScreen extends StatelessWidget {
   const _PlaceholderScreen({required this.label});
   final String label;

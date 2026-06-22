@@ -1,6 +1,6 @@
 // Pure Dart — no annotations
 // Used by profile_repository (P40)
-// Verdict grid in profile_screen
+// Verdict grid in profile_screenc
 
 class SubmissionStatsModel {
   const SubmissionStatsModel({

@@ -258,9 +258,9 @@ class _LoadingViewState extends ConsumerState<_LoadingView> {
         SizedBox(
           width: 40.r,
           height: 40.r,
-          child:  const CircularProgressIndicator(
+          child: const CircularProgressIndicator(
             strokeWidth: 3,
-            valueColor: AlwaysStoppedAnimation(AppColors.primary),
+            valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
           ),
         ),
 
@@ -291,19 +291,14 @@ class _ErrorView extends StatelessWidget {
     return Column(
       children: [
         SizedBox(height: 40.h),
-
         Icon(
           Icons.error_outline_rounded,
           color: AppColors.danger.withValues(alpha: 0.70),
           size: 48.r,
         ),
-
         SizedBox(height: 16.h),
-
         Text('Analysis Failed', style: AppTextStyles.h2),
-
         SizedBox(height: 8.h),
-
         GlassCard(
           child: Text(
             message,
@@ -313,9 +308,7 @@ class _ErrorView extends StatelessWidget {
             textAlign: TextAlign.center,
           ),
         ),
-
         SizedBox(height: 24.h),
-
         AppButton(
           label: 'Try Again',
           onTap: onRetry,
@@ -341,7 +334,8 @@ class _ResultsView extends StatelessWidget {
       return Column(
         children: [
           SizedBox(height: 40.h),
-          Icon(Icons.check_circle_rounded, color: AppColors.success, size: 48.r),
+          Icon(Icons.check_circle_rounded,
+              color: AppColors.success, size: 48.r),
           SizedBox(height: 16.h),
           Text('Nothing to analyse!', style: AppTextStyles.h2),
           SizedBox(height: 8.h),
@@ -367,7 +361,8 @@ class _ResultsView extends StatelessWidget {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(Icons.lightbulb_rounded, color: AppColors.primary, size: 20.r),
+                Icon(Icons.lightbulb_rounded,
+                    color: AppColors.primary, size: 20.r),
                 SizedBox(width: 12.w),
                 Expanded(
                   child: Text(
@@ -441,7 +436,8 @@ class _AnalysisCard extends StatelessWidget {
                   onTap: () async {
                     final uri = Uri.parse(analysis.url);
                     if (await canLaunchUrl(uri)) {
-                      await launchUrl(uri, mode: LaunchMode.externalApplication);
+                      await launchUrl(uri,
+                          mode: LaunchMode.externalApplication);
                     }
                   },
                   child: Text(

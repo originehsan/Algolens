@@ -25,7 +25,8 @@ class ResetPasswordScreen extends ConsumerStatefulWidget {
       _ResetPasswordScreenState();
 }
 
-class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
+class _ResetPasswordScreenState
+    extends ConsumerState<ResetPasswordScreen> {
   final _newPassCtrl = TextEditingController();
   final _confirmPassCtrl = TextEditingController();
 
@@ -46,32 +47,23 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
 
   Future<void> _submit() async {
     if (!_canSubmit) return;
-
-    setState(() {
-      _passError = null;
-    });
-
-    if (_newPassCtrl.text.trim() != _confirmPassCtrl.text.trim()) {
-      setState(() {
-        _passError = 'Passwords do not match';
-      });
-      return;
-    }
-
-    await ref
-        .read(
-          resetPasswordProvider.notifier,
-        )
-        .resetPassword(
+    setState(() => _passError = null);
+    await ref.read(resetPasswordProvider.notifier).resetPassword(
           otp: _otp,
           newPassword: _newPassCtrl.text.trim(),
         );
   }
 
-  // ───────────────────────────────
-  // PINPUT THEME
-  // Glassmorphism style OTP boxes
-  // ───────────────────────────────
+  void _onConfirmChanged(String _) {
+    setState(() {
+      if (_confirmPassCtrl.text.trim().isNotEmpty &&
+          _newPassCtrl.text.trim() != _confirmPassCtrl.text.trim()) {
+        _passError = 'Passwords do not match';
+      } else {
+        _passError = null;
+      }
+    });
+  }
 
   PinTheme get _defaultTheme => PinTheme(
         width: 48.r,
@@ -95,10 +87,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
         decoration: BoxDecoration(
           color: AppColors.primary.withValues(alpha: 0.10),
           borderRadius: BorderRadius.circular(12.r),
-          border: Border.all(
-            color: AppColors.primary,
-            width: 1.5,
-          ),
+          border: Border.all(color: AppColors.primary, width: 1.5),
         ),
       );
 
@@ -115,32 +104,27 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final authState = ref.watch(
-      resetPasswordProvider,
-    );
+    final authState = ref.watch(resetPasswordProvider);
 
-    ref.listen(
-      resetPasswordProvider,
-      (_, next) {
-        if (next is AuthSuccess) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                'Password reset successfully!',
-                style: GoogleFonts.inter(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w600,
-                ),
+    ref.listen(resetPasswordProvider, (_, next) {
+      if (next is AuthSuccess) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Password reset successfully!',
+              style: GoogleFonts.inter(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
               ),
-              backgroundColor: AppColors.success,
             ),
-          );
-          context.goNamed(
-            RouteNames.login,
-          );
-        }
-      },
-    );
+            backgroundColor: AppColors.success,
+          ),
+        );
+        // Replace entire stack — can't go back to reset screen
+        context.goNamed(RouteNames.login);
+      }
+    });
 
     final isLoading = authState is AuthLoading;
 
@@ -156,14 +140,12 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Back button
+                // Back button — pops to forgot password
                 IconButton(
                   onPressed: () => context.pop(),
                   icon: Icon(
                     Icons.arrow_back_rounded,
-                    color: Colors.white.withValues(
-                      alpha: 0.70,
-                    ),
+                    color: Colors.white.withValues(alpha: 0.70),
                     size: 24.r,
                   ),
                   padding: EdgeInsets.zero,
@@ -171,7 +153,6 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
 
                 SizedBox(height: 16.h),
 
-                // Header
                 Text(
                   'Reset Password',
                   style: GoogleFonts.inter(
@@ -184,14 +165,11 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                 SizedBox(height: 8.h),
 
                 Text(
-                  'Enter the code sent '
-                  'to ${widget.email}',
+                  'Enter the code sent to ${widget.email}',
                   style: GoogleFonts.inter(
                     fontSize: 14.sp,
                     fontWeight: FontWeight.w500,
-                    color: Colors.white.withValues(
-                      alpha: 0.55,
-                    ),
+                    color: Colors.white.withValues(alpha: 0.55),
                   ),
                 ),
 
@@ -201,43 +179,30 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // OTP label
                       Text(
                         'Reset Code',
                         style: GoogleFonts.inter(
                           fontSize: 13.sp,
                           fontWeight: FontWeight.w600,
-                          color: Colors.white.withValues(
-                            alpha: 0.70,
-                          ),
+                          color: Colors.white.withValues(alpha: 0.70),
                         ),
                       ),
 
-                      SizedBox(
-                        height: 12.h,
-                      ),
+                      SizedBox(height: 12.h),
 
-                      // Pinput OTP
                       Center(
                         child: Pinput(
                           length: 6,
                           defaultPinTheme: _defaultTheme,
                           focusedPinTheme: _focusedTheme,
                           submittedPinTheme: _submittedTheme,
-                          onChanged: (val) => setState(
-                            () => _otp = val,
-                          ),
-                          onCompleted: (val) => setState(
-                            () => _otp = val,
-                          ),
+                          onChanged: (val) => setState(() => _otp = val),
+                          onCompleted: (val) => setState(() => _otp = val),
                         ),
                       ),
 
-                      SizedBox(
-                        height: 24.h,
-                      ),
+                      SizedBox(height: 24.h),
 
-                      // New password
                       AppTextField(
                         label: 'New Password',
                         hint: 'Min 8 characters',
@@ -245,19 +210,14 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                         isPassword: true,
                         prefixIcon: Icons.lock_outline_rounded,
                         textInputAction: TextInputAction.next,
-                        onChanged: (_) => setState(
-                          () {},
-                        ),
+                        onChanged: (_) => setState(() {}),
                       ),
 
-                      SizedBox(
-                        height: 16.h,
-                      ),
+                      SizedBox(height: 16.h),
 
-                      // Confirm password
+                      // Real-time mismatch error
                       AppTextField(
-                        label: 'Confirm '
-                            'Password',
+                        label: 'Confirm Password',
                         hint: 'Repeat password',
                         controller: _confirmPassCtrl,
                         isPassword: true,
@@ -267,22 +227,15 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                             ? AppTextFieldState.error
                             : AppTextFieldState.defaultState,
                         errorText: _passError,
-                        onChanged: (_) => setState(
-                          () {},
-                        ),
+                        onChanged: _onConfirmChanged,
                         onSubmitted: (_) => _submit(),
                       ),
 
-                      SizedBox(
-                        height: 24.h,
-                      ),
+                      SizedBox(height: 24.h),
 
-                      // API error
                       if (authState is AuthError)
                         Padding(
-                          padding: EdgeInsets.only(
-                            bottom: 16.h,
-                          ),
+                          padding: EdgeInsets.only(bottom: 16.h),
                           child: Text(
                             authState.message,
                             style: GoogleFonts.inter(
@@ -294,7 +247,6 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                           ),
                         ),
 
-                      // Submit button
                       AppButton(
                         label: 'Reset Password',
                         onTap: _canSubmit ? _submit : null,

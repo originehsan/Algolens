@@ -28,9 +28,7 @@ class _ContestScreenState extends ConsumerState<ContestScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final contestsAsync = ref.watch(
-      upcomingContestsProvider,
-    );
+    final contestsAsync = ref.watch(upcomingContestsProvider);
 
     return AppBackground(
       child: Scaffold(
@@ -41,7 +39,6 @@ class _ContestScreenState extends ConsumerState<ContestScreen> {
             Expanded(
               child: CustomScrollView(
                 slivers: [
-                  // App bar
                   SliverAppBar(
                     backgroundColor: Colors.transparent,
                     floating: true,
@@ -55,7 +52,8 @@ class _ContestScreenState extends ConsumerState<ContestScreen> {
                     ),
                     actions: [
                       TextButton(
-                        onPressed: () => context.goNamed(
+                        // push — allContests is outside ShellRoute
+                        onPressed: () => context.pushNamed(
                           RouteNames.allContests,
                         ),
                         child: Text(
@@ -70,66 +68,39 @@ class _ContestScreenState extends ConsumerState<ContestScreen> {
                     ],
                   ),
                   SliverPadding(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 20.w,
-                    ),
+                    padding: EdgeInsets.symmetric(horizontal: 20.w),
                     sliver: SliverList(
-                      delegate: SliverChildListDelegate(
-                        [
-                          SizedBox(
-                            height: 8.h,
+                      delegate: SliverChildListDelegate([
+                        SizedBox(height: 8.h),
+                        SegmentedTab(
+                          tabs: const ['Upcoming', 'Live', 'All'],
+                          currentIndex: _tabIndex,
+                          onChanged: (i) => setState(() => _tabIndex = i),
+                        ),
+                        SizedBox(height: 16.h),
+                        contestsAsync.when(
+                          loading: () => const ContestListShimmer(),
+                          error: (e, s) => AppErrorWidget(
+                            message: e.toString(),
+                            onRetry: () =>
+                                ref.invalidate(upcomingContestsProvider),
                           ),
-
-                          // Tabs:
-                          // Upcoming/Live/All
-                          SegmentedTab(
-                            tabs: const [
-                              'Upcoming',
-                              'Live',
-                              'All',
-                            ],
-                            currentIndex: _tabIndex,
-                            onChanged: (i) => setState(
-                              () => _tabIndex = i,
-                            ),
-                          ),
-
-                          SizedBox(
-                            height: 16.h,
-                          ),
-
-                          contestsAsync.when(
-                            loading: () => const ContestListShimmer(),
-                            error: (e, s) => AppErrorWidget(
-                              message: e.toString(),
-                              onRetry: () => ref.invalidate(
-                                upcomingContestsProvider,
-                              ),
-                            ),
-                            data: (all) {
-                              final filtered = _filter(all);
-                              if (filtered.isEmpty) {
-                                return _EmptyContests(
-                                  tabIndex: _tabIndex,
-                                );
-                              }
-                              return Column(
-                                children: filtered
-                                    .map(
-                                      (c) => _ContestCardWithReminder(
+                          data: (all) {
+                            final filtered = _filter(all);
+                            if (filtered.isEmpty) {
+                              return _EmptyContests(tabIndex: _tabIndex);
+                            }
+                            return Column(
+                              children: filtered
+                                  .map((c) => _ContestCardWithReminder(
                                         contest: c,
-                                      ),
-                                    )
-                                    .toList(),
-                              );
-                            },
-                          ),
-
-                          SizedBox(
-                            height: 100.h,
-                          ),
-                        ],
-                      ),
+                                      ))
+                                  .toList(),
+                            );
+                          },
+                        ),
+                        SizedBox(height: 100.h),
+                      ]),
                     ),
                   ),
                 ],
@@ -141,9 +112,7 @@ class _ContestScreenState extends ConsumerState<ContestScreen> {
     );
   }
 
-  List<ContestModel> _filter(
-    List<ContestModel> all,
-  ) {
+  List<ContestModel> _filter(List<ContestModel> all) {
     return switch (_tabIndex) {
       0 => all.where((c) => c.isUpcoming).toList(),
       1 => all.where((c) => c.isLive).toList(),
@@ -152,27 +121,14 @@ class _ContestScreenState extends ConsumerState<ContestScreen> {
   }
 }
 
-// ─────────────────────────────────
-// CONTEST CARD WITH REMINDER
-// Handles bell icon + bottom sheet
-// ─────────────────────────────────
-
 class _ContestCardWithReminder extends ConsumerWidget {
-  const _ContestCardWithReminder({
-    required this.contest,
-  });
-
+  const _ContestCardWithReminder({required this.contest});
   final ContestModel contest;
 
   @override
-  Widget build(
-    BuildContext context,
-    WidgetRef ref,
-  ) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final reminders = ref.watch(
-      contestReminderProvider(
-        contest.contestId,
-      ),
+      contestReminderProvider(contest.contestId),
     );
 
     final status = contest.isLive
@@ -189,68 +145,47 @@ class _ContestCardWithReminder extends ConsumerWidget {
       startDateTime: contest.startDateTime,
       durationFormatted: contest.durationFormatted,
       hasReminder: reminders.isNotEmpty,
-      margin: EdgeInsets.only(
-        bottom: 12.h,
-      ),
-      onReminderTap: () => _showReminderSheet(
-        context,
-        ref,
-        reminders,
-      ),
+      margin: EdgeInsets.only(bottom: 12.h),
+      onReminderTap: () => _showReminderSheet(context, contest),
     );
   }
 
-  void _showReminderSheet(
-    BuildContext context,
-    WidgetRef ref,
-    List<int> currentReminders,
-  ) {
+  void _showReminderSheet(BuildContext context, ContestModel contest) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder: (_) => _ReminderBottomSheet(
-        contest: contest,
-        currentReminders: currentReminders,
-        ref: ref,
-      ),
+      builder: (_) => _ReminderBottomSheet(contest: contest),
     );
   }
 }
 
-// ─────────────────────────────────
-// REMINDER BOTTOM SHEET
-// Slider + presets + remove
-// ─────────────────────────────────
-
 class _ReminderBottomSheet extends ConsumerStatefulWidget {
-  const _ReminderBottomSheet({
-    required this.contest,
-    required this.currentReminders,
-    required this.ref,
-  });
-
+  const _ReminderBottomSheet({required this.contest});
   final ContestModel contest;
-  final List<int> currentReminders;
-  final WidgetRef ref;
 
   @override
   ConsumerState<_ReminderBottomSheet> createState() =>
       _ReminderBottomSheetState();
 }
 
-class _ReminderBottomSheetState extends ConsumerState<_ReminderBottomSheet> {
+class _ReminderBottomSheetState
+    extends ConsumerState<_ReminderBottomSheet> {
   double _sliderValue = 30;
 
   @override
   Widget build(BuildContext context) {
+    // Watch live — updates when reminders added/removed
+    final currentReminders = ref.watch(
+      contestReminderProvider(widget.contest.contestId),
+    );
+
     return GlassCard(
       margin: EdgeInsets.all(16.r),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Title
           Text(
             'Set Reminder',
             style: GoogleFonts.inter(
@@ -259,9 +194,7 @@ class _ReminderBottomSheetState extends ConsumerState<_ReminderBottomSheet> {
               color: Colors.white,
             ),
           ),
-
           SizedBox(height: 4.h),
-
           Text(
             widget.contest.name,
             style: GoogleFonts.inter(
@@ -272,10 +205,7 @@ class _ReminderBottomSheetState extends ConsumerState<_ReminderBottomSheet> {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
-
           SizedBox(height: 20.h),
-
-          // Slider
           Text(
             '${_sliderValue.toInt()} minutes before',
             style: GoogleFonts.inter(
@@ -284,7 +214,6 @@ class _ReminderBottomSheetState extends ConsumerState<_ReminderBottomSheet> {
               color: AppColors.primary,
             ),
           ),
-
           Slider(
             value: _sliderValue,
             min: 0,
@@ -292,65 +221,56 @@ class _ReminderBottomSheetState extends ConsumerState<_ReminderBottomSheet> {
             divisions: 24,
             activeColor: AppColors.primary,
             inactiveColor: AppColors.primary.withValues(alpha: 0.20),
-            onChanged: (v) => setState(
-              () => _sliderValue = v,
-            ),
+            onChanged: (v) => setState(() => _sliderValue = v),
           ),
-
-          // Presets
           Row(
             children: [30, 60, 120]
-                .map(
-                  (mins) => Padding(
-                    padding: EdgeInsets.only(right: 8.w),
-                    child: GestureDetector(
-                      onTap: () => setState(
-                        () => _sliderValue = mins.toDouble(),
-                      ),
-                      child: Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 12.w,
-                          vertical: 6.h,
-                        ),
-                        decoration: BoxDecoration(
-                          color: _sliderValue == mins
-                              ? AppColors.primary.withValues(alpha: 0.20)
-                              : Colors.white.withValues(alpha: 0.06),
-                          borderRadius: BorderRadius.circular(8.r),
-                          border: Border.all(
+                .map((mins) => Padding(
+                      padding: EdgeInsets.only(right: 8.w),
+                      child: GestureDetector(
+                        onTap: () =>
+                            setState(() => _sliderValue = mins.toDouble()),
+                        child: Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 12.w,
+                            vertical: 6.h,
+                          ),
+                          decoration: BoxDecoration(
                             color: _sliderValue == mins
-                                ? AppColors.primary.withValues(alpha: 0.40)
-                                : Colors.white.withValues(alpha: 0.10),
+                                ? AppColors.primary.withValues(alpha: 0.20)
+                                : Colors.white.withValues(alpha: 0.06),
+                            borderRadius: BorderRadius.circular(8.r),
+                            border: Border.all(
+                              color: _sliderValue == mins
+                                  ? AppColors.primary.withValues(alpha: 0.40)
+                                  : Colors.white.withValues(alpha: 0.10),
+                            ),
+                          ),
+                          child: Text(
+                            '${mins}m',
+                            style: GoogleFonts.inter(
+                              fontSize: 12.sp,
+                              fontWeight: FontWeight.w600,
+                              color: _sliderValue == mins
+                                  ? AppColors.primary
+                                  : Colors.white.withValues(alpha: 0.60),
+                            ),
                           ),
                         ),
-                        child: Text(
-                          '${mins}m',
-                          style: GoogleFonts.inter(
-                            fontSize: 12.sp,
-                            fontWeight: FontWeight.w600,
-                            color: _sliderValue == mins
-                                ? AppColors.primary
-                                : Colors.white.withValues(alpha: 0.60),
-                          ),
-                        ),
                       ),
-                    ),
-                  ),
-                )
+                    ))
                 .toList(),
           ),
-
           SizedBox(height: 20.h),
-
-          // Add button
           AppButton(
             label: 'Add Reminder',
             onTap: () async {
-              // Capture messenger and navigator before async gap
               final messenger = ScaffoldMessenger.of(context);
               final navigator = Navigator.of(context);
 
-              final added = await ref.read(addReminderProvider.notifier).add(
+              final added = await ref
+                  .read(addReminderProvider.notifier)
+                  .add(
                     contestId: widget.contest.contestId,
                     contestName: widget.contest.name,
                     minutesBefore: _sliderValue.toInt(),
@@ -372,9 +292,7 @@ class _ReminderBottomSheetState extends ConsumerState<_ReminderBottomSheet> {
               navigator.pop();
             },
           ),
-
-          // Current reminders
-          if (widget.currentReminders.isNotEmpty) ...[
+          if (currentReminders.isNotEmpty) ...[
             SizedBox(height: 16.h),
             Text(
               'Current reminders',
@@ -385,7 +303,7 @@ class _ReminderBottomSheetState extends ConsumerState<_ReminderBottomSheet> {
               ),
             ),
             SizedBox(height: 8.h),
-            ...widget.currentReminders.map(
+            ...currentReminders.map(
               (mins) => ListTile(
                 contentPadding: EdgeInsets.zero,
                 title: Text(
@@ -398,9 +316,7 @@ class _ReminderBottomSheetState extends ConsumerState<_ReminderBottomSheet> {
                 ),
                 trailing: GestureDetector(
                   onTap: () => ref
-                      .read(
-                        removeReminderProvider.notifier,
-                      )
+                      .read(removeReminderProvider.notifier)
                       .remove(
                         contestId: widget.contest.contestId,
                         minutesBefore: mins,
@@ -414,7 +330,6 @@ class _ReminderBottomSheetState extends ConsumerState<_ReminderBottomSheet> {
               ),
             ),
           ],
-
           SizedBox(height: 8.h),
         ],
       ),
@@ -422,15 +337,8 @@ class _ReminderBottomSheetState extends ConsumerState<_ReminderBottomSheet> {
   }
 }
 
-// ─────────────────────────────────
-// EMPTY CONTESTS
-// ─────────────────────────────────
-
 class _EmptyContests extends StatelessWidget {
-  const _EmptyContests({
-    required this.tabIndex,
-  });
-
+  const _EmptyContests({required this.tabIndex});
   final int tabIndex;
 
   @override

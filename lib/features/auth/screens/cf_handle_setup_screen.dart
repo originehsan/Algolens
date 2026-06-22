@@ -14,23 +14,9 @@ import 'package:algolens/core/widgets/app_background.dart';
 import 'package:algolens/core/widgets/app_button.dart';
 import 'package:algolens/core/widgets/app_text_field.dart';
 import 'package:algolens/core/widgets/glass_card.dart';
+import 'package:algolens/features/profile/providers/profile_provider.dart';
 
-// ─────────────────────────────────
-// CF HANDLE VERIFY STATE
-// ─────────────────────────────────
-
-enum _CfState {
-  idle,
-  verifying,
-  verified,
-  error,
-}
-
-// ─────────────────────────────────
-// CF HANDLE SETUP SCREEN
-// Shown once after first login
-// Never shown again after setup
-// ─────────────────────────────────
+enum _CfState { idle, verifying, verified, error }
 
 class CfHandleSetupScreen extends ConsumerStatefulWidget {
   const CfHandleSetupScreen({super.key});
@@ -40,8 +26,7 @@ class CfHandleSetupScreen extends ConsumerStatefulWidget {
       _CfHandleSetupScreenState();
 }
 
-class _CfHandleSetupScreenState
-    extends ConsumerState<CfHandleSetupScreen> {
+class _CfHandleSetupScreenState extends ConsumerState<CfHandleSetupScreen> {
   final _handleCtrl = TextEditingController();
 
   _CfState _cfState = _CfState.idle;
@@ -56,12 +41,6 @@ class _CfHandleSetupScreenState
     _debounce?.cancel();
     super.dispose();
   }
-
-  // ───────────────────────────────
-  // DEBOUNCED VERIFICATION
-  // 800ms debounce
-  // GET /users/{handle}/profile
-  // ───────────────────────────────
 
   void _onHandleChanged(String val) {
     _debounce?.cancel();
@@ -88,9 +67,7 @@ class _CfHandleSetupScreenState
 
     try {
       final client = ref.read(dioClientProvider);
-      final data = await client.get(
-        ApiEndpoints.profile(handle),
-      );
+      final data = await client.get(ApiEndpoints.profile(handle));
 
       if (!mounted) return;
 
@@ -137,11 +114,6 @@ class _CfHandleSetupScreenState
     }
   }
 
-  // ───────────────────────────────
-  // CONFIRM
-  // Save handle + navigate home
-  // ───────────────────────────────
-
   Future<void> _confirm() async {
     if (_cfState != _CfState.verified) return;
 
@@ -150,6 +122,9 @@ class _CfHandleSetupScreenState
     await SecureStorage.saveCfHandle(_handleCtrl.text.trim());
 
     if (!mounted) return;
+
+    // Invalidate so cfHandleProvider returns fresh value on home screen
+    ref.invalidate(cfHandleProvider);
 
     setState(() => _saving = false);
 
@@ -175,9 +150,6 @@ class _CfHandleSetupScreenState
               children: [
                 SizedBox(height: 40.h),
 
-                // ─────────────────
-                // Icon
-                // ─────────────────
                 Container(
                   width: 80.r,
                   height: 80.r,
@@ -198,9 +170,6 @@ class _CfHandleSetupScreenState
 
                 SizedBox(height: 24.h),
 
-                // ─────────────────
-                // Title
-                // ─────────────────
                 Text(
                   'One last thing!',
                   style: GoogleFonts.inter(
@@ -228,9 +197,6 @@ class _CfHandleSetupScreenState
                 GlassCard(
                   child: Column(
                     children: [
-                      // ───────────────────────
-                      // CF Handle input
-                      // ───────────────────────
                       AppTextField(
                         label: 'Codeforces Handle',
                         hint: 'tourist',
@@ -250,9 +216,6 @@ class _CfHandleSetupScreenState
                             : null,
                       ),
 
-                      // ───────────────────────
-                      // Verified rank chip
-                      // ───────────────────────
                       if (isVerified && _verifiedRank.isNotEmpty) ...[
                         SizedBox(height: 10.h),
                         Row(
@@ -277,10 +240,6 @@ class _CfHandleSetupScreenState
 
                       SizedBox(height: 24.h),
 
-                      // ───────────────────────
-                      // Confirm button
-                      // Disabled until verified
-                      // ───────────────────────
                       AppButton(
                         label: "Let's Go!",
                         onTap: isVerified ? _confirm : null,
@@ -298,8 +257,7 @@ class _CfHandleSetupScreenState
                           style: GoogleFonts.inter(
                             fontSize: 12.sp,
                             fontWeight: FontWeight.w500,
-                            color:
-                                Colors.white.withValues(alpha: 0.40),
+                            color: Colors.white.withValues(alpha: 0.40),
                           ),
                           textAlign: TextAlign.center,
                         ),

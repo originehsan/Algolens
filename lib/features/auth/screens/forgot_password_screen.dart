@@ -12,16 +12,15 @@ import 'package:algolens/core/widgets/glass_card.dart';
 import 'package:algolens/features/auth/providers/auth_provider.dart';
 
 class ForgotPasswordScreen extends ConsumerStatefulWidget {
-  const ForgotPasswordScreen({
-    super.key,
-  });
+  const ForgotPasswordScreen({super.key});
 
   @override
   ConsumerState<ForgotPasswordScreen> createState() =>
       _ForgotPasswordScreenState();
 }
 
-class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
+class _ForgotPasswordScreenState
+    extends ConsumerState<ForgotPasswordScreen> {
   final _emailCtrl = TextEditingController();
   bool _emailSent = false;
 
@@ -36,30 +35,20 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
   Future<void> _submit() async {
     if (!_canSubmit) return;
     await ref
-        .read(
-          forgotPasswordProvider.notifier,
-        )
-        .forgotPassword(
-          _emailCtrl.text.trim(),
-        );
+        .read(forgotPasswordProvider.notifier)
+        .forgotPassword(_emailCtrl.text.trim());
   }
 
   @override
   Widget build(BuildContext context) {
-    final authState = ref.watch(
-      forgotPasswordProvider,
-    );
+    final authState = ref.watch(forgotPasswordProvider);
 
-    ref.listen(
-      forgotPasswordProvider,
-      (_, next) {
-        if (next is AuthSuccess) {
-          setState(() {
-            _emailSent = true;
-          });
-        }
-      },
-    );
+    ref.listen(forgotPasswordProvider, (_, next) {
+      if (next is AuthSuccess) {
+        if (!mounted) return;
+        setState(() => _emailSent = true);
+      }
+    });
 
     final isLoading = authState is AuthLoading;
 
@@ -75,14 +64,12 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Back button
+                // Back button — pops back to login
                 IconButton(
                   onPressed: () => context.pop(),
                   icon: Icon(
                     Icons.arrow_back_rounded,
-                    color: Colors.white.withValues(
-                      alpha: 0.70,
-                    ),
+                    color: Colors.white.withValues(alpha: 0.70),
                     size: 24.r,
                   ),
                   padding: EdgeInsets.zero,
@@ -90,7 +77,6 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
 
                 SizedBox(height: 16.h),
 
-                // Header
                 Text(
                   'Forgot Password?',
                   style: GoogleFonts.inter(
@@ -104,23 +90,18 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
 
                 Text(
                   _emailSent
-                      ? 'We sent a reset '
-                          'code to your email'
-                      : 'Enter your email '
-                          'and we\'ll send '
-                          'you a reset code',
+                      ? 'We sent a reset code to your email'
+                      : 'Enter your email and we\'ll send you a reset code',
                   style: GoogleFonts.inter(
                     fontSize: 14.sp,
                     fontWeight: FontWeight.w500,
-                    color: Colors.white.withValues(
-                      alpha: 0.55,
-                    ),
+                    color: Colors.white.withValues(alpha: 0.55),
                   ),
                 ),
 
                 SizedBox(height: 32.h),
 
-                if (!_emailSent) ...[
+                if (!_emailSent)
                   GlassCard(
                     child: Column(
                       children: [
@@ -131,19 +112,13 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                           prefixIcon: Icons.email_outlined,
                           keyboardType: TextInputType.emailAddress,
                           textInputAction: TextInputAction.done,
-                          onChanged: (_) => setState(
-                            () {},
-                          ),
+                          onChanged: (_) => setState(() {}),
                           onSubmitted: (_) => _submit(),
                         ),
-                        SizedBox(
-                          height: 24.h,
-                        ),
+                        SizedBox(height: 24.h),
                         if (authState is AuthError)
                           Padding(
-                            padding: EdgeInsets.only(
-                              bottom: 16.h,
-                            ),
+                            padding: EdgeInsets.only(bottom: 16.h),
                             child: Text(
                               authState.message,
                               style: GoogleFonts.inter(
@@ -155,8 +130,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                             ),
                           ),
                         AppButton(
-                          label: 'Send Reset '
-                              'Code',
+                          label: 'Send Reset Code',
                           onTap: _canSubmit ? _submit : null,
                           isLoading: isLoading,
                           isDisabled: !_canSubmit,
@@ -164,9 +138,8 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                       ],
                     ),
                   ),
-                ],
-                if (_emailSent) ...[
-                  // Email sent success
+
+                if (_emailSent)
                   GlassCard(
                     type: GlassCardType.success,
                     child: Column(
@@ -176,9 +149,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                           color: AppColors.success,
                           size: 48.r,
                         ),
-                        SizedBox(
-                          height: 16.h,
-                        ),
+                        SizedBox(height: 16.h),
                         Text(
                           'Reset code sent!',
                           style: GoogleFonts.inter(
@@ -187,29 +158,22 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                             color: AppColors.success,
                           ),
                         ),
-                        SizedBox(
-                          height: 8.h,
-                        ),
+                        SizedBox(height: 8.h),
                         Text(
-                          'Check your email '
-                          'at\n${_emailCtrl.text.trim()}',
+                          'Check your email at\n${_emailCtrl.text.trim()}',
                           style: GoogleFonts.inter(
                             fontSize: 13.sp,
                             fontWeight: FontWeight.w500,
-                            color: Colors.white.withValues(
-                              alpha: 0.65,
-                            ),
+                            color: Colors.white.withValues(alpha: 0.65),
                             height: 1.5,
                           ),
                           textAlign: TextAlign.center,
                         ),
-                        SizedBox(
-                          height: 24.h,
-                        ),
+                        SizedBox(height: 24.h),
+                        // Push so user can go back if needed
                         AppButton(
-                          label: 'Enter Reset '
-                              'Code',
-                          onTap: () => context.goNamed(
+                          label: 'Enter Reset Code',
+                          onTap: () => context.pushNamed(
                             RouteNames.resetPassword,
                             extra: _emailCtrl.text.trim(),
                           ),
@@ -217,7 +181,6 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                       ],
                     ),
                   ),
-                ],
               ],
             ),
           ),

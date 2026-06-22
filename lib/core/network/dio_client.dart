@@ -20,10 +20,12 @@ final dioProvider = Provider<Dio>((ref) {
     ),
   );
 
-  dio.interceptors.add(ConnectivityInterceptor());
-
+  // Mock intercepts before connectivity check
+  // so app works offline in mock mode
   if (EnvConfig.useMock) {
     dio.interceptors.add(MockInterceptor());
+  } else {
+    dio.interceptors.add(ConnectivityInterceptor());
   }
 
   dio.interceptors.add(AuthInterceptor());

@@ -15,22 +15,16 @@ import 'package:algolens/core/providers/ui_providers.dart';
 ///
 /// Shows when device loses internet
 /// Watches connectivityStreamProvider
-/// Animated slide + fade
+/// Animated fade transition
 ///
 /// Usage:
-/// Place at top of screen stack
-/// or integrated in main layout
+/// Place at top of screen body
 class OfflineBanner extends ConsumerWidget {
   const OfflineBanner({super.key});
 
   @override
-  Widget build(
-    BuildContext context,
-    WidgetRef ref,
-  ) {
-    final connectivity = ref.watch(
-      connectivityStreamProvider,
-    );
+  Widget build(BuildContext context, WidgetRef ref) {
+    final connectivity = ref.watch(connectivityStreamProvider);
 
     return connectivity.when(
       loading: () => const SizedBox.shrink(),
@@ -41,20 +35,10 @@ class OfflineBanner extends ConsumerWidget {
         );
 
         return AnimatedSwitcher(
-          duration: const Duration(
-            milliseconds: 300,
-          ),
+          duration: const Duration(milliseconds: 300),
           child: isOffline
-              ? const _BannerContent(
-                  key: ValueKey(
-                    'offline',
-                  ),
-                )
-              : const SizedBox.shrink(
-                  key: ValueKey(
-                    'online',
-                  ),
-                ),
+              ?  const _BannerContent(key:  ValueKey('offline'))
+              : const SizedBox.shrink(key: ValueKey('online')),
         );
       },
     );
@@ -66,49 +50,40 @@ class OfflineBanner extends ConsumerWidget {
 // ──────────────────────────────
 
 class _BannerContent extends StatelessWidget {
-  const _BannerContent({
-    required Key key,
-  }) : super(key: key);
+  const _BannerContent({required super.key});
 
   @override
   Widget build(BuildContext context) {
-    return SlideTransition(
-      position: const AlwaysStoppedAnimation(
-        Offset(0, -1),
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.symmetric(
+        horizontal: 16.w,
+        vertical: 8.h,
       ),
-      child: Container(
-        width: double.infinity,
-        padding: EdgeInsets.symmetric(
-          horizontal: 16.w,
-          vertical: 8.h,
+      decoration: BoxDecoration(
+        color: AppColors.danger.withValues(alpha: 0.90),
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(8.r),
+          bottomRight: Radius.circular(8.r),
         ),
-        decoration: BoxDecoration(
-          color: AppColors.danger.withValues(
-            alpha: 0.90,
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.wifi_off_rounded,
+            color: Colors.white,
+            size: 16.r,
           ),
-          borderRadius: BorderRadius.only(
-            bottomLeft: Radius.circular(8.r),
-            bottomRight: Radius.circular(8.r),
-          ),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.wifi_off_rounded,
+          SizedBox(width: 8.w),
+          Text(
+            'No internet connection',
+            style: AppTextStyles.caption.copyWith(
               color: Colors.white,
-              size: 16.r,
+              fontWeight: FontWeight.w600,
             ),
-            SizedBox(width: 8.w),
-            Text(
-              'No internet connection',
-              style: AppTextStyles.caption.copyWith(
-                color: Colors.white,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

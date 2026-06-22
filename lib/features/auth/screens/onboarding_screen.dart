@@ -5,14 +5,10 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:algolens/core/router/app_router.dart';
 import 'package:algolens/core/local/user_settings_service.dart';
+import 'package:algolens/core/theme/app_colors.dart';
 import 'package:algolens/core/widgets/app_background.dart';
 import 'package:algolens/core/widgets/app_button.dart';
-import 'package:algolens/core/theme/app_colors.dart';
-
-// ─────────────────────────────────
-// ONBOARDING DATA
-// 3 slides shown once only
-// ─────────────────────────────────
+import 'package:algolens/core/widgets/auth_bottom_layout.dart';
 
 class _OnboardingSlide {
   const _OnboardingSlide({
@@ -34,7 +30,7 @@ const _slides = [
     subtitle: 'Monitor your Codeforces rating '
         'history with beautiful charts '
         'and detailed insights.',
-    color: Color(0xFF4DA3FF),
+    color: AppColors.primary,
   ),
   _OnboardingSlide(
     icon: Icons.people_rounded,
@@ -42,7 +38,7 @@ const _slides = [
     subtitle: 'Compare stats, race on '
         'leaderboards and challenge '
         'friends to solve problems.',
-    color: Color(0xFF22C55E),
+    color: AppColors.success,
   ),
   _OnboardingSlide(
     icon: Icons.auto_awesome_rounded,
@@ -50,14 +46,9 @@ const _slides = [
     subtitle: 'Get personalized weak topic '
         'analysis and smart problem '
         'recommendations from AI.',
-    color: Color(0xFF00D4FF),
+    color: AppColors.primary,
   ),
 ];
-
-// ─────────────────────────────────
-// ONBOARDING SCREEN
-// Shown once on first launch
-// ─────────────────────────────────
 
 class OnboardingScreen extends ConsumerStatefulWidget {
   const OnboardingScreen({super.key});
@@ -76,33 +67,30 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     super.dispose();
   }
 
+  // Mark onboarding done then navigate
   Future<void> _finish() async {
-    final svc = ref.read(
-      userSettingsServiceProvider,
-    );
+    final svc = ref.read(userSettingsServiceProvider);
     await svc.completeOnboarding();
     if (!mounted) return;
-    context.goNamed(
-      RouteNames.register,
-    );
+    context.goNamed(RouteNames.register);
   }
 
-  void _skip() {
-    context.goNamed(
-      RouteNames.register,
-    );
+  // Skip also marks onboarding done
+  Future<void> _skip() async {
+    final svc = ref.read(userSettingsServiceProvider);
+    await svc.completeOnboarding();
+    if (!mounted) return;
+    context.goNamed(RouteNames.register);
   }
 
-  void _nextPage() {
+  Future<void> _nextPage() async {
     if (_currentPage < _slides.length - 1) {
       _pageCtrl.nextPage(
-        duration: const Duration(
-          milliseconds: 300,
-        ),
+        duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
       );
     } else {
-      _finish();
+      await _finish();
     }
   }
 
@@ -120,10 +108,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               Align(
                 alignment: Alignment.topRight,
                 child: Padding(
-                  padding: EdgeInsets.only(
-                    top: 16.h,
-                    right: 20.w,
-                  ),
+                  padding: EdgeInsets.only(top: 16.h, right: 20.w),
                   child: TextButton(
                     onPressed: _skip,
                     child: Text(
@@ -131,9 +116,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                       style: GoogleFonts.inter(
                         fontSize: 14.sp,
                         fontWeight: FontWeight.w500,
-                        color: Colors.white.withValues(
-                          alpha: 0.55,
-                        ),
+                        color: Colors.white.withValues(alpha: 0.55),
                       ),
                     ),
                   ),
@@ -165,9 +148,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: List.generate(
                         _slides.length,
-                        (i) => _Dot(
-                          active: i == _currentPage,
-                        ),
+                        (i) => _Dot(active: i == _currentPage),
                       ),
                     ),
 
@@ -181,21 +162,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
                     SizedBox(height: 16.h),
 
-                    // Login link
-                    GestureDetector(
-                      onTap: () => context.goNamed(
-                        RouteNames.login,
-                      ),
-                      child: Text(
-                        'Already have an account? Sign In',
-                        style: GoogleFonts.inter(
-                          fontSize: 13.sp,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.white.withValues(
-                            alpha: 0.55,
-                          ),
-                        ),
-                      ),
+                    // Login link — consistent with other auth screens
+                    AuthBottomLayout(
+                      prompt: 'Already have an account?',
+                      actionLabel: 'Sign In',
+                      onAction: () => context.goNamed(RouteNames.login),
                     ),
                   ],
                 ),
@@ -208,27 +179,17 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   }
 }
 
-// ─────────────────────────────────
-// SLIDE WIDGET
-// ─────────────────────────────────
-
 class _SlideWidget extends StatelessWidget {
-  const _SlideWidget({
-    required this.slide,
-  });
-
+  const _SlideWidget({required this.slide});
   final _OnboardingSlide slide;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.symmetric(
-        horizontal: 32.w,
-      ),
+      padding: EdgeInsets.symmetric(horizontal: 32.w),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Icon circle
           Container(
             width: 120.r,
             height: 120.r,
@@ -240,16 +201,11 @@ class _SlideWidget extends StatelessWidget {
                 width: 1.5,
               ),
             ),
-            child: Icon(
-              slide.icon,
-              color: slide.color,
-              size: 56.r,
-            ),
+            child: Icon(slide.icon, color: slide.color, size: 56.r),
           ),
 
           SizedBox(height: 40.h),
 
-          // Title
           Text(
             slide.title,
             style: GoogleFonts.inter(
@@ -262,7 +218,6 @@ class _SlideWidget extends StatelessWidget {
 
           SizedBox(height: 16.h),
 
-          // Subtitle
           Text(
             slide.subtitle,
             style: GoogleFonts.inter(
@@ -279,33 +234,22 @@ class _SlideWidget extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────
-// DOT INDICATOR
-// ─────────────────────────────────
-
 class _Dot extends StatelessWidget {
   const _Dot({required this.active});
-
   final bool active;
 
   @override
   Widget build(BuildContext context) {
     return AnimatedContainer(
-      duration: const Duration(
-        milliseconds: 300,
-      ),
-      margin: EdgeInsets.symmetric(
-        horizontal: 4.w,
-      ),
+      duration: const Duration(milliseconds: 300),
+      margin: EdgeInsets.symmetric(horizontal: 4.w),
       width: active ? 24.w : 8.w,
       height: 8.h,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(4.r),
         color: active
             ? AppColors.primary
-            : Colors.white.withValues(
-                alpha: 0.30,
-              ),
+            : Colors.white.withValues(alpha: 0.30),
       ),
     );
   }

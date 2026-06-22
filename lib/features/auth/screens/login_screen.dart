@@ -24,9 +24,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _emailCtrl = TextEditingController();
   final _passCtrl = TextEditingController();
 
-  // Shows resend banner when
-  // 403 email not verified
   bool _showResendBanner = false;
+  bool _isResending = false;
 
   @override
   void dispose() {
@@ -36,18 +35,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   bool get _canSubmit =>
-      _emailCtrl.text.trim().isNotEmpty && _passCtrl.text.trim().isNotEmpty;
+      _emailCtrl.text.trim().isNotEmpty &&
+      _passCtrl.text.trim().isNotEmpty;
 
   Future<void> _submit() async {
     if (!_canSubmit) return;
-    setState(() {
-      _showResendBanner = false;
-    });
-    await ref
-        .read(
-          loginProvider.notifier,
-        )
-        .login(
+    setState(() => _showResendBanner = false);
+    await ref.read(loginProvider.notifier).login(
           LoginRequest(
             email: _emailCtrl.text.trim(),
             password: _passCtrl.text.trim(),
@@ -56,14 +50,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   Future<void> _resend() async {
+    if (_isResending) return;
+    setState(() => _isResending = true);
     await ref
-        .read(
-          resendVerificationProvider.notifier,
-        )
-        .resendVerification(
-          _emailCtrl.text.trim(),
-        );
+        .read(resendVerificationProvider.notifier)
+        .resendVerification(_emailCtrl.text.trim());
     if (!mounted) return;
+    setState(() => _isResending = false);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
@@ -81,37 +74,22 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final authState = ref.watch(
-      loginProvider,
-    );
+    final authState = ref.watch(loginProvider);
 
-    // Navigate on success
-    ref.listen(
-      loginProvider,
-      (_, next) {
-        if (next is AuthSuccess) {
-          final notifier = ref.read(
-            loginProvider.notifier,
-          );
-          if (notifier.needsCfSetup) {
-            context.goNamed(
-              RouteNames.cfHandleSetup,
-            );
-          } else {
-            context.goNamed(
-              RouteNames.home,
-            );
-          }
+    ref.listen(loginProvider, (_, next) {
+      if (next is AuthSuccess) {
+        final notifier = ref.read(loginProvider.notifier);
+        if (notifier.needsCfSetup) {
+          context.goNamed(RouteNames.cfHandleSetup);
+        } else {
+          context.goNamed(RouteNames.home);
         }
-
-        // 403 email not verified
-        if (next is AuthError && next.message.toLowerCase().contains('verif')) {
-          setState(() {
-            _showResendBanner = true;
-          });
-        }
-      },
-    );
+      }
+      if (next is AuthError &&
+          next.message.toLowerCase().contains('verif')) {
+        setState(() => _showResendBanner = true);
+      }
+    });
 
     final isLoading = authState is AuthLoading;
 
@@ -129,7 +107,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               children: [
                 SizedBox(height: 40.h),
 
-                // Header
                 Text(
                   'Welcome Back',
                   style: GoogleFonts.inter(
@@ -153,17 +130,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 SizedBox(height: 32.h),
 
                 // Email not verified banner
-                if (_showResendBanner)
+                if (_showResendBanner) ...[
                   _ResendBanner(
                     onResend: _resend,
+                    isResending: _isResending,
                   ),
-
-                if (_showResendBanner) SizedBox(height: 16.h),
+                  SizedBox(height: 16.h),
+                ],
 
                 GlassCard(
                   child: Column(
                     children: [
-                      // Email
                       AppTextField(
                         label: 'Email Address',
                         hint: 'you@example.com',
@@ -176,7 +153,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
                       SizedBox(height: 16.h),
 
-                      // Password
                       AppTextField(
                         label: 'Password',
                         hint: 'Your password',
@@ -190,11 +166,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
                       SizedBox(height: 8.h),
 
-                      // Forgot password
+                      // Forgot password — push so user can go back
                       Align(
                         alignment: Alignment.centerRight,
                         child: TextButton(
-                          onPressed: () => context.goNamed(
+                          onPressed: () => context.pushNamed(
                             RouteNames.forgotPassword,
                           ),
                           child: Text(
@@ -210,7 +186,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
                       SizedBox(height: 8.h),
 
-                      // Error message
+                      // Error — only show when no resend banner
                       if (authState is AuthError && !_showResendBanner)
                         Padding(
                           padding: EdgeInsets.only(bottom: 16.h),
@@ -225,7 +201,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           ),
                         ),
 
-                      // Login button
                       AppButton(
                         label: 'Sign In',
                         onTap: _canSubmit ? _submit : null,
@@ -242,9 +217,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   child: AuthBottomLayout(
                     prompt: "Don't have an account?",
                     actionLabel: 'Register',
-                    onAction: () => context.goNamed(
-                      RouteNames.register,
-                    ),
+                    onAction: () => context.goNamed(RouteNames.register),
                   ),
                 ),
 
@@ -260,15 +233,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
 // ─────────────────────────────────
 // RESEND BANNER
-// Shows when 403 email not verified
 // ─────────────────────────────────
 
 class _ResendBanner extends StatelessWidget {
   const _ResendBanner({
     required this.onResend,
+    required this.isResending,
   });
 
   final VoidCallback onResend;
+  final bool isResending;
 
   @override
   Widget build(BuildContext context) {
@@ -317,14 +291,16 @@ class _ResendBanner extends StatelessWidget {
           ),
           SizedBox(height: 10.h),
           GestureDetector(
-            onTap: onResend,
+            onTap: isResending ? null : onResend,
             child: Text(
-              'Resend verification email',
+              isResending ? 'Sending...' : 'Resend verification email',
               style: GoogleFonts.inter(
                 fontSize: 13.sp,
                 fontWeight: FontWeight.w600,
-                color: AppColors.primary,
-                decoration: TextDecoration.underline,
+                color: isResending
+                    ? Colors.white.withValues(alpha: 0.40)
+                    : AppColors.primary,
+                decoration: isResending ? null : TextDecoration.underline,
                 decorationColor: AppColors.primary,
               ),
             ),
