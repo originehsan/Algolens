@@ -8,9 +8,7 @@ import 'package:algolens/core/network/dio_client.dart';
 import 'package:algolens/features/analysis/data/models/analysis_model.dart';
 
 final analysisRepositoryProvider = Provider<AnalysisRepository>(
-  (ref) => AnalysisRepository(
-    ref.watch(dioProvider),
-  ),
+  (ref) => AnalysisRepository(ref.watch(dioProvider)),
 );
 
 class AnalysisRepository {
@@ -21,8 +19,10 @@ class AnalysisRepository {
   // Groq AI takes 5-30s — extended timeout via raw Dio
   Future<AnalysisResponse> getAnalysis(String handle) async {
     try {
-      // Raw Dio used — DioClient.get() doesn't support options
-      final res = await _dio.get<Map<String, dynamic>>(
+      // Raw Dio used for extended 60s timeout
+      // Must use <dynamic> to avoid type cast crash
+      // with mock List responses
+      final res = await _dio.get<dynamic>(
         ApiEndpoints.aiAnalysis(handle),
         options: Options(
           receiveTimeout: const Duration(seconds: 60),
@@ -30,7 +30,8 @@ class AnalysisRepository {
         ),
       );
 
-      final data = res.data ?? <String, dynamic>{};
+      // Normalize response — handle Map or List
+      final data = _normalize(res.data);
 
       // Cache in Hive for fallback on next timeout
       await HiveService.cachedProfiles.put(
@@ -44,19 +45,24 @@ class AnalysisRepository {
       if (e.type == DioExceptionType.receiveTimeout ||
           e.type == DioExceptionType.sendTimeout ||
           e.type == DioExceptionType.connectionTimeout) {
-        final cached = HiveService.cachedProfiles.get('analysis_$handle');
+        final cached =
+            HiveService.cachedProfiles.get('analysis_$handle');
         if (cached != null) {
-          return AnalysisResponse.fromJson(
-            jsonDecode(cached as String) as Map<String, dynamic>,
-          );
+          try {
+            return AnalysisResponse.fromJson(
+              jsonDecode(cached as String) as Map<String, dynamic>,
+            );
+          } catch (_) {}
         }
         throw const ApiException(
-          message: 'Analysis timed out. Please try again.',
+          message:
+              'Analysis timed out. Please try again.',
           type: ApiExceptionType.timeout,
         );
       }
       throw ApiException(
-        message: e.message ?? 'Analysis failed',
+        message: e.message ??
+            'Analysis failed. Please try again.',
         type: ApiExceptionType.serverError,
         statusCode: e.response?.statusCode,
       );
@@ -64,7 +70,8 @@ class AnalysisRepository {
       rethrow;
     } catch (e) {
       // Try cache fallback on any error
-      final cached = HiveService.cachedProfiles.get('analysis_$handle');
+      final cached =
+          HiveService.cachedProfiles.get('analysis_$handle');
       if (cached != null) {
         try {
           return AnalysisResponse.fromJson(
@@ -72,10 +79,24 @@ class AnalysisRepository {
           );
         } catch (_) {}
       }
-      throw ApiException(
-        message: e.toString(),
+      throw const ApiException(
+        message: 'Analysis failed. Please try again.',
         type: ApiExceptionType.unknown,
       );
     }
+  }
+
+  // ────────────────────────────
+  // NORMALIZE
+  // Same as DioClient._normalize()
+  // Handles Map, List, null
+  // ────────────────────────────
+
+  Map<String, dynamic> _normalize(dynamic data) {
+    if (data == null) return <String, dynamic>{};
+    if (data is Map<String, dynamic>) return data;
+    if (data is Map) return Map<String, dynamic>.from(data);
+    if (data is List) return <String, dynamic>{'data': data};
+    return <String, dynamic>{};
   }
 }

@@ -19,22 +19,24 @@ class UpsolveRepository {
       final data = await _client.get(ApiEndpoints.upsolve(handle));
       final items = <UpsolveModel>[];
 
-      // data is always Map<String, dynamic> from DioClient.get()
-      // Keys are contestId strings, values are lists of problems
+      // Upsolve response is Map<contestId, List<problems>>
+      // e.g. {'1991': [...], '1981': [...]}
+      // DioClient._normalize() passes Map through as-is ✅
+      // We need to skip non-contest keys like 'message'
       data.forEach((contestId, problems) {
-        if (problems is List) {
-          for (final p in problems) {
-            if (p is Map<String, dynamic>) {
-              final key =
-                  '${p['contestId'] ?? contestId}_${p['index'] ?? ''}';
-              final done = isDone(key);
-              items.add(UpsolveModel.fromJson(p, isCompleted: done));
-            }
-          }
+        // Skip non-list values (e.g. 'message', 'status' keys)
+        if (problems is! List) return;
+
+        for (final p in problems) {
+          if (p is! Map<String, dynamic>) continue;
+          final key =
+              '${p['contestId'] ?? contestId}_${p['index'] ?? ''}';
+          final done = isDone(key);
+          items.add(UpsolveModel.fromJson(p, isCompleted: done));
         }
       });
 
-      // Sort weak topics first, then by rating ascending
+      // Sort: weak topics first, then by rating ascending
       items.sort((a, b) {
         if (a.isWeakTopic && !b.isWeakTopic) return -1;
         if (!a.isWeakTopic && b.isWeakTopic) return 1;
@@ -45,8 +47,8 @@ class UpsolveRepository {
     } on ApiException {
       rethrow;
     } catch (e) {
-      throw ApiException(
-        message: e.toString(),
+      throw const ApiException(
+        message: 'Failed to load upsolve list. Please try again.',
         type: ApiExceptionType.unknown,
       );
     }
@@ -71,7 +73,8 @@ class UpsolveRepository {
       problemKey,
       jsonEncode({
         'isCompleted': !current,
-        'completedAt': !current ? DateTime.now().toIso8601String() : null,
+        'completedAt':
+            !current ? DateTime.now().toIso8601String() : null,
       }),
     );
   }

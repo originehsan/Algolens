@@ -9,50 +9,25 @@ import 'package:algolens/features/profile/data/models/rating_graph_model.dart';
 import 'package:algolens/features/profile/data/models/submission_stats_model.dart';
 import 'package:algolens/features/profile/data/models/contest_history_model.dart';
 
-// ─────────────────────────────────
-// PROVIDER
-// ─────────────────────────────────
-
-final profileRepositoryProvider =
-    Provider<ProfileRepository>((ref) {
-  return ProfileRepository(
-    ref.watch(dioClientProvider),
-  );
+final profileRepositoryProvider = Provider<ProfileRepository>((ref) {
+  return ProfileRepository(ref.watch(dioClientProvider));
 });
-
-// ─────────────────────────────────
-// REPOSITORY
-// ─────────────────────────────────
 
 class ProfileRepository {
   ProfileRepository(this._client);
-
   final DioClient _client;
 
-  // ───────────────────────────────
-  // GET PROFILE
-  // Checks Hive cache first (5 min)
-  // Falls back to API
-  // ───────────────────────────────
-
-  Future<ProfileModel> getProfile(
-    String handle,
-  ) async {
+  Future<ProfileModel> getProfile(String handle) async {
     final box = HiveService.cachedProfiles;
 
     // Check cache first
     final raw = box.get(handle) as String?;
     if (raw != null) {
       try {
-        final map =
-            jsonDecode(raw) as Map<String, dynamic>;
-        final cachedAt = DateTime.parse(
-          map['cachedAt'] as String,
-        );
-        final isValid = DateTime.now()
-                .difference(cachedAt)
-                .inMinutes <
-            5;
+        final map = jsonDecode(raw) as Map<String, dynamic>;
+        final cachedAt = DateTime.parse(map['cachedAt'] as String);
+        final isValid =
+            DateTime.now().difference(cachedAt).inMinutes < 5;
         if (isValid) {
           return ProfileModel.fromJson(map);
         }
@@ -61,14 +36,10 @@ class ProfileRepository {
       }
     }
 
-    // Fetch from API
     try {
-      final data = await _client.get(
-        ApiEndpoints.profile(handle),
-      );
+      final data = await _client.get(ApiEndpoints.profile(handle));
       final profile = ProfileModel.fromJson(data);
 
-      // Save to cache with timestamp
       await box.put(
         handle,
         jsonEncode({
@@ -81,104 +52,86 @@ class ProfileRepository {
     } on ApiException {
       rethrow;
     } catch (e) {
-      throw ApiException(
-        message: e.toString(),
+      throw const ApiException(
+        message: 'Failed to load profile. Please try again.',
         type: ApiExceptionType.unknown,
       );
     }
   }
 
-  // ───────────────────────────────
-  // GET RATING GRAPH
-  // No cache — always fresh
-  // ───────────────────────────────
-
-  Future<List<RatingGraphModel>> getRatingGraph(
-    String handle,
-  ) async {
+  Future<List<RatingGraphModel>> getRatingGraph(String handle) async {
     try {
-      final data = await _client.get(
-        ApiEndpoints.ratingGraph(handle),
-      );
-      final list = data['data'] as List<dynamic>? ??
-          (data is List ? data as List<dynamic> : <dynamic>[]);
+      final data = await _client.get(ApiEndpoints.ratingGraph(handle));
+      // Mock returns List → DioClient wraps as {'data': [...]}
+      // Real API may return {'data': [...]} or direct list
+      final list = _extractList(data, keys: ['data']);
       return list
-          .map(
-            (e) => RatingGraphModel.fromJson(
-              e as Map<String, dynamic>,
-            ),
-          )
+          .map((e) => RatingGraphModel.fromJson(e as Map<String, dynamic>))
           .toList();
     } on ApiException {
       rethrow;
     } catch (e) {
-      throw ApiException(
-        message: e.toString(),
+      throw const ApiException(
+        message: 'Failed to load rating history. Please try again.',
         type: ApiExceptionType.unknown,
       );
     }
   }
 
-  // ───────────────────────────────
-  // GET SUBMISSION STATS
-  // No cache — always fresh
-  // ───────────────────────────────
-
-  Future<SubmissionStatsModel> getSubmissionStats(
-    String handle,
-  ) async {
+  Future<SubmissionStatsModel> getSubmissionStats(String handle) async {
     try {
-      final data = await _client.get(
-        ApiEndpoints.submissionStats(handle),
-      );
+      final data =
+          await _client.get(ApiEndpoints.submissionStats(handle));
       return SubmissionStatsModel.fromJson(data);
     } on ApiException {
       rethrow;
     } catch (e) {
-      throw ApiException(
-        message: e.toString(),
+      throw const ApiException(
+        message: 'Failed to load submission stats. Please try again.',
         type: ApiExceptionType.unknown,
       );
     }
   }
 
-  // ───────────────────────────────
-  // GET CONTEST HISTORY
-  // No cache — always fresh
-  // ───────────────────────────────
-
   Future<List<ContestHistoryModel>> getContestHistory(
-    String handle,
-  ) async {
+      String handle) async {
     try {
-      final data = await _client.get(
-        ApiEndpoints.contestHistory(handle),
-      );
-      final list = data['data'] as List<dynamic>? ??
-          (data is List ? data as List<dynamic> : <dynamic>[]);
+      final data =
+          await _client.get(ApiEndpoints.contestHistory(handle));
+      // Mock returns List → DioClient wraps as {'data': [...]}
+      // Real API may return {'data': [...]} or direct list
+      final list = _extractList(data, keys: ['data']);
       return list
           .map(
-            (e) => ContestHistoryModel.fromJson(
-              e as Map<String, dynamic>,
-            ),
-          )
+              (e) => ContestHistoryModel.fromJson(e as Map<String, dynamic>))
           .toList();
     } on ApiException {
       rethrow;
     } catch (e) {
-      throw ApiException(
-        message: e.toString(),
+      throw const ApiException(
+        message: 'Failed to load contest history. Please try again.',
         type: ApiExceptionType.unknown,
       );
     }
   }
 
-  // ───────────────────────────────
-  // CLEAR PROFILE CACHE
-  // Called on logout
-  // ───────────────────────────────
-
   Future<void> clearCache(String handle) async {
     await HiveService.cachedProfiles.delete(handle);
+  }
+
+  // ────────────────────────────
+  // EXTRACT LIST
+  // Handles DioClient wrapped
+  // list responses
+  // ────────────────────────────
+
+  List<dynamic> _extractList(
+    Map<String, dynamic> data, {
+    required List<String> keys,
+  }) {
+    for (final key in keys) {
+      if (data[key] is List) return data[key] as List;
+    }
+    return [];
   }
 }

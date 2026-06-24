@@ -1,3 +1,4 @@
+import 'package:algolens/core/errors/app_exceptions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -58,7 +59,9 @@ class ComparisonScreen extends ConsumerWidget {
                         height: 300.h,
                       ),
                       error: (e, s) => AppErrorWidget(
-                        message: e.toString(),
+                        message: e is ApiException
+                            ? e.message
+                            : 'Something went wrong. Please try again.',
                         onRetry: () => ref.invalidate(
                           compareRatingProvider(
                             (

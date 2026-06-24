@@ -52,69 +52,121 @@ class DioClient {
   DioClient(this._dio);
   final Dio _dio;
 
+  // ────────────────────────────
+  // GET
+  // Returns Map — if response is
+  // List, wraps in {'data': list}
+  // ────────────────────────────
+
   Future<Map<String, dynamic>> get(
     String path, {
     Map<String, dynamic>? queryParameters,
   }) async {
     try {
-      final res = await _dio.get<Map<String, dynamic>>(
+      final res = await _dio.get<dynamic>(
         path,
         queryParameters: queryParameters,
       );
-      return res.data ?? <String, dynamic>{};
+      return _normalize(res.data);
     } on DioException catch (e) {
       throw _handleError(e);
+    } catch (e) {
+      throw const ApiException(
+        message: 'Something went wrong. Please try again.',
+        type: ApiExceptionType.unknown,
+      );
     }
   }
+
+  // ────────────────────────────
+  // POST
+  // ────────────────────────────
 
   Future<Map<String, dynamic>> post(
     String path, {
     Map<String, dynamic>? body,
   }) async {
     try {
-      final res = await _dio.post<Map<String, dynamic>>(
+      final res = await _dio.post<dynamic>(
         path,
         data: body,
       );
-      return res.data ?? <String, dynamic>{};
+      return _normalize(res.data);
     } on DioException catch (e) {
       throw _handleError(e);
+    } catch (e) {
+      throw const ApiException(
+        message: 'Something went wrong. Please try again.',
+        type: ApiExceptionType.unknown,
+      );
     }
   }
+
+  // ────────────────────────────
+  // DELETE
+  // ────────────────────────────
 
   Future<Map<String, dynamic>> delete(
     String path, {
     Map<String, dynamic>? body,
   }) async {
     try {
-      final res = await _dio.delete<Map<String, dynamic>>(
+      final res = await _dio.delete<dynamic>(
         path,
         data: body,
       );
-      return res.data ?? <String, dynamic>{};
+      return _normalize(res.data);
     } on DioException catch (e) {
       throw _handleError(e);
+    } catch (e) {
+      throw const ApiException(
+        message: 'Something went wrong. Please try again.',
+        type: ApiExceptionType.unknown,
+      );
     }
   }
+
+  // ────────────────────────────
+  // NORMALIZE
+  // Handles both Map and List
+  // responses from mock + real API
+  // List → {'data': list}
+  // Map  → as-is
+  // null → {}
+  // ────────────────────────────
+
+  Map<String, dynamic> _normalize(dynamic data) {
+    if (data == null) return <String, dynamic>{};
+    if (data is Map<String, dynamic>) return data;
+    if (data is Map) return Map<String, dynamic>.from(data);
+    if (data is List) return <String, dynamic>{'data': data};
+    return <String, dynamic>{};
+  }
+
+  // ────────────────────────────
+  // ERROR HANDLER
+  // User-friendly messages only
+  // No raw exception text to UI
+  // ────────────────────────────
 
   ApiException _handleError(DioException e) {
     switch (e.type) {
       case DioExceptionType.connectionError:
         return const ApiException(
-          message: 'No internet connection',
+          message: 'No internet connection. Check your network.',
           type: ApiExceptionType.noInternet,
         );
       case DioExceptionType.connectionTimeout:
       case DioExceptionType.receiveTimeout:
       case DioExceptionType.sendTimeout:
         return const ApiException(
-          message: 'Request timeout',
+          message: 'Connection timed out. Please try again.',
           type: ApiExceptionType.timeout,
         );
       case DioExceptionType.badResponse:
         final code = e.response?.statusCode;
-        final msg = e.response?.data?['message'] as String? ??
-            'Something went wrong';
+        final msg = _extractMessage(e.response?.data) ??
+            'Something went wrong. Please try again.';
         return switch (code) {
           400 => ApiException(
               message: msg,
@@ -148,10 +200,22 @@ class DioClient {
             ),
         };
       default:
-        return ApiException(
-          message: e.message ?? 'Unknown error',
+        return const ApiException(
+          message: 'Something went wrong. Please try again.',
           type: ApiExceptionType.unknown,
         );
     }
+  }
+
+  // ────────────────────────────
+  // EXTRACT MESSAGE
+  // Safely read 'message' from
+  // error response body
+  // ────────────────────────────
+
+  String? _extractMessage(dynamic data) {
+    if (data == null) return null;
+    if (data is Map) return data['message'] as String?;
+    return null;
   }
 }

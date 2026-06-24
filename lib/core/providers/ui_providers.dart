@@ -17,38 +17,11 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 /// Emits List<ConnectivityResult>
 /// Watch to detect internet changes
 /// Used by OfflineBanner
-///
-/// Usage:
-/// ref.watch(
-///   connectivityStreamProvider,
-/// ).when(...)
 final connectivityStreamProvider = StreamProvider<List<ConnectivityResult>>(
   (ref) {
     return Connectivity().onConnectivityChanged;
   },
 );
-
-// ────────────────────────────
-// BOTTOM NAV
-// Tracks active tab index
-// ────────────────────────────
-
-/// Active bottom nav tab index
-///
-/// 0 = Home
-/// 1 = Contests
-/// 2 = Practice
-/// 3 = Friends
-///
-/// Usage:
-/// final idx = ref.watch(
-///   bottomNavIndexProvider,
-/// );
-/// ref.read(
-///   bottomNavIndexProvider
-///     .notifier,
-/// ).state = 1;
-final bottomNavIndexProvider = StateProvider<int>((ref) => 0);
 
 // ────────────────────────────
 // OFFLINE BANNER
@@ -57,15 +30,6 @@ final bottomNavIndexProvider = StateProvider<int>((ref) => 0);
 
 /// Whether offline banner
 /// is currently visible
-///
-/// Set true when connectivity
-/// lost, false when restored
-///
-/// Usage:
-/// ref.read(
-///   offlineBannerVisibleProvider
-///     .notifier,
-/// ).state = true;
 final offlineBannerVisibleProvider = StateProvider<bool>((ref) => false);
 
 // ────────────────────────────
@@ -73,16 +37,14 @@ final offlineBannerVisibleProvider = StateProvider<bool>((ref) => false);
 // Snapchat style flow
 // ────────────────────────────
 
-/// Current notification
-/// permission status
+/// Current notification permission status
 ///
 /// Used by:
 /// → Home screen banner
 /// → Settings screen
 /// → Permission bottom sheet
 ///
-/// Refreshed after user
-/// grants/denies permission
+/// Refreshed after user grants/denies
 final notifPermissionStatusProvider = FutureProvider(
   (ref) async {
     return await Permission.notification.status;
@@ -94,17 +56,13 @@ final notifPermissionStatusProvider = FutureProvider(
 // Show onboarding once only
 // ────────────────────────────
 
-/// Whether this is the
-/// user's first app launch
+/// Whether this is the user's first app launch
 ///
-/// Read from UserSettings
-/// via Isar on app start
+/// Read from UserSettings via Hive on app start
 ///
 /// true  = show onboarding
 /// false = skip onboarding
 ///
-/// Set false after onboarding
-/// completes via
-/// UserSettingsService
-///   .completeOnboarding()
+/// Set false after onboarding completes via
+/// UserSettingsService.completeOnboarding()
 final isFirstLaunchProvider = StateProvider<bool>((ref) => true);

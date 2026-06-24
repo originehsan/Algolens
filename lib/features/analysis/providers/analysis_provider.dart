@@ -50,7 +50,8 @@ class AiAnalysisNotifier extends StateNotifier<AnalysisState> {
       final handle = await SecureStorage.getCfHandle();
       if (handle == null || handle.isEmpty) {
         state = const AnalysisError(
-          message: 'No CF handle found. Please set up your handle first.',
+          message:
+              'No CF handle found. Please set up your handle first.',
         );
         return;
       }
@@ -60,9 +61,13 @@ class AiAnalysisNotifier extends StateNotifier<AnalysisState> {
 
       state = AnalysisSuccess(response: response);
     } on ApiException catch (e) {
+      // ApiException already has user-friendly message
       state = AnalysisError(message: e.message);
     } catch (e) {
-      state = AnalysisError(message: e.toString());
+      // Unknown error — show generic message, not raw exception
+      state = const AnalysisError(
+        message: 'Analysis failed. Please try again.',
+      );
     }
   }
 

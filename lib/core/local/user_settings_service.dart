@@ -92,7 +92,8 @@ final userSettingsServiceProvider = Provider<UserSettingsService>(
 class UserSettingsService {
   UserSettingsService() {
     _ctrl = StreamController<UserSettings>.broadcast();
-    _emit();
+    // Emit after first frame so StreamProvider listener is ready
+    Future.microtask(_emit);
     _box.listenable().addListener(_emit);
   }
 

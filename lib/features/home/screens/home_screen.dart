@@ -3,9 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:algolens/core/errors/app_exceptions.dart';
 import 'package:algolens/core/router/app_router.dart';
 import 'package:algolens/core/theme/app_colors.dart';
 import 'package:algolens/core/widgets/app_background.dart';
+import 'package:algolens/core/widgets/contest_card.dart';
+import 'package:algolens/core/widgets/empty_widget.dart';
 import 'package:algolens/core/widgets/glass_card.dart';
 import 'package:algolens/core/widgets/loading_shimmer.dart';
 import 'package:algolens/core/widgets/offline_banner.dart';
@@ -14,6 +17,7 @@ import 'package:algolens/core/widgets/rank_chip.dart';
 import 'package:algolens/core/widgets/section_header.dart';
 import 'package:algolens/core/widgets/stat_card.dart';
 import 'package:algolens/core/widgets/user_avatar.dart';
+import 'package:algolens/features/contests/providers/contest_provider.dart';
 import 'package:algolens/features/home/data/models/home_model.dart';
 import 'package:algolens/features/home/providers/home_provider.dart';
 import 'package:algolens/features/profile/data/models/profile_model.dart';
@@ -36,13 +40,15 @@ class HomeScreen extends ConsumerWidget {
               child: handleAsync.when(
                 loading: () => const _LoadingBody(),
                 error: (e, s) => _ErrorBody(
-                  error: e.toString(),
+                  error: e is ApiException
+                      ? e.message
+                      : 'Something went wrong. Please try again.',
                   onRetry: () => ref.invalidate(cfHandleProvider),
                 ),
                 data: (handle) {
                   if (handle == null || handle.isEmpty) {
                     return _ErrorBody(
-                      error: 'Handle not set',
+                      error: 'Handle not set. Please set up your CF handle.',
                       onRetry: () => ref.invalidate(cfHandleProvider),
                     );
                   }
@@ -66,6 +72,7 @@ class _HomeBody extends ConsumerWidget {
     final profileAsync = ref.watch(profileProvider(handle));
     final readinessAsync = ref.watch(homeReadinessProvider);
     final deltaAsync = ref.watch(ratingDeltaProvider);
+    final contestsAsync = ref.watch(upcomingContestsProvider);
 
     return RefreshIndicator(
       color: AppColors.primary,
@@ -74,6 +81,7 @@ class _HomeBody extends ConsumerWidget {
         ref.invalidate(profileProvider(handle));
         ref.invalidate(homeReadinessProvider);
         ref.invalidate(ratingDeltaProvider);
+        ref.invalidate(upcomingContestsProvider);
       },
       child: CustomScrollView(
         slivers: [
@@ -88,7 +96,6 @@ class _HomeBody extends ConsumerWidget {
                 _Header(
                   handle: handle,
                   profileAsync: profileAsync,
-                  // push so user can go back to home
                   onAvatarTap: () => context.pushNamed(RouteNames.profile),
                 ),
                 SizedBox(height: 20.h),
@@ -114,30 +121,53 @@ class _HomeBody extends ConsumerWidget {
                   onAction: () => context.goNamed(RouteNames.contests),
                 ),
                 SizedBox(height: 12.h),
-                GlassCard(
-                  child: Center(
-                    child: Padding(
-                      padding: EdgeInsets.all(24.r),
-                      child: Column(
-                        children: [
-                          Icon(
-                            Icons.emoji_events_rounded,
-                            color: AppColors.primary.withValues(alpha: 0.50),
-                            size: 32.r,
-                          ),
-                          SizedBox(height: 12.h),
-                          Text(
-                            'Contest data coming soon',
-                            style: GoogleFonts.inter(
-                              fontSize: 14.sp,
-                              fontWeight: FontWeight.w500,
-                              color: Colors.white.withValues(alpha: 0.55),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                // ──────────────────────
+                // UPCOMING CONTESTS
+                // Real data, max 3, no bell
+                // ──────────────────────
+                contestsAsync.when(
+                  loading: () => Column(
+                    children: [
+                      GlassCardShimmer(height: 80.h),
+                      SizedBox(height: 10.h),
+                      GlassCardShimmer(height: 80.h),
+                      SizedBox(height: 10.h),
+                      GlassCardShimmer(height: 80.h),
+                    ],
                   ),
+                  error: (e, s) => const SizedBox.shrink(),
+                  data: (contests) {
+                    if (contests.isEmpty) {
+                      return const EmptyWidget(
+                        icon: Icons.emoji_events_rounded,
+                        message: 'No upcoming contests',
+                        subtitle: 'Check back later',
+                      );
+                    }
+                    final limited =
+                        contests.length > 3 ? contests.sublist(0, 3) : contests;
+                    return Column(
+                      children: limited
+                          .map(
+                            (c) => ContestCard(
+                              contestId: c.contestId,
+                              name: c.name,
+                              status: c.isLive
+                                  ? ContestStatus.live
+                                  : c.isUpcoming
+                                      ? ContestStatus.upcoming
+                                      : ContestStatus.finished,
+                              difficulty: c.difficulty,
+                              startDateTime: c.startDateTime,
+                              durationFormatted: c.durationFormatted,
+                              hasReminder: false,
+                              onReminderTap: () {},
+                              margin: EdgeInsets.only(bottom: 10.h),
+                            ),
+                          )
+                          .toList(),
+                    );
+                  },
                 ),
                 SizedBox(height: 100.h),
               ]),
@@ -148,6 +178,11 @@ class _HomeBody extends ConsumerWidget {
     );
   }
 }
+
+// ─────────────────────────────────
+// HEADER
+// Hey, {handle} 👋
+// ─────────────────────────────────
 
 class _Header extends StatelessWidget {
   const _Header({
@@ -160,13 +195,6 @@ class _Header extends StatelessWidget {
   final AsyncValue<ProfileModel> profileAsync;
   final VoidCallback onAvatarTap;
 
-  String _greeting() {
-    final hour = DateTime.now().hour;
-    if (hour < 12) return 'Good morning';
-    if (hour < 17) return 'Good afternoon';
-    return 'Good evening';
-  }
-
   @override
   Widget build(BuildContext context) {
     return Row(
@@ -176,16 +204,7 @@ class _Header extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                _greeting(),
-                style: GoogleFonts.inter(
-                  fontSize: 13.sp,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.white.withValues(alpha: 0.55),
-                ),
-              ),
-              SizedBox(height: 2.h),
-              Text(
-                handle,
+                'Hey, $handle 👋',
                 style: GoogleFonts.inter(
                   fontSize: 22.sp,
                   fontWeight: FontWeight.w700,
@@ -222,6 +241,10 @@ class _Header extends StatelessWidget {
     );
   }
 }
+
+// ─────────────────────────────────
+// RATING HERO CARD
+// ─────────────────────────────────
 
 class _RatingHeroCard extends StatelessWidget {
   const _RatingHeroCard({
@@ -335,6 +358,10 @@ class _RatingHeroCard extends StatelessWidget {
   }
 }
 
+// ─────────────────────────────────
+// STATS ROW
+// ─────────────────────────────────
+
 class _StatsRow extends StatelessWidget {
   const _StatsRow({required this.profile});
   final ProfileModel profile;
@@ -374,6 +401,10 @@ class _StatsRow extends StatelessWidget {
   }
 }
 
+// ─────────────────────────────────
+// LOADING BODY
+// ─────────────────────────────────
+
 class _LoadingBody extends StatelessWidget {
   const _LoadingBody();
 
@@ -393,6 +424,10 @@ class _LoadingBody extends StatelessWidget {
     );
   }
 }
+
+// ─────────────────────────────────
+// ERROR BODY
+// ─────────────────────────────────
 
 class _ErrorBody extends StatelessWidget {
   const _ErrorBody({

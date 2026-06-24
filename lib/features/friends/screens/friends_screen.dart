@@ -3,8 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:algolens/core/errors/app_exceptions.dart';
 import 'package:algolens/core/router/app_router.dart';
 import 'package:algolens/core/theme/app_colors.dart';
+import 'package:algolens/core/theme/app_text_styles.dart';
 import 'package:algolens/core/widgets/app_background.dart';
 import 'package:algolens/core/widgets/app_button.dart';
 import 'package:algolens/core/widgets/app_text_field.dart';
@@ -137,6 +140,8 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> {
                       ],
                     ),
                     SizedBox(height: 16.h),
+                    // Unsolved by me card
+                    const _UnsolvedByMeCard(),
                     // Tabs
                     SegmentedTab(
                       tabs: const [
@@ -170,6 +175,59 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> {
 }
 
 // ─────────────────────────────────
+// UNSOLVED BY ME CARD
+// ─────────────────────────────────
+
+class _UnsolvedByMeCard extends ConsumerWidget {
+  const _UnsolvedByMeCard();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final async = ref.watch(unsolvedByMeProvider);
+
+    return async.when(
+      loading: () => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
+      data: (list) {
+        if (list.isEmpty) return const SizedBox.shrink();
+        final item = list.first;
+        return GlassCard(
+          type: GlassCardType.warning,
+          margin: EdgeInsets.only(bottom: 16.h),
+          onTap: () => launchUrl(
+            Uri.parse(
+              'https://codeforces.com/contest/'
+              '${item['contestId']}/problem/${item['index']}',
+            ),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                Icons.people_rounded,
+                color: AppColors.warning,
+                size: 18.r,
+              ),
+              SizedBox(width: 10.w),
+              Expanded(
+                child: Text(
+                  '${item['handle']} solved ${item['name']} — can you?',
+                  style: AppTextStyles.bodySmall,
+                ),
+              ),
+              Icon(
+                Icons.arrow_forward_ios_rounded,
+                color: AppColors.warning,
+                size: 14.r,
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+// ─────────────────────────────────
 // FRIENDS LIST TAB
 // ─────────────────────────────────
 
@@ -192,7 +250,9 @@ class _FriendsList extends ConsumerWidget {
     return friendsAsync.when(
       loading: () => const FriendsListShimmer(),
       error: (e, s) => AppErrorWidget(
-        message: e.toString(),
+        message: e is ApiException
+            ? e.message
+            : 'Something went wrong. Please try again.',
         onRetry: () => ref.invalidate(
           friendsProvider,
         ),
@@ -396,7 +456,9 @@ class _LeaderboardList extends ConsumerWidget {
     return async.when(
       loading: () => const FriendsListShimmer(),
       error: (e, s) => AppErrorWidget(
-        message: e.toString(),
+        message: e is ApiException
+            ? e.message
+            : 'Something went wrong. Please try again.',
         onRetry: () => ref.invalidate(
           leaderboardProvider,
         ),
@@ -437,7 +499,6 @@ class _LeaderboardTile extends StatelessWidget {
       ),
       child: Row(
         children: [
-          // Rank medal
           SizedBox(
             width: 40.r,
             child: Center(
@@ -503,7 +564,9 @@ class _StreaksList extends ConsumerWidget {
     return async.when(
       loading: () => const FriendsListShimmer(),
       error: (e, s) => AppErrorWidget(
-        message: e.toString(),
+        message: e is ApiException
+            ? e.message
+            : 'Something went wrong. Please try again.',
         onRetry: () => ref.invalidate(
           streakCompareProvider,
         ),

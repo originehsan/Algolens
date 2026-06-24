@@ -1,3 +1,4 @@
+import 'package:algolens/core/errors/app_exceptions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -51,7 +52,9 @@ class AllContestsScreen extends ConsumerWidget {
                 ),
                 error: (e, s) => SliverToBoxAdapter(
                   child: AppErrorWidget(
-                    message: e.toString(),
+                    message: e is ApiException
+                        ? e.message
+                        : 'Something went wrong. Please try again.',
                     onRetry: () => notifier.refresh(),
                   ),
                 ),

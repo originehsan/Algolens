@@ -5,7 +5,7 @@
 ///   when backend not running
 /// → Change useMock to false
 ///   when backend is running
-/// → Never hardcode baseUrl
+/// → Never hardcode baseUrld
 ///   in any other file
 /// → Always use EnvConfig.baseUrl
 library algolens.core.config.env_config;

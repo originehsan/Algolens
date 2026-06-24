@@ -1,12 +1,15 @@
+import 'package:algolens/core/local/share_profile_service.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:algolens/core/errors/app_exceptions.dart';
 import 'package:algolens/core/router/app_router.dart';
 import 'package:algolens/core/theme/app_colors.dart';
 import 'package:algolens/core/widgets/app_background.dart';
+import 'package:algolens/core/widgets/app_button.dart';
 import 'package:algolens/core/widgets/error_widget.dart';
 import 'package:algolens/core/widgets/glass_card.dart';
 import 'package:algolens/core/widgets/loading_shimmer.dart';
@@ -32,13 +35,14 @@ class ProfileScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Load own handle from SecureStorage
     final handleAsync = ref.watch(cfHandleProvider);
 
     return handleAsync.when(
       loading: () => _LoadingView(),
       error: (e, s) => _ErrorView(
-        message: e.toString(),
+        message: e is ApiException
+            ? e.message
+            : 'Something went wrong. Please try again.',
         onRetry: () => ref.invalidate(cfHandleProvider),
       ),
       data: (handle) {
@@ -74,7 +78,9 @@ class _ProfileContent extends ConsumerWidget {
     return profileAsync.when(
       loading: () => _LoadingView(),
       error: (e, s) => _ErrorView(
-        message: e.toString(),
+        message: e is ApiException
+            ? e.message
+            : 'Something went wrong. Please try again.',
         onRetry: () {
           ref.invalidate(profileProvider(handle));
           ref.invalidate(ratingGraphProvider(handle));
@@ -112,7 +118,17 @@ class _ProfileContent extends ConsumerWidget {
                   ),
                   actions: [
                     IconButton(
-                      onPressed: () => context.goNamed(RouteNames.settings),
+                      onPressed: () =>
+                          ShareProfileService.share(context, profile),
+                      icon: Icon(
+                        Icons.share_rounded,
+                        color: Colors.white.withValues(alpha: 0.70),
+                        size: 22.r,
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () =>
+                          context.pushNamed(RouteNames.settings),
                       icon: Icon(
                         Icons.settings_rounded,
                         color: Colors.white.withValues(alpha: 0.70),
@@ -130,7 +146,6 @@ class _ProfileContent extends ConsumerWidget {
 
                       // ──────────────────────
                       // HEADER CARD
-                      // Avatar + handle + rank
                       // ──────────────────────
                       _HeaderCard(profile: profile),
 
@@ -145,7 +160,6 @@ class _ProfileContent extends ConsumerWidget {
 
                       // ──────────────────────
                       // STATS ROW
-                      // Solved / Contests / Streak
                       // ──────────────────────
                       Row(
                         children: [
@@ -215,6 +229,35 @@ class _ProfileContent extends ConsumerWidget {
                         loading: () => GlassCardShimmer(height: 200.h),
                         error: (e, s) => const SizedBox.shrink(),
                         data: (history) => _ContestHistory(items: history),
+                      ),
+
+                      SizedBox(height: 20.h),
+
+                      // ──────────────────────
+                      // ACTION BUTTONS
+                      // Friends + AI Analysis
+                      // ──────────────────────
+                      Row(
+                        children: [
+                          Expanded(
+                            child: AppButton(
+                              label: 'Friends',
+                              type: AppButtonType.outline,
+                              icon: Icons.people_rounded,
+                              onTap: () =>
+                                  context.pushNamed(RouteNames.friends),
+                            ),
+                          ),
+                          SizedBox(width: 12.w),
+                          Expanded(
+                            child: AppButton(
+                              label: 'AI Analysis',
+                              icon: Icons.auto_awesome_rounded,
+                              onTap: () =>
+                                  context.pushNamed(RouteNames.aiAnalysis),
+                            ),
+                          ),
+                        ],
                       ),
 
                       SizedBox(height: 100.h),
@@ -336,7 +379,9 @@ class _RatingCard extends StatelessWidget {
                       style: GoogleFonts.inter(
                         fontSize: 13.sp,
                         fontWeight: FontWeight.w600,
-                        color: isPositive ? AppColors.success : AppColors.danger,
+                        color: isPositive
+                            ? AppColors.success
+                            : AppColors.danger,
                       ),
                     ),
                   ],
@@ -618,7 +663,6 @@ class _ContestItem extends StatelessWidget {
 
 // ─────────────────────────────────
 // LOADING VIEW
-// Shows ProfileShimmer
 // ─────────────────────────────────
 
 class _LoadingView extends StatelessWidget {
@@ -643,7 +687,6 @@ class _LoadingView extends StatelessWidget {
 
 // ─────────────────────────────────
 // ERROR VIEW
-// Shows AppErrorWidget
 // ─────────────────────────────────
 
 class _ErrorView extends StatelessWidget {

@@ -6,28 +6,13 @@ import 'package:algolens/core/network/api_endpoints.dart';
 import 'package:algolens/core/network/dio_client.dart';
 import 'package:algolens/features/contests/data/models/contest_model.dart';
 
-// ─────────────────────────────────
-// PROVIDER
-// ─────────────────────────────────
-
 final contestRepositoryProvider = Provider<ContestRepository>((ref) {
-  return ContestRepository(
-    ref.watch(dioClientProvider),
-  );
+  return ContestRepository(ref.watch(dioClientProvider));
 });
-
-// ─────────────────────────────────
-// REPOSITORY
-// ─────────────────────────────────
 
 class ContestRepository {
   ContestRepository(this._client);
   final DioClient _client;
-
-  // ───────────────────────────────
-  // GET UPCOMING CONTESTS
-  // Hive cache 1 hour
-  // ───────────────────────────────
 
   Future<List<ContestModel>> getUpcomingContests() async {
     final box = HiveService.cachedContests;
@@ -37,40 +22,30 @@ class ContestRepository {
     if (raw != null) {
       try {
         final map = jsonDecode(raw) as Map<String, dynamic>;
-        final cachedAt = DateTime.parse(
-          map['cachedAt'] as String,
-        );
+        final cachedAt = DateTime.parse(map['cachedAt'] as String);
         final isValid = DateTime.now().difference(cachedAt).inHours < 1;
         if (isValid) {
           final list = map['data'] as List;
           return list
-              .map(
-                (e) => ContestModel.fromJson(
-                  e as Map<String, dynamic>,
-                ),
-              )
+              .map((e) => ContestModel.fromJson(e as Map<String, dynamic>))
               .toList();
         }
       } catch (_) {
-        // Cache corrupted
-        // Fall through to API
+        // Cache corrupted — fall through to API
       }
     }
 
-    // Fetch from API
     try {
-      final data = await _client.get(
-        ApiEndpoints.upcomingContests,
-      );
+      final data = await _client.get(ApiEndpoints.upcomingContests);
 
-      final list = (data['contests'] ?? data) as List;
+      // Handle all response shapes:
+      // Mock List → DioClient wraps as {'data': [...]}
+      // Real API Map → may have 'contests' key
+      // Real API List → DioClient wraps as {'data': [...]}
+      final List<dynamic> list = _extractList(data);
 
       final contests = list
-          .map(
-            (e) => ContestModel.fromJson(
-              e as Map<String, dynamic>,
-            ),
-          )
+          .map((e) => ContestModel.fromJson(e as Map<String, dynamic>))
           .toList();
 
       // Save to cache
@@ -86,49 +61,47 @@ class ContestRepository {
     } on ApiException {
       rethrow;
     } catch (e) {
-      throw ApiException(
-        message: e.toString(),
+      throw const ApiException(
+        message: 'Failed to load contests. Please try again.',
         type: ApiExceptionType.unknown,
       );
     }
   }
-
-  // ───────────────────────────────
-  // GET ALL CONTESTS
-  // Paginated — no cache
-  // ───────────────────────────────
 
   Future<Map<String, dynamic>> getAllContests({
     int page = 0,
     int size = 20,
   }) async {
     try {
-      final data = await _client.get(
+      return await _client.get(
         ApiEndpoints.allContests,
-        queryParameters: {
-          'page': page,
-          'size': size,
-        },
+        queryParameters: {'page': page, 'size': size},
       );
-
-      return data;
     } on ApiException {
       rethrow;
     } catch (e) {
-      throw ApiException(
-        message: e.toString(),
+      throw const ApiException(
+        message: 'Failed to load contests. Please try again.',
         type: ApiExceptionType.unknown,
       );
     }
   }
 
-  // ───────────────────────────────
-  // CLEAR CACHE
-  // Called on logout
-  // ───────────────────────────────
-
   Future<void> clearCache() async {
     await HiveService.cachedContests.delete('upcoming');
     await HiveService.cachedContests.delete('all');
+  }
+
+  // ────────────────────────────
+  // EXTRACT LIST
+  // Handles all response shapes
+  // ────────────────────────────
+
+  List<dynamic> _extractList(Map<String, dynamic> data) {
+    // Real API: {'contests': [...]}
+    if (data['contests'] is List) return data['contests'] as List;
+    // DioClient wrapped list: {'data': [...]}
+    if (data['data'] is List) return data['data'] as List;
+    return [];
   }
 }

@@ -1,3 +1,4 @@
+import 'package:algolens/core/errors/app_exceptions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -81,7 +82,9 @@ class _ContestScreenState extends ConsumerState<ContestScreen> {
                         contestsAsync.when(
                           loading: () => const ContestListShimmer(),
                           error: (e, s) => AppErrorWidget(
-                            message: e.toString(),
+                            message: e is ApiException
+                                ? e.message
+                                : 'Failed to load contests. Please try again.',
                             onRetry: () =>
                                 ref.invalidate(upcomingContestsProvider),
                           ),
@@ -169,8 +172,7 @@ class _ReminderBottomSheet extends ConsumerStatefulWidget {
       _ReminderBottomSheetState();
 }
 
-class _ReminderBottomSheetState
-    extends ConsumerState<_ReminderBottomSheet> {
+class _ReminderBottomSheetState extends ConsumerState<_ReminderBottomSheet> {
   double _sliderValue = 30;
 
   @override
@@ -268,9 +270,7 @@ class _ReminderBottomSheetState
               final messenger = ScaffoldMessenger.of(context);
               final navigator = Navigator.of(context);
 
-              final added = await ref
-                  .read(addReminderProvider.notifier)
-                  .add(
+              final added = await ref.read(addReminderProvider.notifier).add(
                     contestId: widget.contest.contestId,
                     contestName: widget.contest.name,
                     minutesBefore: _sliderValue.toInt(),
@@ -315,9 +315,7 @@ class _ReminderBottomSheetState
                   ),
                 ),
                 trailing: GestureDetector(
-                  onTap: () => ref
-                      .read(removeReminderProvider.notifier)
-                      .remove(
+                  onTap: () => ref.read(removeReminderProvider.notifier).remove(
                         contestId: widget.contest.contestId,
                         minutesBefore: mins,
                       ),

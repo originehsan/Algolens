@@ -93,7 +93,7 @@ class _BottomNav extends StatelessWidget {
           vertical: 10.h,
         ),
         selectedItemColor: AppColors.primary,
-        unselectedItemColor: Color(0xFF060B14).withValues(alpha: 0.40),
+        unselectedItemColor:  const Color(0xFF060B14).withValues(alpha: 0.40),
         items: [
           SalomonBottomBarItem(
             icon: const Icon(Icons.home_rounded),

@@ -1,3 +1,4 @@
+import 'package:algolens/core/errors/app_exceptions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -49,7 +50,9 @@ class WeakTopicsScreen extends ConsumerWidget {
                   topicsAsync.when(
                     loading: () => const PracticeListShimmer(),
                     error: (e, s) => AppErrorWidget(
-                      message: e.toString(),
+                      message: e is ApiException
+                          ? e.message
+                          : 'Something went wrong. Please try again.',
                       onRetry: () => ref.invalidate(weakTopicsProvider),
                     ),
                     data: (topics) {

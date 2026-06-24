@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:algolens/core/errors/app_exceptions.dart';
 import 'package:algolens/core/theme/app_colors.dart';
 import 'package:algolens/core/theme/app_text_styles.dart';
 import 'package:algolens/core/widgets/app_background.dart';
@@ -9,6 +10,7 @@ import 'package:algolens/core/widgets/empty_widget.dart';
 import 'package:algolens/core/widgets/error_widget.dart';
 import 'package:algolens/core/widgets/glass_card.dart';
 import 'package:algolens/core/widgets/loading_shimmer.dart';
+import 'package:algolens/core/widgets/progress_bar_widget.dart';
 import 'package:algolens/core/widgets/segmented_tab.dart';
 import 'package:algolens/features/upsolve/data/models/upsolve_model.dart';
 import 'package:algolens/features/upsolve/providers/upsolve_provider.dart';
@@ -21,7 +23,6 @@ class UpsolveScreen extends ConsumerStatefulWidget {
 }
 
 class _UpsolveScreenState extends ConsumerState<UpsolveScreen> {
-  // 0 = Pending tab, 1 = Solved tab
   int _tabIndex = 0;
 
   @override
@@ -44,7 +45,59 @@ class _UpsolveScreenState extends ConsumerState<UpsolveScreen> {
                 delegate: SliverChildListDelegate([
                   SizedBox(height: 8.h),
 
-                  // Tab switcher — filters list by isCompleted flag
+                  // ──────────────────────
+                  // PROGRESS CARD
+                  // X / Y upsolved at top
+                  // ──────────────────────
+                  upsolveAsync.whenData((all) {
+                    final done =
+                        all.where((p) => p.isCompleted).length;
+                    final total = all.length;
+                    final progress =
+                        total > 0 ? done / total : 0.0;
+
+                    return GlassCard(
+                      margin: EdgeInsets.only(bottom: 16.h),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment:
+                                MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                '$done / $total upsolved',
+                                style: AppTextStyles.h3,
+                              ),
+                              Text(
+                                '${(progress * 100).toStringAsFixed(0)}%',
+                                style:
+                                    AppTextStyles.metricSmall.copyWith(
+                                  color: AppColors.primary,
+                                ),
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: 10.h),
+                          ProgressBarWidget(
+                            value: progress,
+                            color: AppColors.success,
+                          ),
+                          SizedBox(height: 6.h),
+                          Text(
+                            '${total - done} pending · '
+                            'weak topics sorted first',
+                            style: AppTextStyles.caption,
+                          ),
+                        ],
+                      ),
+                    );
+                  }).value ??
+                      const SizedBox.shrink(),
+
+                  // ──────────────────────
+                  // TAB SWITCHER
+                  // ──────────────────────
                   SegmentedTab(
                     tabs: const ['Pending', 'Solved'],
                     currentIndex: _tabIndex,
@@ -53,14 +106,18 @@ class _UpsolveScreenState extends ConsumerState<UpsolveScreen> {
 
                   SizedBox(height: 16.h),
 
+                  // ──────────────────────
+                  // PROBLEM LIST
+                  // ──────────────────────
                   upsolveAsync.when(
                     loading: () => const PracticeListShimmer(),
                     error: (e, s) => AppErrorWidget(
-                      message: e.toString(),
+                      message: e is ApiException
+                          ? e.message
+                          : 'Something went wrong. Please try again.',
                       onRetry: () => ref.invalidate(upsolveProvider),
                     ),
                     data: (all) {
-                      // Filter by tab — Pending = not done, Solved = done
                       final filtered = _tabIndex == 0
                           ? all.where((p) => !p.isCompleted).toList()
                           : all.where((p) => p.isCompleted).toList();
@@ -99,13 +156,16 @@ class _UpsolveScreenState extends ConsumerState<UpsolveScreen> {
   }
 }
 
+// ─────────────────────────────────
+// UPSOLVE CARD
+// ─────────────────────────────────
+
 class _UpsolveCard extends ConsumerWidget {
   const _UpsolveCard({required this.item});
   final UpsolveModel item;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Watch only this problem's toggle state to avoid full rebuild
     final isToggling = ref.watch(
       toggleUpsolveProvider.select((s) => s.contains(item.problemKey)),
     );
@@ -115,7 +175,7 @@ class _UpsolveCard extends ConsumerWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Circle checkmark — tap to toggle done state in Hive
+          // Circle checkmark
           GestureDetector(
             onTap: isToggling
                 ? null
@@ -157,19 +217,21 @@ class _UpsolveCard extends ConsumerWidget {
 
           SizedBox(width: 12.w),
 
-          // Problem details — tap opens CF problem in browser
+          // Problem details
           Expanded(
             child: GestureDetector(
               onTap: () async {
                 final uri = Uri.parse(item.url);
                 if (await canLaunchUrl(uri)) {
-                  await launchUrl(uri, mode: LaunchMode.externalApplication);
+                  await launchUrl(
+                    uri,
+                    mode: LaunchMode.externalApplication,
+                  );
                 }
               },
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Strike-through text when problem is marked done
                   Text(
                     item.name,
                     style: AppTextStyles.bodyBold.copyWith(
@@ -184,7 +246,6 @@ class _UpsolveCard extends ConsumerWidget {
 
                   SizedBox(height: 6.h),
 
-                  // Rating + verdict + weak topic badges
                   Wrap(
                     spacing: 6.w,
                     runSpacing: 4.h,
@@ -193,22 +254,19 @@ class _UpsolveCard extends ConsumerWidget {
                         label: '${item.rating}',
                         color: AppColors.primary,
                       ),
-                      // Only show verdict if available
                       if (item.bestVerdict.isNotEmpty)
                         _Badge(
                           label: item.verdictLabel,
                           color: AppColors.danger,
                         ),
-                      // Highlight if this is a known weak topic
                       if (item.isWeakTopic)
-                      const  _Badge(
+                        const _Badge(
                           label: 'Weak Topic',
                           color: AppColors.warning,
                         ),
                     ],
                   ),
 
-                  // Show max 3 tags to avoid overflow
                   if (item.tags.isNotEmpty) ...[
                     SizedBox(height: 6.h),
                     Wrap(
@@ -216,11 +274,14 @@ class _UpsolveCard extends ConsumerWidget {
                       runSpacing: 4.h,
                       children: item.tags
                           .take(3)
-                          .map((t) => _Badge(
-                                label: t,
-                                color: Colors.white.withValues(alpha: 0.30),
-                                small: true,
-                              ))
+                          .map(
+                            (t) => _Badge(
+                              label: t,
+                              color:
+                                  Colors.white.withValues(alpha: 0.30),
+                              small: true,
+                            ),
+                          )
                           .toList(),
                     ),
                   ],
@@ -233,6 +294,10 @@ class _UpsolveCard extends ConsumerWidget {
     );
   }
 }
+
+// ─────────────────────────────────
+// BADGE
+// ─────────────────────────────────
 
 class _Badge extends StatelessWidget {
   const _Badge({

@@ -28,16 +28,22 @@ class ToggleUpsolveNotifier extends StateNotifier<Set<String>> {
   final Ref _ref;
 
   Future<void> toggle(String problemKey) async {
-    final repo = _ref.read(upsolveRepositoryProvider);
+    // ADD to in-progress set — shows spinner in card
+    state = {...state, problemKey};
 
-    // Write to Hive — no API call needed
-    await repo.toggleDone(problemKey);
+    try {
+      final repo = _ref.read(upsolveRepositoryProvider);
 
-    // Remove from in-progress set after toggle completes
-    state = {...state}..remove(problemKey);
+      // Write to Hive — no API call needed
+      await repo.toggleDone(problemKey);
+    } finally {
+      // REMOVE from in-progress set — hides spinner
+      // Always remove even if toggle fails
+      state = {...state}..remove(problemKey);
 
-    // Invalidate so upsolveProvider refetches with updated Hive state
-    _ref.invalidate(upsolveProvider);
+      // Invalidate so upsolveProvider refetches with updated Hive state
+      _ref.invalidate(upsolveProvider);
+    }
   }
 
   // Returns true while toggle is in progress — shows spinner in card
