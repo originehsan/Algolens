@@ -94,11 +94,11 @@ final unsolvedByMeProvider = FutureProvider<List<Map<String, dynamic>>>(
 ///
 /// Returns streak data for
 /// user and all friends
-final streakCompareProvider = FutureProvider<Map<String, dynamic>>(
+final streakCompareProvider = FutureProvider<List<Map<String, dynamic>>>(
   (ref) async {
     final handle = await SecureStorage.getCfHandle();
     if (handle == null || handle.isEmpty) {
-      return {};
+      return [];
     }
     final repo = ref.read(
       friendsRepositoryProvider,
@@ -165,16 +165,22 @@ class AddFriendNotifier extends StateNotifier<AsyncValue<void>> {
   final Ref _ref;
 
   Future<bool> add(
-    String friendHandle,
-  ) async {
-    state = const AsyncValue.loading();
-    try {
-      final repo = _ref.read(
-        friendsRepositoryProvider,
-      );
-      await repo.addFriend(
-        friendHandle,
-      );
+  String friendHandle,
+) async {
+  state = const AsyncValue.loading();
+  try {
+    final userHandle = await SecureStorage.getCfHandle();
+    if (userHandle == null || userHandle.isEmpty) {
+      state = const AsyncValue.data(null);
+      return false;
+    }
+    final repo = _ref.read(
+      friendsRepositoryProvider,
+    );
+    await repo.addFriend(
+      userHandle,
+      friendHandle,
+    );
       state = const AsyncValue.data(null);
 
       // Refresh friends list

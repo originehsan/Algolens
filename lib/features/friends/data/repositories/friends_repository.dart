@@ -14,12 +14,23 @@ class FriendsRepository {
   FriendsRepository(this._client);
   final DioClient _client;
 
-  Future<void> addFriend(String friendHandle) async {
+  // ────────────────────────────
+  // ADD FRIEND
+  // Both handles required by API
+  // POST /friends/add
+  // ────────────────────────────
+
+  Future<void> addFriend(
+    String userHandle,
+    String friendHandle,
+  ) async {
     try {
-      final userHandle = await SecureStorage.getCfHandle() ?? '';
       await _client.post(
         ApiEndpoints.addFriend,
-        body: {'userHandle': userHandle, 'friendHandle': friendHandle},
+        body: {
+          'userHandle': userHandle,
+          'friendHandle': friendHandle,
+        },
       );
     } on ApiException {
       rethrow;
@@ -30,6 +41,11 @@ class FriendsRepository {
       );
     }
   }
+
+  // ────────────────────────────
+  // REMOVE FRIEND
+  // DELETE /friends/{user}/remove/{friend}
+  // ────────────────────────────
 
   Future<void> removeFriend(String friendHandle) async {
     try {
@@ -47,11 +63,14 @@ class FriendsRepository {
     }
   }
 
+  // ────────────────────────────
+  // GET FRIENDS
+  // GET /friends/{handle}
+  // ────────────────────────────
+
   Future<List<FriendModel>> getFriends(String handle) async {
     try {
       final data = await _client.get(ApiEndpoints.getFriends(handle));
-      // Mock returns List → DioClient wraps as {'data': [...]}
-      // Real API returns {'friends': [...]}
       final list = _extractList(data, keys: ['friends', 'data']);
       return list
           .map((e) => FriendModel.fromJson(e as Map<String, dynamic>))
@@ -66,14 +85,21 @@ class FriendsRepository {
     }
   }
 
+  // ────────────────────────────
+  // GET LEADERBOARD
+  // GET /friends/{handle}/leaderboard
+  // ────────────────────────────
+
   Future<List<LeaderboardModel>> getLeaderboard(String handle) async {
     try {
-      final data = await _client.get(ApiEndpoints.leaderboard(handle));
-      // Mock returns List → DioClient wraps as {'data': [...]}
-      // Real API returns {'leaderboard': [...]}
+      final data = await _client.get(
+        ApiEndpoints.leaderboard(handle),
+      );
       final list = _extractList(data, keys: ['leaderboard', 'data']);
       return list
-          .map((e) => LeaderboardModel.fromJson(e as Map<String, dynamic>))
+          .map(
+            (e) => LeaderboardModel.fromJson(e as Map<String, dynamic>),
+          )
           .toList();
     } on ApiException {
       rethrow;
@@ -85,11 +111,18 @@ class FriendsRepository {
     }
   }
 
-  Future<List<Map<String, dynamic>>> getUnsolvedByMe(String handle) async {
+  // ────────────────────────────
+  // GET UNSOLVED BY ME
+  // GET /friends/{handle}/unsolved-by-me
+  // ────────────────────────────
+
+  Future<List<Map<String, dynamic>>> getUnsolvedByMe(
+    String handle,
+  ) async {
     try {
-      final data = await _client.get(ApiEndpoints.unsolvedByMe(handle));
-      // Mock returns List → DioClient wraps as {'data': [...]}
-      // Real API returns {'problems': [...]}
+      final data = await _client.get(
+        ApiEndpoints.unsolvedByMe(handle),
+      );
       final list = _extractList(data, keys: ['problems', 'data']);
       return list.cast<Map<String, dynamic>>();
     } on ApiException {
@@ -102,9 +135,21 @@ class FriendsRepository {
     }
   }
 
-  Future<Map<String, dynamic>> getStreakCompare(String handle) async {
+  // ────────────────────────────
+  // GET STREAK COMPARE
+  // GET /friends/{handle}/streak-compare
+  // API returns flat List not Map
+  // ────────────────────────────
+
+  Future<List<Map<String, dynamic>>> getStreakCompare(
+    String handle,
+  ) async {
     try {
-      return await _client.get(ApiEndpoints.streakCompare(handle));
+      final data = await _client.get(
+        ApiEndpoints.streakCompare(handle),
+      );
+      final list = _extractList(data, keys: ['data']);
+      return list.cast<Map<String, dynamic>>();
     } on ApiException {
       rethrow;
     } catch (e) {
@@ -115,6 +160,11 @@ class FriendsRepository {
     }
   }
 
+  // ────────────────────────────
+  // COMPARE RATING
+  // GET /compare/rating?handle1=&handle2=
+  // ────────────────────────────
+
   Future<Map<String, dynamic>> compareRating(
     String handle1,
     String handle2,
@@ -122,7 +172,10 @@ class FriendsRepository {
     try {
       return await _client.get(
         ApiEndpoints.compareRating,
-        queryParameters: {'handle1': handle1, 'handle2': handle2},
+        queryParameters: {
+          'handle1': handle1,
+          'handle2': handle2,
+        },
       );
     } on ApiException {
       rethrow;
@@ -133,6 +186,11 @@ class FriendsRepository {
       );
     }
   }
+
+  // ────────────────────────────
+  // FIND SUBMISSION
+  // POST /compare/find
+  // ────────────────────────────
 
   Future<Map<String, dynamic>> findSubmission({
     required String handle1,

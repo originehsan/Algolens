@@ -39,7 +39,7 @@ class SubmissionStatsModel {
   // Used in profile_screen grid
   // ───────────────────────────────
 
-  int get accepted => verdictsCount['OK'] ?? 0;
+ int get accepted => verdictsCount['ACCEPTED'] ?? 0;
 
   int get wrongAnswer =>
       verdictsCount['WRONG_ANSWER'] ?? 0;

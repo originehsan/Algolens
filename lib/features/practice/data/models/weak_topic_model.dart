@@ -20,10 +20,13 @@ class WeakTopicModel {
   factory WeakTopicModel.fromJson(
     Map<String, dynamic> json,
   ) {
-    final acRate = (json['acRate'] as num?)?.toDouble() ?? 0.0;
+    // API returns acRate as 0-100 (e.g. 17.4 means 17.4%)
+    // Normalize to 0.0-1.0 for ProgressBarWidget
+    final acRateRaw = (json['acRate'] as num?)?.toDouble() ?? 0.0;
+    final acRate = acRateRaw / 100.0;
 
-    final severity =
-        (json['severity'] as String?) ?? _computeSeverity(acRate);
+    // severity not in API — always computed locally
+    final severity = _computeSeverity(acRate);
 
     return WeakTopicModel(
       tag: json['tag'] as String,
@@ -36,8 +39,9 @@ class WeakTopicModel {
   }
 
   static String _computeSeverity(double acRate) {
-    if (acRate < 0.40) return 'critical';
-    if (acRate < 0.60) return 'high';
+    // acRate is 0.0-1.0 here
+    if (acRate < 0.30) return 'critical';
+    if (acRate < 0.50) return 'high';
     return 'moderate';
   }
 
@@ -60,8 +64,7 @@ class WeakTopicModel {
         _ => '#4DA3FF',
       };
 
-  String get acRateFormatted =>
-      '${(acRate * 100).toStringAsFixed(0)}%';
+  String get acRateFormatted => '${(acRate * 100).toStringAsFixed(0)}%';
 
   bool get isCritical => severity == 'critical';
 }

@@ -571,8 +571,7 @@ class _StreaksList extends ConsumerWidget {
           streakCompareProvider,
         ),
       ),
-      data: (data) {
-        final streaks = data['streaks'] as List? ?? [];
+      data: (streaks) {
         if (streaks.isEmpty) {
           return const EmptyWidget(
             icon: Icons.local_fire_department_rounded,
@@ -582,16 +581,11 @@ class _StreaksList extends ConsumerWidget {
         return Column(
           children: streaks.map(
             (s) {
-              final map = s as Map<String, dynamic>;
-              final handle = map['handle'] as String;
-              final days = map['streakDays'] as int? ?? 0;
+              final handle = s['handle'] as String? ?? '';
+              final days = s['currentStreak'] as int? ?? 0;
               final maxDays = streaks
-                  .map(
-                    (x) => (x as Map)['streakDays'] as int? ?? 0,
-                  )
-                  .reduce(
-                    (a, b) => a > b ? a : b,
-                  );
+                  .map((x) => x['currentStreak'] as int? ?? 0)
+                  .reduce((a, b) => a > b ? a : b);
 
               return GlassCard(
                 margin: EdgeInsets.only(
