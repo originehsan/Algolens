@@ -12,19 +12,16 @@ class RegisterRequest {
     required this.name,
     required this.email,
     required this.password,
-    required this.cfHandle,
   });
 
   final String name;
   final String email;
   final String password;
-  final String cfHandle;
 
   Map<String, dynamic> toJson() => {
         'name': name,
         'email': email,
         'password': password,
-        'cfHandle': cfHandle,
       };
 }
 

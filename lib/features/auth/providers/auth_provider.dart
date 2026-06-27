@@ -1,14 +1,16 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:algolens/core/errors/app_exceptions.dart';
 import 'package:algolens/core/local/hive_service.dart';
+import 'package:algolens/core/network/api_endpoints.dart';
+import 'package:algolens/core/network/dio_client.dart';
 import 'package:algolens/core/storage/secure_storage.dart';
 import 'package:algolens/features/auth/data/models/auth_request_model.dart';
 import 'package:algolens/features/auth/data/repositories/auth_repository.dart';
 
-// ─────────────────────────────────
+// ═════════════════════════════════
 // AUTH STATE
 // Sealed class — 4 states only
-// ─────────────────────────────────
+// ═════════════════════════════════
 
 sealed class AuthState {
   const AuthState();
@@ -28,15 +30,14 @@ class AuthSuccess extends AuthState {
 }
 
 class AuthError extends AuthState {
-  const AuthError({
-    required this.message,
-  });
+  const AuthError({required this.message});
   final String message;
 }
 
-// ─────────────────────────────────
-// BASE NOTIFIER
-// ─────────────────────────────────
+// ═════════════════════════════════
+// BASE AUTH NOTIFIER
+// Shared helpers for all auth notifiers
+// ═════════════════════════════════
 
 class AuthNotifier extends StateNotifier<AuthState> {
   AuthNotifier(this.ref) : super(const AuthInitial());
@@ -44,20 +45,20 @@ class AuthNotifier extends StateNotifier<AuthState> {
   final Ref ref;
 
   void setLoading() => state = const AuthLoading();
-
-  void setSuccess([String? msg]) => state = AuthSuccess(message: msg);
-
-  void setError(ApiException e) => state = AuthError(message: e.message);
-
+  void setSuccess([String? msg]) =>
+      state = AuthSuccess(message: msg);
+  void setError(ApiException e) =>
+      state = AuthError(message: e.message);
   void reset() => state = const AuthInitial();
 }
 
-// ─────────────────────────────────
+// ═════════════════════════════════
 // REGISTER
-// ─────────────────────────────────
+// ═════════════════════════════════
 
-final registerProvider = StateNotifierProvider<RegisterNotifier, AuthState>(
-    (ref) => RegisterNotifier(ref));
+final registerProvider =
+    StateNotifierProvider<RegisterNotifier, AuthState>(
+        (ref) => RegisterNotifier(ref));
 
 class RegisterNotifier extends AuthNotifier {
   RegisterNotifier(super.ref);
@@ -65,7 +66,9 @@ class RegisterNotifier extends AuthNotifier {
   Future<void> register(RegisterRequest request) async {
     setLoading();
     try {
-      final res = await ref.read(authRepositoryProvider).register(request);
+      final res = await ref
+          .read(authRepositoryProvider)
+          .register(request);
       setSuccess(res.message);
     } on ApiException catch (e) {
       setError(e);
@@ -73,30 +76,32 @@ class RegisterNotifier extends AuthNotifier {
   }
 }
 
-// ─────────────────────────────────
+// ═════════════════════════════════
 // LOGIN
 // Checks cfHandle after success
-// ─────────────────────────────────
+// ═════════════════════════════════
 
-final loginProvider = StateNotifierProvider<LoginNotifier, AuthState>(
-    (ref) => LoginNotifier(ref));
+final loginProvider =
+    StateNotifierProvider<LoginNotifier, AuthState>(
+        (ref) => LoginNotifier(ref));
 
 class LoginNotifier extends AuthNotifier {
   LoginNotifier(super.ref);
 
-  /// true = go to /cf-handle-setup
-  /// false = go to /home
+  /// true  → go to /cf-handle-setup
+  /// false → go to /home
   bool needsCfSetup = false;
 
   Future<void> login(LoginRequest request) async {
     setLoading();
     try {
-      await ref.read(authRepositoryProvider).login(request);
-
-      final cfHandle = await SecureStorage.getCfHandle();
-
-      needsCfSetup = cfHandle == null || cfHandle.isEmpty;
-
+      await ref
+          .read(authRepositoryProvider)
+          .login(request);
+      final cfHandle =
+          await SecureStorage.getCfHandle();
+      needsCfSetup =
+          cfHandle == null || cfHandle.isEmpty;
       setSuccess();
     } on ApiException catch (e) {
       setError(e);
@@ -104,13 +109,14 @@ class LoginNotifier extends AuthNotifier {
   }
 }
 
-// ─────────────────────────────────
+// ═════════════════════════════════
 // LOGOUT
 // Clears SecureStorage + Hive
-// ─────────────────────────────────
+// ═════════════════════════════════
 
-final logoutProvider = StateNotifierProvider<LogoutNotifier, AuthState>(
-    (ref) => LogoutNotifier(ref));
+final logoutProvider =
+    StateNotifierProvider<LogoutNotifier, AuthState>(
+        (ref) => LogoutNotifier(ref));
 
 class LogoutNotifier extends AuthNotifier {
   LogoutNotifier(super.ref);
@@ -118,10 +124,12 @@ class LogoutNotifier extends AuthNotifier {
   Future<void> logout() async {
     setLoading();
     try {
-      final token = await SecureStorage.getRefreshToken();
-
+      final token =
+          await SecureStorage.getRefreshToken();
       if (token != null) {
-        await ref.read(authRepositoryProvider).logout(
+        await ref
+            .read(authRepositoryProvider)
+            .logout(
               LogoutRequest(refreshToken: token),
             );
       }
@@ -136,10 +144,12 @@ class LogoutNotifier extends AuthNotifier {
   Future<void> logoutAll() async {
     setLoading();
     try {
-      final token = await SecureStorage.getRefreshToken();
-
+      final token =
+          await SecureStorage.getRefreshToken();
       if (token != null) {
-        await ref.read(authRepositoryProvider).logoutAll(
+        await ref
+            .read(authRepositoryProvider)
+            .logoutAll(
               LogoutRequest(refreshToken: token),
             );
       }
@@ -152,9 +162,9 @@ class LogoutNotifier extends AuthNotifier {
   }
 }
 
-// ─────────────────────────────────
+// ═════════════════════════════════
 // FORGOT PASSWORD
-// ─────────────────────────────────
+// ═════════════════════════════════
 
 final forgotPasswordProvider =
     StateNotifierProvider<ForgotPasswordNotifier, AuthState>(
@@ -166,7 +176,9 @@ class ForgotPasswordNotifier extends AuthNotifier {
   Future<void> forgotPassword(String email) async {
     setLoading();
     try {
-      final res = await ref.read(authRepositoryProvider).forgotPassword(
+      final res = await ref
+          .read(authRepositoryProvider)
+          .forgotPassword(
             ForgotPasswordRequest(email: email),
           );
       setSuccess(res.message);
@@ -176,12 +188,13 @@ class ForgotPasswordNotifier extends AuthNotifier {
   }
 }
 
-// ─────────────────────────────────
+// ═════════════════════════════════
 // VERIFY RESET TOKEN
-// ─────────────────────────────────
+// ═════════════════════════════════
 
 final verifyResetTokenProvider =
-    StateNotifierProvider<VerifyResetTokenNotifier, AuthState>(
+    StateNotifierProvider<VerifyResetTokenNotifier,
+        AuthState>(
         (ref) => VerifyResetTokenNotifier(ref));
 
 class VerifyResetTokenNotifier extends AuthNotifier {
@@ -190,7 +203,9 @@ class VerifyResetTokenNotifier extends AuthNotifier {
   Future<void> verifyResetToken(String token) async {
     setLoading();
     try {
-      final res = await ref.read(authRepositoryProvider).verifyResetToken(
+      final res = await ref
+          .read(authRepositoryProvider)
+          .verifyResetToken(
             VerifyResetTokenRequest(token: token),
           );
       setSuccess(res.message);
@@ -200,12 +215,13 @@ class VerifyResetTokenNotifier extends AuthNotifier {
   }
 }
 
-// ─────────────────────────────────
+// ═════════════════════════════════
 // RESET PASSWORD
-// ─────────────────────────────────
+// ═════════════════════════════════
 
 final resetPasswordProvider =
-    StateNotifierProvider<ResetPasswordNotifier, AuthState>(
+    StateNotifierProvider<ResetPasswordNotifier,
+        AuthState>(
         (ref) => ResetPasswordNotifier(ref));
 
 class ResetPasswordNotifier extends AuthNotifier {
@@ -217,8 +233,13 @@ class ResetPasswordNotifier extends AuthNotifier {
   }) async {
     setLoading();
     try {
-      final res = await ref.read(authRepositoryProvider).resetPassword(
-            ResetPasswordRequest(otp: otp, newPassword: newPassword),
+      final res = await ref
+          .read(authRepositoryProvider)
+          .resetPassword(
+            ResetPasswordRequest(
+              otp: otp,
+              newPassword: newPassword,
+            ),
           );
       setSuccess(res.message);
     } on ApiException catch (e) {
@@ -227,25 +248,122 @@ class ResetPasswordNotifier extends AuthNotifier {
   }
 }
 
-// ─────────────────────────────────
+// ═════════════════════════════════
 // RESEND VERIFICATION
-// ─────────────────────────────────
+// ═════════════════════════════════
 
 final resendVerificationProvider =
-    StateNotifierProvider<ResendVerificationNotifier, AuthState>(
+    StateNotifierProvider<ResendVerificationNotifier,
+        AuthState>(
         (ref) => ResendVerificationNotifier(ref));
 
 class ResendVerificationNotifier extends AuthNotifier {
   ResendVerificationNotifier(super.ref);
 
-  Future<void> resendVerification(String email) async {
+  Future<void> resendVerification(
+      String email) async {
     setLoading();
     try {
-      final res =
-          await ref.read(authRepositoryProvider).resendVerification(email);
+      final res = await ref
+          .read(authRepositoryProvider)
+          .resendVerification(email);
       setSuccess(res.message);
     } on ApiException catch (e) {
       setError(e);
     }
   }
+}
+
+// ═════════════════════════════════
+// CF HANDLE STATE
+// Separate sealed class
+// Extended with rank + rating data
+// ═════════════════════════════════
+
+sealed class CfHandleState {
+  const CfHandleState();
+}
+
+class CfHandleInitial extends CfHandleState {
+  const CfHandleInitial();
+}
+
+class CfHandleLoading extends CfHandleState {
+  const CfHandleLoading();
+}
+
+class CfHandleVerified extends CfHandleState {
+  const CfHandleVerified({
+    required this.rank,
+    required this.rating,
+  });
+  final String rank;
+  final int rating;
+}
+
+class CfHandleError extends CfHandleState {
+  const CfHandleError({required this.message});
+  final String message;
+}
+
+// ═════════════════════════════════
+// CF HANDLE PROVIDER
+// Verifies CF handle via API
+// Saves to SecureStorage on confirm
+// No BuildContext
+// No navigation
+// No UI widgets
+// ═════════════════════════════════
+
+final cfHandleSetupProvider =
+    StateNotifierProvider<CfHandleNotifier,
+        CfHandleState>(
+        (ref) => CfHandleNotifier(ref));
+
+class CfHandleNotifier
+    extends StateNotifier<CfHandleState> {
+  CfHandleNotifier(this.ref)
+      : super(const CfHandleInitial());
+
+  final Ref ref;
+
+  // ── Verify handle ─────────────────
+  // GET /users/{handle}/profile
+
+  Future<void> verifyHandle(String handle) async {
+    state = const CfHandleLoading();
+    try {
+      final client = ref.read(dioClientProvider);
+      final data = await client.get(
+        ApiEndpoints.profile(handle),
+      );
+      final rank =
+          (data['rank'] as String? ?? '')
+              .toLowerCase();
+      final rating =
+          data['rating'] as int? ?? 0;
+      state = CfHandleVerified(
+        rank: rank,
+        rating: rating,
+      );
+    } on ApiException catch (e) {
+      state = CfHandleError(message: e.message);
+    } catch (_) {
+      state = const CfHandleError(
+        message:
+            'Could not reach Codeforces. Check connection.',
+      );
+    }
+  }
+
+  // ── Save handle ───────────────────
+  // Stores in SecureStorage
+
+  Future<void> saveHandle(String handle) async {
+    await SecureStorage.saveCfHandle(handle);
+  }
+
+  // ── Reset ─────────────────────────
+
+  void reset() => state = const CfHandleInitial();
 }

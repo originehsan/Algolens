@@ -8,44 +8,18 @@ import 'package:algolens/core/theme/app_text_styles.dart';
 // APP BUTTON TYPE
 // ──────────────────────────────
 
-/// Button variant enum
-///
-/// primary → filled cyan button
-/// outline → bordered button
-/// ghost   → text only button
 enum AppButtonType {
   primary,
   outline,
-  ghost, danger,
+  ghost,
+  danger,
+  glow, // ← new: glassmorphism + glow outline
 }
 
 // ──────────────────────────────
 // APP BUTTON
 // ──────────────────────────────
 
-/// Primary button widget
-///
-/// Features:
-/// → Scale 0.97 on press
-/// → HapticFeedback.lightImpact
-/// → Loading spinner state
-/// → Disabled state
-/// → Leading icon support
-/// → Full width by default
-///
-/// Usage:
-/// AppButton(
-///   label: 'Login',
-///   onTap: () => ...,
-/// )
-///
-/// AppButton(
-///   label: 'Following',
-///   type: AppButtonType.outline,
-///   icon: Icons.check,
-///   isLoading: state.isLoading,
-///   onTap: () => ...,
-/// )
 class AppButton extends StatefulWidget {
   const AppButton({
     super.key,
@@ -57,6 +31,7 @@ class AppButton extends StatefulWidget {
     this.icon,
     this.width,
     this.height,
+    this.glowIntensity = 1.0, // 0.0 subtle → 1.0 strong
   });
 
   final String label;
@@ -67,6 +42,7 @@ class AppButton extends StatefulWidget {
   final IconData? icon;
   final double? width;
   final double? height;
+  final double glowIntensity;
 
   @override
   State<AppButton> createState() => _AppButtonState();
@@ -82,9 +58,7 @@ class _AppButtonState extends State<AppButton>
     super.initState();
     _ctrl = AnimationController(
       vsync: this,
-      duration: const Duration(
-        milliseconds: 100,
-      ),
+      duration: const Duration(milliseconds: 100),
     );
     _scaleAnim = Tween<double>(
       begin: 1.0,
@@ -103,22 +77,11 @@ class _AppButtonState extends State<AppButton>
     super.dispose();
   }
 
-  // ────────────────────────────
-  // TAP HANDLERS
-  // Scale + haptic
-  // ────────────────────────────
-
-  void _onTapDown(
-    TapDownDetails details,
-  ) {
-    if (_isInteractable) {
-      _ctrl.forward();
-    }
+  void _onTapDown(TapDownDetails _) {
+    if (_isInteractable) _ctrl.forward();
   }
 
-  void _onTapUp(
-    TapUpDetails details,
-  ) {
+  void _onTapUp(TapUpDetails _) {
     if (_isInteractable) {
       _ctrl.reverse();
       HapticFeedback.lightImpact();
@@ -126,80 +89,118 @@ class _AppButtonState extends State<AppButton>
     }
   }
 
-  void _onTapCancel() {
-    _ctrl.reverse();
-  }
+  void _onTapCancel() => _ctrl.reverse();
 
   bool get _isInteractable =>
       !widget.isLoading && !widget.isDisabled && widget.onTap != null;
 
   // ────────────────────────────
   // STYLE GETTERS
-  // Based on type + state
   // ────────────────────────────
 
   Color get _bgColor {
-  if (!_isInteractable) {
+    if (!_isInteractable) {
+      return switch (widget.type) {
+        AppButtonType.primary => AppColors.primary.withValues(alpha: 0.40),
+        AppButtonType.glow => AppColors.primary.withValues(alpha: 0.08),
+        AppButtonType.outline => Colors.transparent,
+        AppButtonType.ghost => Colors.transparent,
+        AppButtonType.danger => AppColors.danger.withValues(alpha: 0.40),
+      };
+    }
     return switch (widget.type) {
-      AppButtonType.primary => AppColors.primary.withValues(alpha: 0.40),
+      AppButtonType.primary => AppColors.primary,
+      AppButtonType.glow => AppColors.primary.withValues(
+          alpha: 0.08 + (0.07 * widget.glowIntensity),
+        ),
       AppButtonType.outline => Colors.transparent,
       AppButtonType.ghost => Colors.transparent,
-      AppButtonType.danger => AppColors.danger.withValues(alpha: 0.40),
+      AppButtonType.danger => AppColors.danger.withValues(alpha: 0.12),
     };
   }
-  return switch (widget.type) {
-    AppButtonType.primary => AppColors.primary,
-    AppButtonType.outline => Colors.transparent,
-    AppButtonType.ghost => Colors.transparent,
-    AppButtonType.danger => AppColors.danger.withValues(alpha: 0.12),
-  };
-}
 
   Color get _borderColor {
-  if (!_isInteractable) {
-    return AppColors.primary.withValues(alpha: 0.30);
+    if (!_isInteractable) {
+      return switch (widget.type) {
+        AppButtonType.glow => AppColors.primary.withValues(alpha: 0.20),
+        _ => AppColors.primary.withValues(alpha: 0.30),
+      };
+    }
+    return switch (widget.type) {
+      AppButtonType.primary => Colors.transparent,
+      AppButtonType.glow => AppColors.primary.withValues(
+          alpha: 0.35 + (0.35 * widget.glowIntensity),
+        ),
+      AppButtonType.outline => AppColors.primary,
+      AppButtonType.ghost => Colors.transparent,
+      AppButtonType.danger => AppColors.danger,
+    };
   }
-  return switch (widget.type) {
-    AppButtonType.primary => Colors.transparent,
-    AppButtonType.outline => AppColors.primary,
-    AppButtonType.ghost => Colors.transparent,
-    AppButtonType.danger => AppColors.danger,
-  };
-}
 
- Color get _labelColor {
-  if (!_isInteractable) {
-    return Colors.white.withValues(alpha: 0.40);
+  Color get _labelColor {
+    if (!_isInteractable) {
+      return Colors.white.withValues(alpha: 0.40);
+    }
+    return switch (widget.type) {
+      AppButtonType.primary => Colors.white,
+      AppButtonType.glow => Colors.white,
+      AppButtonType.outline => AppColors.primary,
+      AppButtonType.ghost => AppColors.primary,
+      AppButtonType.danger => AppColors.danger,
+    };
   }
-  return switch (widget.type) {
-    AppButtonType.primary => Colors.white,
-    AppButtonType.outline => AppColors.primary,
-    AppButtonType.ghost => AppColors.primary,
-    AppButtonType.danger => AppColors.danger,
-  };
-}
+
   List<BoxShadow> get _shadows {
-  if (!_isInteractable) return [];
-  return switch (widget.type) {
-    AppButtonType.primary => [
-        BoxShadow(
-          color: AppColors.primary.withValues(alpha: 0.35),
-          blurRadius: 16,
-          spreadRadius: 0,
-          offset: const Offset(0, 4),
-        ),
-      ],
-    AppButtonType.danger => [
-        BoxShadow(
-          color: AppColors.danger.withValues(alpha: 0.30),
-          blurRadius: 16,
-          spreadRadius: 0,
-          offset: const Offset(0, 4),
-        ),
-      ],
-    AppButtonType.outline || AppButtonType.ghost => [],
-  };
-}
+    if (!_isInteractable) return [];
+    return switch (widget.type) {
+      AppButtonType.primary => [
+          BoxShadow(
+            color: AppColors.primary.withValues(alpha: 0.35),
+            blurRadius: 16,
+            spreadRadius: 0,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      AppButtonType.glow => [
+          // Inner ambient glow
+          BoxShadow(
+            color: AppColors.primary.withValues(
+              alpha: 0.12 + (0.18 * widget.glowIntensity),
+            ),
+            blurRadius: 8 + (12 * widget.glowIntensity),
+            spreadRadius: 0 + (3 * widget.glowIntensity),
+          ),
+          // Outer spread glow
+          BoxShadow(
+            color: AppColors.primary.withValues(
+              alpha: 0.06 + (0.10 * widget.glowIntensity),
+            ),
+            blurRadius: 20 + (20 * widget.glowIntensity),
+            spreadRadius: 0,
+          ),
+        ],
+      AppButtonType.danger => [
+          BoxShadow(
+            color: AppColors.danger.withValues(alpha: 0.30),
+            blurRadius: 16,
+            spreadRadius: 0,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      AppButtonType.outline || AppButtonType.ghost => [],
+    };
+  }
+
+  // ────────────────────────────
+  // BORDER RADIUS
+  // glow type = 14.r (rounded)
+  // others = 12.r
+  // ────────────────────────────
+
+  double get _borderRadius => switch (widget.type) {
+        AppButtonType.glow => 14.r,
+        _ => 12.r,
+      };
 
   @override
   Widget build(BuildContext context) {
@@ -214,9 +215,7 @@ class _AppButtonState extends State<AppButton>
           height: widget.height ?? 52.h,
           decoration: BoxDecoration(
             color: _bgColor,
-            borderRadius: BorderRadius.circular(
-              12.r,
-            ),
+            borderRadius: BorderRadius.circular(_borderRadius),
             border: Border.all(
               color: _borderColor,
               width: 1.5,
@@ -225,9 +224,7 @@ class _AppButtonState extends State<AppButton>
           ),
           child: Center(
             child: widget.isLoading
-                ? _LoadingIndicator(
-                    color: _labelColor,
-                  )
+                ? _LoadingIndicator(color: _labelColor)
                 : _ButtonContent(
                     label: widget.label,
                     icon: widget.icon,
@@ -242,7 +239,6 @@ class _AppButtonState extends State<AppButton>
 
 // ──────────────────────────────
 // BUTTON CONTENT
-// Label + optional icon
 // ──────────────────────────────
 
 class _ButtonContent extends StatelessWidget {
@@ -261,22 +257,21 @@ class _ButtonContent extends StatelessWidget {
     if (icon == null) {
       return Text(
         label,
-        style: AppTextStyles.button.copyWith(color: color),
+        style: AppTextStyles.button.copyWith(
+          color: color,
+        ),
       );
     }
-
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(
-          icon,
-          color: color,
-          size: 18.r,
-        ),
+        Icon(icon, color: color, size: 18.r),
         SizedBox(width: 8.w),
         Text(
           label,
-          style: AppTextStyles.button.copyWith(color: color),
+          style: AppTextStyles.button.copyWith(
+            color: color,
+          ),
         ),
       ],
     );
@@ -285,13 +280,10 @@ class _ButtonContent extends StatelessWidget {
 
 // ──────────────────────────────
 // LOADING INDICATOR
-// Small spinner for loading state
 // ──────────────────────────────
 
 class _LoadingIndicator extends StatelessWidget {
-  const _LoadingIndicator({
-    required this.color,
-  });
+  const _LoadingIndicator({required this.color});
 
   final Color color;
 
@@ -302,9 +294,7 @@ class _LoadingIndicator extends StatelessWidget {
       height: 20.r,
       child: CircularProgressIndicator(
         strokeWidth: 2.0,
-        valueColor: AlwaysStoppedAnimation<Color>(
-          color,
-        ),
+        valueColor: AlwaysStoppedAnimation<Color>(color),
       ),
     );
   }
