@@ -40,7 +40,7 @@ class SectionHeader extends StatelessWidget {
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    SizedBox(width: 2.w),
+                    SizedBox(width: 2.w), 
                     Icon(
                       Icons.arrow_forward_ios_rounded,
                       color: AppColors.primary,

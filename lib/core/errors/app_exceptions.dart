@@ -6,7 +6,7 @@ library algolens.core.errors.app_exceptions;
 
 // ──────────────────────────────
 // EXCEPTION TYPES
-// Maps to HTTP status codes
+// Maps to HTTP status codesc
 // ──────────────────────────────
 
 enum ApiExceptionType {

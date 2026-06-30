@@ -49,7 +49,7 @@ class ProgressBarWidget extends StatefulWidget {
 class _ProgressBarWidgetState extends State<ProgressBarWidget>
     with SingleTickerProviderStateMixin {
   late final AnimationController _ctrl;
-  late final Animation<double> _anim;
+  late Animation<double> _anim; // FIXED: removed `final` — reassigned in didUpdateWidget
 
   @override
   void initState() {

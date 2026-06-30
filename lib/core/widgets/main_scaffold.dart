@@ -6,6 +6,7 @@ import 'package:salomon_bottom_bar/salomon_bottom_bar.dart';
 import 'package:algolens/core/theme/app_colors.dart';
 import 'package:algolens/core/theme/app_text_styles.dart';
 import 'package:algolens/core/router/app_router.dart';
+import 'package:algolens/core/widgets/offline_banner.dart';
 
 class MainScaffold extends ConsumerWidget {
   const MainScaffold({
@@ -33,7 +34,14 @@ class MainScaffold extends ConsumerWidget {
         backgroundColor: Colors.transparent,
         extendBody: true,
         // No AppBackground here — each screen has its own
-        body: child,
+        // OfflineBanner lives here (not per-screen) so it's
+        // automatically present and SafeArea-correct on every tab.
+        body: Column(
+          children: [
+            const SafeArea(bottom: false, child: OfflineBanner()),
+            Expanded(child: child),
+          ],
+        ),
         bottomNavigationBar: _BottomNav(
           currentIndex: currentIndex,
           onTap: (index) => _navigateToTab(context, index),
@@ -93,13 +101,14 @@ class _BottomNav extends StatelessWidget {
           vertical: 10.h,
         ),
         selectedItemColor: AppColors.primary,
-        unselectedItemColor:  const Color(0xFF060B14).withValues(alpha: 0.40),
+        unselectedItemColor: const Color(0xFF060B14).withValues(alpha: 0.40),
         items: [
           SalomonBottomBarItem(
             icon: const Icon(Icons.home_rounded),
             title: Text(
               'Home',
-              style: AppTextStyles.caption.copyWith(fontWeight: FontWeight.w600),
+              style:
+                  AppTextStyles.caption.copyWith(fontWeight: FontWeight.w600),
             ),
             selectedColor: AppColors.primary,
           ),
@@ -107,7 +116,8 @@ class _BottomNav extends StatelessWidget {
             icon: const Icon(Icons.emoji_events_rounded),
             title: Text(
               'Contests',
-              style: AppTextStyles.caption.copyWith(fontWeight: FontWeight.w600),
+              style:
+                  AppTextStyles.caption.copyWith(fontWeight: FontWeight.w600),
             ),
             selectedColor: AppColors.primary,
           ),
@@ -115,7 +125,8 @@ class _BottomNav extends StatelessWidget {
             icon: const Icon(Icons.code_rounded),
             title: Text(
               'Practice',
-              style: AppTextStyles.caption.copyWith(fontWeight: FontWeight.w600),
+              style:
+                  AppTextStyles.caption.copyWith(fontWeight: FontWeight.w600),
             ),
             selectedColor: AppColors.primary,
           ),
@@ -123,7 +134,8 @@ class _BottomNav extends StatelessWidget {
             icon: const Icon(Icons.people_rounded),
             title: Text(
               'Friends',
-              style: AppTextStyles.caption.copyWith(fontWeight: FontWeight.w600),
+              style:
+                  AppTextStyles.caption.copyWith(fontWeight: FontWeight.w600),
             ),
             selectedColor: AppColors.primary,
           ),

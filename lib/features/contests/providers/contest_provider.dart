@@ -143,6 +143,28 @@ class AllContestsNotifier
 }
 
 // ─────────────────────────────────
+// REMINDER ID ENCODING
+//
+// notifId = contestId * _reminderIdMultiplier + minutesBefore
+//
+// minutesBefore can be up to 720 (12hr custom reminders), so the
+// multiplier must be large enough that minutesBefore never bleeds
+// into contestId's digits. 10000 gives headroom up to 9999 minutes
+// (~166hr) before any collision risk — far beyond the UI's max of
+// 720. The previous multiplier of 100 caused real collisions for
+// minutesBefore >= 100 (which includes the 120-minute preset and
+// every custom value above 99), silently writing reminders under
+// the wrong contest's bucket.
+//
+// IMPORTANT: changing this multiplier again orphans any reminders
+// already saved under the old scheme (their notifId was encoded
+// differently and will no longer decode to the right contestId).
+// Wipe local Hive data after changing this during development.
+// ─────────────────────────────────
+
+const int _reminderIdMultiplier = 10000;
+
+// ─────────────────────────────────
 // CONTEST REMINDER PROVIDER
 // Reads reminders for a contest
 // from Hive box
@@ -172,7 +194,7 @@ final contestReminderProvider = Provider.family<List<int>, int>(
             key.toString(),
           ) ??
           0;
-      if (id ~/ 100 == contestId) {
+      if (id ~/ _reminderIdMultiplier == contestId) {
         try {
           final raw = box.get(key) as String?;
           if (raw != null) {
@@ -192,6 +214,26 @@ final contestReminderProvider = Provider.family<List<int>, int>(
 );
 
 // ─────────────────────────────────
+// HAS REMINDER PROVIDER
+// Derived from contestReminderProvider
+// Boolean convenience for bell icon state
+// ─────────────────────────────────
+
+/// True if a contest has at least one
+/// active reminder set.
+///
+/// Usage:
+/// final hasReminder = ref.watch(
+///   contestHasReminderProvider(contestId),
+/// );
+final contestHasReminderProvider = Provider.family<bool, int>(
+  (ref, contestId) {
+    final reminders = ref.watch(contestReminderProvider(contestId));
+    return reminders.isNotEmpty;
+  },
+);
+
+// ─────────────────────────────────
 // ADD REMINDER PROVIDER
 // Saves reminder to Hive
 // Max 3 per contest
@@ -201,8 +243,6 @@ final contestReminderProvider = Provider.family<List<int>, int>(
 ///
 /// Returns true if added
 /// Returns false if max 3 reached
-///
-/// notifId = contestId * 100 + mins
 ///
 /// Usage:
 /// final added = await ref.read(
@@ -239,7 +279,7 @@ class AddReminderNotifier extends StateNotifier<bool> {
             key.toString(),
           ) ??
           0;
-      if (id ~/ 100 == contestId) {
+      if (id ~/ _reminderIdMultiplier == contestId) {
         count++;
       }
     }
@@ -247,10 +287,14 @@ class AddReminderNotifier extends StateNotifier<bool> {
     // Max 3 reminders per contest
     if (count >= 3) return false;
 
-    final notifId = contestId * 100 + minutesBefore;
+    // Defensive guard — never schedule a reminder in the past,
+    // even if upstream validation somehow let a bad value through.
     final scheduledAt = startDateTime.subtract(
       Duration(minutes: minutesBefore),
     );
+    if (scheduledAt.isBefore(DateTime.now())) return false;
+
+    final notifId = contestId * _reminderIdMultiplier + minutesBefore;
 
     await box.put(
       '$notifId',
@@ -303,7 +347,7 @@ class RemoveReminderNotifier extends StateNotifier<bool> {
     required int contestId,
     required int minutesBefore,
   }) async {
-    final notifId = contestId * 100 + minutesBefore;
+    final notifId = contestId * _reminderIdMultiplier + minutesBefore;
     await HiveService.contestReminders.delete('$notifId');
 
     // Refresh reminder provider
@@ -325,7 +369,7 @@ class RemoveReminderNotifier extends StateNotifier<bool> {
             k.toString(),
           ) ??
           0;
-      return id ~/ 100 == contestId;
+      return id ~/ _reminderIdMultiplier == contestId;
     }).toList();
 
     for (final key in toDelete) {

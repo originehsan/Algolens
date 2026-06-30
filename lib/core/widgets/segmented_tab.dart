@@ -11,7 +11,7 @@ import 'package:algolens/core/theme/app_text_styles.dart';
 /// Animated segmented tab bar
 ///
 /// Features:
-/// → Sliding active indicator
+/// → Sliding active indicatorc
 /// → AnimatedContainer transition
 /// → Glass background
 /// → Used in:

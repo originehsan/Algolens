@@ -199,7 +199,7 @@ class GlassCard extends StatelessWidget {
 // GLASS CARD SHIMMER
 // Loading placeholder version
 // Same shape as GlassCard
-// ──────────────────────────────
+// ──────────────────────────────s
 
 /// Shimmer placeholder that
 /// matches GlassCard dimensions

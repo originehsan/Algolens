@@ -1,27 +1,38 @@
+import 'package:algolens/features/home/screens/widgets/rating_hero_card.dart';
+import 'package:algolens/features/home/screens/widgets/stats_strip.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:algolens/core/constants/app_constants.dart';
+import 'package:algolens/core/constants/app_strings.dart';
 import 'package:algolens/core/errors/app_exceptions.dart';
 import 'package:algolens/core/router/app_router.dart';
 import 'package:algolens/core/theme/app_colors.dart';
+import 'package:algolens/core/theme/app_text_styles.dart';
+import 'package:algolens/core/utils/date_utils.dart';
 import 'package:algolens/core/widgets/app_background.dart';
-import 'package:algolens/core/widgets/contest_card.dart';
 import 'package:algolens/core/widgets/empty_widget.dart';
 import 'package:algolens/core/widgets/glass_card.dart';
-import 'package:algolens/core/widgets/loading_shimmer.dart';
-import 'package:algolens/core/widgets/offline_banner.dart';
-import 'package:algolens/core/widgets/progress_bar_widget.dart';
-import 'package:algolens/core/widgets/rank_chip.dart';
 import 'package:algolens/core/widgets/section_header.dart';
-import 'package:algolens/core/widgets/stat_card.dart';
 import 'package:algolens/core/widgets/user_avatar.dart';
 import 'package:algolens/features/contests/providers/contest_provider.dart';
-import 'package:algolens/features/home/data/models/home_model.dart';
+import 'package:algolens/features/friends/providers/friends_provider.dart';
 import 'package:algolens/features/home/providers/home_provider.dart';
+import 'package:algolens/features/home/screens/widgets/contest_carousel.dart';
+import 'package:algolens/features/home/screens/widgets/friend_pulse_row.dart';
+import 'package:algolens/features/home/screens/widgets/today_focus_card.dart';
+import 'package:algolens/features/practice/providers/practice_provider.dart';
 import 'package:algolens/features/profile/data/models/profile_model.dart';
 import 'package:algolens/features/profile/providers/profile_provider.dart';
+
+// ─────────────────────────────────────────────────────────────────
+// HOME SCREEN
+// Resolves CF handle → delegates to _HomeBody
+// Note: OfflineBanner now lives in MainScaffold, not here.
+// ─────────────────────────────────────────────────────────────────
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -33,35 +44,31 @@ class HomeScreen extends ConsumerWidget {
     return AppBackground(
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        body: Column(
-          children: [
-            const OfflineBanner(),
-            Expanded(
-              child: handleAsync.when(
-                loading: () => const _LoadingBody(),
-                error: (e, s) => _ErrorBody(
-                  error: e is ApiException
-                      ? e.message
-                      : 'Something went wrong. Please try again.',
-                  onRetry: () => ref.invalidate(cfHandleProvider),
-                ),
-                data: (handle) {
-                  if (handle == null || handle.isEmpty) {
-                    return _ErrorBody(
-                      error: 'Handle not set. Please set up your CF handle.',
-                      onRetry: () => ref.invalidate(cfHandleProvider),
-                    );
-                  }
-                  return _HomeBody(handle: handle);
-                },
-              ),
-            ),
-          ],
+        body: handleAsync.when(
+          loading: () => const _HomeLoadingBody(),
+          error: (e, _) => _HomeErrorBody(
+            message:
+                e is ApiException ? e.message : AppStrings.somethingWentWrong,
+            onRetry: () => ref.invalidate(cfHandleProvider),
+          ),
+          data: (handle) {
+            if (handle == null || handle.isEmpty) {
+              return _HomeErrorBody(
+                message: AppStrings.handleNotSet,
+                onRetry: () => ref.invalidate(cfHandleProvider),
+              );
+            }
+            return _HomeBody(handle: handle);
+          },
         ),
       ),
     );
   }
 }
+
+// ─────────────────────────────────────────────────────────────────
+// HOME BODY — all 6 sections
+// ─────────────────────────────────────────────────────────────────
 
 class _HomeBody extends ConsumerWidget {
   const _HomeBody({required this.handle});
@@ -73,103 +80,168 @@ class _HomeBody extends ConsumerWidget {
     final readinessAsync = ref.watch(homeReadinessProvider);
     final deltaAsync = ref.watch(ratingDeltaProvider);
     final contestsAsync = ref.watch(upcomingContestsProvider);
+    final leaderboardAsync = ref.watch(leaderboardProvider);
+    final weakTopicsAsync = ref.watch(weakTopicsProvider);
 
     return RefreshIndicator(
       color: AppColors.primary,
       backgroundColor: AppColors.bgMid,
+      displacement: 20,
       onRefresh: () async {
-        ref.invalidate(profileProvider(handle));
-        ref.invalidate(homeReadinessProvider);
-        ref.invalidate(ratingDeltaProvider);
-        ref.invalidate(upcomingContestsProvider);
+        HapticFeedback.mediumImpact();
+        await Future.wait([
+          ref.refresh(profileProvider(handle).future),
+          ref.refresh(homeReadinessProvider.future),
+          ref.refresh(ratingDeltaProvider.future),
+          ref.refresh(upcomingContestsProvider.future),
+          ref.refresh(leaderboardProvider.future),
+          ref.refresh(weakTopicsProvider.future),
+        ]);
       },
       child: CustomScrollView(
+        physics: const BouncingScrollPhysics(),
         slivers: [
+          // ── S1 — Header panel (full bleed, own safe area) ──
+          SliverToBoxAdapter(
+            child: _HomeHeaderPanel(
+              handle: handle,
+              profileAsync: profileAsync,
+            ),
+          ),
+
+          // ── Padded content ─────────────────────────────
           SliverPadding(
-            padding: EdgeInsets.only(
-              left: 20.w,
-              right: 20.w,
-              top: 16.h,
+            padding: EdgeInsets.symmetric(
+              horizontal: AppConstants.screenHorizontalPaddingValue.w,
             ),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
-                _Header(
-                  handle: handle,
-                  profileAsync: profileAsync,
-                  onAvatarTap: () => context.pushNamed(RouteNames.profile),
-                ),
-                SizedBox(height: 20.h),
+                Gap(20.h),
+
+                // S2 — Rating hero
                 profileAsync.when(
-                  loading: () => GlassCardShimmer(height: 140.h),
-                  error: (e, s) => const SizedBox.shrink(),
-                  data: (profile) => _RatingHeroCard(
-                    profile: profile,
+                  loading: () => GlassCardShimmer(height: 148.h),
+                  error: (_, __) => const SizedBox.shrink(),
+                  data: (p) => RatingHeroCard(
+                    profile: p,
                     readinessAsync: readinessAsync,
                     deltaAsync: deltaAsync,
                   ),
                 ),
-                SizedBox(height: 16.h),
+
+                Gap(14.h),
+// S3 — Stats strip (merged card, vertical dividers)
                 profileAsync.when(
-                  loading: () => const StatsRowShimmer(),
-                  error: (e, s) => const SizedBox.shrink(),
-                  data: (profile) => _StatsRow(profile: profile),
+                  loading: () => GlassCardShimmer(height: 86.h),
+                  error: (_, __) => const SizedBox.shrink(),
+                  data: (p) => StatsStrip(profile: p),
                 ),
-                SizedBox(height: 24.h),
+
+                Gap(28.h),
+
+                // S4 header
                 SectionHeader(
-                  title: 'Upcoming Contests',
-                  actionLabel: 'See all',
+                  title: AppStrings.upcomingContests,
+                  actionLabel: AppStrings.seeAll,
                   onAction: () => context.goNamed(RouteNames.contests),
                 ),
-                SizedBox(height: 12.h),
-                // ──────────────────────
-                // UPCOMING CONTESTS
-                // Real data, max 3, no bell
-                // ──────────────────────
-                contestsAsync.when(
-                  loading: () => Column(
-                    children: [
-                      GlassCardShimmer(height: 80.h),
-                      SizedBox(height: 10.h),
-                      GlassCardShimmer(height: 80.h),
-                      SizedBox(height: 10.h),
-                      GlassCardShimmer(height: 80.h),
-                    ],
-                  ),
-                  error: (e, s) => const SizedBox.shrink(),
-                  data: (contests) {
-                    if (contests.isEmpty) {
-                      return const EmptyWidget(
-                        icon: Icons.emoji_events_rounded,
-                        message: 'No upcoming contests',
-                        subtitle: 'Check back later',
-                      );
-                    }
-                    final limited =
-                        contests.length > 3 ? contests.sublist(0, 3) : contests;
+
+                Gap(14.h),
+              ]),
+            ),
+          ),
+
+          // ── S4 — Carousel (full bleed, no padding) ─────
+          SliverToBoxAdapter(
+            child: contestsAsync.when(
+              loading: () => Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: AppConstants.screenHorizontalPaddingValue.w,
+                ),
+                child: GlassCardShimmer(height: 230.h),
+              ),
+              error: (_, __) => const SizedBox.shrink(),
+              data: (contests) {
+                if (contests.isEmpty) {
+                  return Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: AppConstants.screenHorizontalPaddingValue.w,
+                    ),
+                    child: const EmptyWidget(
+                      icon: Icons.emoji_events_rounded,
+                      message: AppStrings.noUpcomingContests,
+                      subtitle: AppStrings.noUpcomingContestsSub,
+                    ),
+                  );
+                }
+                return ContestCarousel(
+                  contests:
+                      contests.take(AppConstants.homeCarouselMax).toList(),
+                  handle: handle,
+                );
+              },
+            ),
+          ),
+
+          // ── Padded remainder ───────────────────────────
+          SliverPadding(
+            padding: EdgeInsets.symmetric(
+              horizontal: AppConstants.screenHorizontalPaddingValue.w,
+            ),
+            sliver: SliverList(
+              delegate: SliverChildListDelegate([
+                Gap(28.h),
+
+                // S5 — Friends pulse
+                leaderboardAsync.when(
+                  loading: () => const SizedBox.shrink(),
+                  error: (_, __) => const SizedBox.shrink(),
+                  data: (rows) {
+                    if (rows.isEmpty) return const SizedBox.shrink();
                     return Column(
-                      children: limited
-                          .map(
-                            (c) => ContestCard(
-                              contestId: c.contestId,
-                              name: c.name,
-                              status: c.isLive
-                                  ? ContestStatus.live
-                                  : c.isUpcoming
-                                      ? ContestStatus.upcoming
-                                      : ContestStatus.finished,
-                              difficulty: c.difficulty,
-                              startDateTime: c.startDateTime,
-                              durationFormatted: c.durationFormatted,
-                              hasReminder: false,
-                              onReminderTap: () {},
-                              margin: EdgeInsets.only(bottom: 10.h),
-                            ),
-                          )
-                          .toList(),
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SectionHeader(
+                          title: AppStrings.friendsPulse,
+                          actionLabel: AppStrings.seeAll,
+                          onAction: () => context.goNamed(RouteNames.friends),
+                        ),
+                        Gap(12.h),
+                        _FriendsPulse(
+                          rows: rows,
+                          myHandle: handle,
+                        ),
+                        Gap(28.h),
+                      ],
                     );
                   },
                 ),
-                SizedBox(height: 100.h),
+
+                // S6 — Today's focus
+                weakTopicsAsync.when(
+                  loading: () => const SizedBox.shrink(),
+                  error: (_, __) => const SizedBox.shrink(),
+                  data: (topics) {
+                    if (topics.isEmpty) return const SizedBox.shrink();
+                    final worst = topics.first;
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SectionHeader(title: AppStrings.todayFocus),
+                        Gap(12.h),
+                        TodayFocusCard(
+                          tag: worst.tag,
+                          acRate: worst.acRate,
+                          solvedCount: worst.solvedCount,
+                          totalAttempts: worst.totalAttempts,
+                          onTap: () => context.goNamed(RouteNames.practice),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+
+                Gap(120.h),
               ]),
             ),
           ),
@@ -179,270 +251,190 @@ class _HomeBody extends ConsumerWidget {
   }
 }
 
-// ─────────────────────────────────
-// HEADER
-// Hey, {handle} 👋
-// ─────────────────────────────────
+// ─────────────────────────────────────────────────────────────────
+// S1 — HEADER PANEL
+// Curved bottom edge, color reaches absolute screen top, content
+// pushed below status bar via SafeArea(bottom: false).
+// ─────────────────────────────────────────────────────────────────
 
-class _Header extends StatelessWidget {
-  const _Header({
+class _HomeHeaderPanel extends StatelessWidget {
+  const _HomeHeaderPanel({
     required this.handle,
     required this.profileAsync,
-    required this.onAvatarTap,
   });
 
   final String handle;
   final AsyncValue<ProfileModel> profileAsync;
-  final VoidCallback onAvatarTap;
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    return Container(
+      width: double.infinity,
+      color: AppColors.bgMid,
+      child: SafeArea(
+        bottom: false,
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(
+            AppConstants.screenHorizontalPaddingValue.w,
+            20.h,
+            AppConstants.screenHorizontalPaddingValue.w,
+            24.h,
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Text(
-                'Hey, $handle 👋',
-                style: GoogleFonts.inter(
-                  fontSize: 22.sp,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
-                ),
-              ),
-            ],
-          ),
-        ),
-        profileAsync.when(
-          loading: () => Container(
-            width: 44.r,
-            height: 44.r,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: AppColors.primary.withValues(alpha: 0.15),
-            ),
-          ),
-          error: (_, __) => UserAvatar(
-            handle: handle,
-            rank: '',
-            size: 44.r,
-            onTap: onAvatarTap,
-          ),
-          data: (profile) => UserAvatar(
-            handle: profile.handle,
-            rank: profile.rank,
-            avatarUrl: profile.avatar,
-            size: 44.r,
-            onTap: onAvatarTap,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-// ─────────────────────────────────
-// RATING HERO CARD
-// ─────────────────────────────────
-
-class _RatingHeroCard extends StatelessWidget {
-  const _RatingHeroCard({
-    required this.profile,
-    required this.readinessAsync,
-    required this.deltaAsync,
-  });
-
-  final ProfileModel profile;
-  final AsyncValue<ReadinessScore> readinessAsync;
-  final AsyncValue<RatingDelta?> deltaAsync;
-
-  @override
-  Widget build(BuildContext context) {
-    return GlassCard(
-      type: GlassCardType.primary,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Rating',
-                    style: GoogleFonts.inter(
-                      fontSize: 12.sp,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.white.withValues(alpha: 0.55),
-                    ),
-                  ),
-                  SizedBox(height: 4.h),
-                  Text(
-                    '${profile.rating}',
-                    style: GoogleFonts.jetBrainsMono(
-                      fontSize: 36.sp,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.primary,
-                    ),
-                  ),
-                ],
-              ),
-              const Spacer(),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  RankChip(rank: profile.rank),
-                  SizedBox(height: 8.h),
-                  deltaAsync.when(
-                    loading: () => const SizedBox.shrink(),
-                    error: (_, __) => const SizedBox.shrink(),
-                    data: (delta) {
-                      if (delta == null) return const SizedBox.shrink();
-                      return Text(
-                        delta.formatted,
-                        style: GoogleFonts.jetBrainsMono(
-                          fontSize: 14.sp,
-                          fontWeight: FontWeight.w600,
-                          color: delta.isPositive
-                              ? AppColors.success
-                              : AppColors.danger,
-                        ),
-                      );
-                    },
-                  ),
-                ],
-              ),
-            ],
-          ),
-          SizedBox(height: 16.h),
-          readinessAsync.when(
-            loading: () => const SizedBox.shrink(),
-            error: (_, __) => const SizedBox.shrink(),
-            data: (readiness) => Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      readiness.label,
-                      style: GoogleFonts.inter(
-                        fontSize: 12.sp,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white.withValues(alpha: 0.70),
+                      AppDateUtils.greeting(),
+                      style: AppTextStyles.caption.copyWith(
+                        color: AppColors.textMuted,
+                        letterSpacing: 0.4,
                       ),
                     ),
+                    Gap(6.h),
                     Text(
-                      '${readiness.score}%',
-                      style: GoogleFonts.jetBrainsMono(
-                        fontSize: 12.sp,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.primary,
+                      handle,
+                      style: AppTextStyles.h1.copyWith(
+                        fontFamily: 'JetBrainsMono',
+                        fontSize: 26.sp,
+                        letterSpacing: -0.5,
                       ),
                     ),
                   ],
                 ),
-                SizedBox(height: 8.h),
-                ProgressBarWidget(
-                  value: readiness.score / 100,
-                  color: AppColors.primary,
+              ),
+              profileAsync.when(
+                loading: () => const _AvatarShimmer(),
+                error: (_, __) => UserAvatar(
+                  handle: handle,
+                  rank: '',
+                  size: 50.r,
+                  onTap: () => context.pushNamed(RouteNames.profile),
                 ),
-              ],
-            ),
+                data: (p) => UserAvatar(
+                  handle: p.handle,
+                  rank: p.rank,
+                  avatarUrl: p.avatar,
+                  size: 50.r,
+                  onTap: () => context.pushNamed(RouteNames.profile),
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
 }
 
-// ─────────────────────────────────
-// STATS ROW
-// ─────────────────────────────────
-
-class _StatsRow extends StatelessWidget {
-  const _StatsRow({required this.profile});
-  final ProfileModel profile;
+class _AvatarShimmer extends StatelessWidget {
+  const _AvatarShimmer();
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: StatCard(
-            icon: Icons.check_circle_rounded,
-            iconColor: AppColors.success,
-            value: '${profile.problemsSolved}',
-            label: 'Solved',
-          ),
-        ),
-        SizedBox(width: 10.w),
-        Expanded(
-          child: StatCard(
-            icon: Icons.emoji_events_rounded,
-            iconColor: AppColors.warning,
-            value: '${profile.contestsParticipated}',
-            label: 'Contests',
-          ),
-        ),
-        SizedBox(width: 10.w),
-        Expanded(
-          child: StatCard(
-            icon: Icons.local_fire_department_rounded,
-            iconColor: AppColors.danger,
-            value: '${profile.streakDays}',
-            label: 'Streak',
-          ),
-        ),
-      ],
+    return Container(
+      width: 50.r,
+      height: 50.r,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: AppColors.primary.withValues(alpha: 0.12),
+      ),
     );
   }
 }
 
-// ─────────────────────────────────
-// LOADING BODY
-// ─────────────────────────────────
+// ─────────────────────────────────────────────────────────────────
+// S3 — STATS ROW
+// ───────────────────────────────────────────────────────────────
 
-class _LoadingBody extends StatelessWidget {
-  const _LoadingBody();
+// ─────────────────────────────────────────────────────────────────
+// S5 — FRIENDS PULSE
+// ─────────────────────────────────────────────────────────────────
+
+class _FriendsPulse extends StatelessWidget {
+  const _FriendsPulse({
+    required this.rows,
+    required this.myHandle,
+  });
+
+  final List<dynamic> rows;
+  final String myHandle;
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
+    final limited = rows.take(AppConstants.homeFriendPulseMax).toList();
+    return RepaintBoundary(
+      child: GlassCard(
+        padding: EdgeInsets.symmetric(vertical: 4.h),
+        child: Column(
+          children: List.generate(limited.length, (i) {
+            final row = limited[i];
+            final isLast = i == limited.length - 1;
+            return FriendPulseRow(
+              rank: row.rank,
+              handle: row.handle,
+              rating: row.rating,
+              tier: row.tier,
+              isMe: row.handle == myHandle,
+              showDivider: !isLast,
+            );
+          }),
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────
+// LOADING BODY
+// ─────────────────────────────────────────────────────────────────
+
+class _HomeLoadingBody extends StatelessWidget {
+  const _HomeLoadingBody();
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      physics: const NeverScrollableScrollPhysics(),
+      padding: EdgeInsets.symmetric(
+        horizontal: AppConstants.screenHorizontalPaddingValue.w,
+        vertical: 16.h,
+      ),
       child: Column(
         children: [
-          GlassCardShimmer(height: 60.h),
-          SizedBox(height: 20.h),
-          GlassCardShimmer(height: 140.h),
-          SizedBox(height: 16.h),
-          const StatsRowShimmer(),
+          Gap(16.h),
+          GlassCardShimmer(height: 130.h),
+          Gap(12.h),
+          GlassCardShimmer(height: 86.h),
+          Gap(20.h),
+          GlassCardShimmer(height: 230.h),
         ],
       ),
     );
   }
 }
 
-// ─────────────────────────────────
+// ─────────────────────────────────────────────────────────────────
 // ERROR BODY
-// ─────────────────────────────────
+// ─────────────────────────────────────────────────────────────────
 
-class _ErrorBody extends StatelessWidget {
-  const _ErrorBody({
-    required this.error,
+class _HomeErrorBody extends StatelessWidget {
+  const _HomeErrorBody({
+    required this.message,
     required this.onRetry,
   });
 
-  final String error;
+  final String message;
   final VoidCallback onRetry;
 
   @override
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 20.w),
+        padding: EdgeInsets.symmetric(horizontal: 32.w),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -451,25 +443,36 @@ class _ErrorBody extends StatelessWidget {
               color: AppColors.danger.withValues(alpha: 0.70),
               size: 48.r,
             ),
-            SizedBox(height: 16.h),
+            Gap(16.h),
             Text(
-              error,
-              style: GoogleFonts.inter(
-                fontSize: 14.sp,
-                fontWeight: FontWeight.w500,
-                color: Colors.white.withValues(alpha: 0.60),
+              message,
+              style: AppTextStyles.body.copyWith(
+                color: AppColors.textMuted,
               ),
               textAlign: TextAlign.center,
             ),
-            SizedBox(height: 16.h),
-            TextButton(
-              onPressed: onRetry,
-              child: Text(
-                'Retry',
-                style: GoogleFonts.inter(
-                  fontSize: 14.sp,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.primary,
+            Gap(20.h),
+            GestureDetector(
+              onTap: onRetry,
+              child: Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: 24.w,
+                  vertical: 10.h,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(10.r),
+                  border: Border.all(
+                    color: AppColors.primary.withValues(alpha: 0.40),
+                    width: 1.0,
+                  ),
+                ),
+                child: Text(
+                  AppStrings.retry,
+                  style: AppTextStyles.bodySmall.copyWith(
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ),

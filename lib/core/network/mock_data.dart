@@ -84,16 +84,26 @@ abstract class MockData {
     },
   ];
 
+  // ────────────────────────────
+  // SUBMISSION STATS
+  // FIXED: verdict keys now match
+  // API doc contract (ACCEPTED,
+  // not OK). If real backend turns
+  // out to send OK instead, flag
+  // to Anchal and flip this back.
+  // ────────────────────────────
+
   static const Map<String, dynamic> submissionStatsResponse = {
     'totalSubmissions': 892,
     'solvedProblems': 347,
     'unSolvedProblems': 545,
     'verdictsCount': {
-      'OK': 347,
+      'ACCEPTED': 347,
       'WRONG_ANSWER': 312,
       'TIME_LIMIT_EXCEEDED': 98,
       'MEMORY_LIMIT_EXCEEDED': 34,
-      'RUNTIME_ERROR': 101,
+      'COMPILATION_ERROR': 12,
+      'RUNTIME_ERROR': 89,
     },
   };
 
@@ -157,7 +167,6 @@ abstract class MockData {
   // ────────────────────────────
 
   static List<Map<String, dynamic>> get upcomingContestsResponse {
-    // Current time in seconds
     final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
 
     return [
@@ -212,7 +221,7 @@ abstract class MockData {
   static Map<String, dynamic> get allContestsResponse {
     final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
     return {
-      'contests': [
+      'content': [
         {
           'contestId': 2100,
           'name': 'Codeforces Round 1001 (Div. 2)',
@@ -246,9 +255,15 @@ abstract class MockData {
           'relativeTimeSeconds': 999999,
         },
       ],
-      'total': 4,
-      'page': 1,
-      'size': 20,
+      // FIXED: page shape now matches API doc contract exactly
+      // (size, number, totalElements, totalPages) instead of
+      // the old flat (total, page, size)
+      'page': {
+        'size': 20,
+        'number': 0,
+        'totalElements': 4,
+        'totalPages': 1,
+      },
     };
   }
 
@@ -283,6 +298,8 @@ abstract class MockData {
     },
   ];
 
+  // FIXED: tier field kept (matches contract), maxRating kept
+  // (matches contract) — this was already correct, untouched
   static const List<Map<String, dynamic>> leaderboardResponse = [
     {
       'rank': 1,
@@ -314,6 +331,8 @@ abstract class MockData {
     },
   ];
 
+  // FIXED: added solvedByFriends (was missing — required by
+  // API contract for the "Solved by:" badges feature)
   static const List<Map<String, dynamic>> unsolvedByMeResponse = [
     {
       'contestId': 1991,
@@ -321,6 +340,7 @@ abstract class MockData {
       'name': 'Minimize the Difference',
       'rating': 1800,
       'tags': ['dp', 'greedy'],
+      'solvedByFriends': ['Petr', 'jiangly'],
     },
     {
       'contestId': 1981,
@@ -328,48 +348,68 @@ abstract class MockData {
       'name': 'ada and the Game',
       'rating': 1600,
       'tags': ['binary search', 'greedy'],
+      'solvedByFriends': ['Um_nik'],
     },
   ];
 
-  static const Map<String, dynamic> streakCompareResponse = {
-    'streaks': [
+  // FIXED: now a flat array matching API contract exactly,
+  // with field names currentStreak + lastSubmissionDate
+  // (was nested under 'streaks' with wrong field name streakDays)
+  static List<Map<String, dynamic>> get streakCompareResponse {
+    final today = DateTime.now();
+    String daysAgo(int d) =>
+        today.subtract(Duration(days: d)).toIso8601String().split('T').first;
+
+    return [
       {
         'handle': 'ehsan_cf',
-        'streakDays': 12,
-      },
-      {
-        'handle': 'Petr',
-        'streakDays': 7,
-      },
-      {
-        'handle': 'Um_nik',
-        'streakDays': 21,
+        'currentStreak': 12,
+        'lastSubmissionDate': daysAgo(0),
       },
       {
         'handle': 'jiangly',
-        'streakDays': 30,
+        'currentStreak': 30,
+        'lastSubmissionDate': daysAgo(0),
       },
-    ],
-  };
-
-  static const Map<String, dynamic> contestOverlapResponse = {
-    'contestId': 1991,
-    'participants': [
       {
-        'handle': 'ehsan_cf',
-        'rank': 1243,
-        'ratingChange': 58,
+        'handle': 'Um_nik',
+        'currentStreak': 21,
+        'lastSubmissionDate': daysAgo(1),
       },
       {
         'handle': 'Petr',
-        'rank': 4,
-        'ratingChange': 12,
+        'currentStreak': 7,
+        'lastSubmissionDate': daysAgo(2),
       },
-    ],
-  };
+    ];
+  }
+
+  // FIXED: now a flat array matching contract (rank, oldRating,
+  // newRating, ratingChange per handle) — was nested under
+  // 'participants' and missing oldRating/newRating
+  static const List<Map<String, dynamic>> contestOverlapResponse = [
+    {
+      'handle': 'ehsan_cf',
+      'rank': 1243,
+      'oldRating': 1354,
+      'newRating': 1412,
+      'ratingChange': 58,
+    },
+    {
+      'handle': 'Petr',
+      'rank': 4,
+      'oldRating': 3535,
+      'newRating': 3547,
+      'ratingChange': 12,
+    },
+  ];
 
   // ────────────────────────────
   // COMPARE
+  // FIXED: field names now match
+  // contract exactly — rank1/rank2,
+  // ratingDelta, higherRatedHandle
+  // were missing entirely
   // ────────────────────────────
 
   static const Map<String, dynamic> compareRatingResponse = {
@@ -377,25 +417,54 @@ abstract class MockData {
     'handle2': 'Petr',
     'rating1': 1487,
     'rating2': 3547,
+    'ratingDelta': 2060,
+    'higherRatedHandle': 'Petr',
     'maxRating1': 1523,
     'maxRating2': 3602,
+    'rank1': 'specialist',
+    'rank2': 'legendary grandmaster',
     'contestsParticipated1': 34,
     'contestsParticipated2': 198,
-    'problemsSolved1': 347,
-    'problemsSolved2': 1456,
   };
 
+  // FIXED: response shape now matches POST /compare/find
+  // contract exactly (user1Result/user2Result objects with
+  // solved, verdict, programmingLanguage, timeConsumedMillis,
+  // memoryConsumedBytes, submittedAt, submissionId) — old shape
+  // was a flat single-user object with wrong field names
   static const Map<String, dynamic> findSubmissionResponse = {
-    'found': true,
-    'handle': 'ehsan_cf',
     'contestId': 1991,
-    'problemIndex': 'A',
-    'verdict': 'OK',
-    'submittedAt': '2024-07-15T15:10:00.000Z',
+    'index': 'A',
+    'user1Result': {
+      'handle': 'ehsan_cf',
+      'solved': true,
+      'verdict': 'ACCEPTED',
+      'programmingLanguage': 'C++17',
+      'timeConsumedMillis': 312,
+      'memoryConsumedBytes': 2097152,
+      'submittedAt': 1721055000,
+      'submissionId': 287654321,
+    },
+    'user2Result': {
+      'handle': 'Petr',
+      'solved': true,
+      'verdict': 'ACCEPTED',
+      'programmingLanguage': 'C++20',
+      'timeConsumedMillis': 78,
+      'memoryConsumedBytes': 1048576,
+      'submittedAt': 1721054200,
+      'submissionId': 287654100,
+    },
   };
 
   // ────────────────────────────
   // INSIGHTS
+  // FIXED: acRate now 0–100 scale
+  // (was 0.0–1.0), removed
+  // 'severity' field (not in
+  // contract — UI must derive
+  // urgency from acRate itself,
+  // e.g. < 40 = weak)
   // ────────────────────────────
 
   static const List<Map<String, dynamic>> weakTopicsResponse = [
@@ -404,40 +473,35 @@ abstract class MockData {
       'totalAttempts': 42,
       'solvedCount': 18,
       'unsolvedCount': 24,
-      'acRate': 0.43,
-      'severity': 'critical',
-    },
-    {
-      'tag': 'graphs',
-      'totalAttempts': 31,
-      'solvedCount': 16,
-      'unsolvedCount': 15,
-      'acRate': 0.52,
-      'severity': 'high',
+      'acRate': 42.9,
     },
     {
       'tag': 'binary search',
       'totalAttempts': 24,
       'solvedCount': 11,
       'unsolvedCount': 13,
-      'acRate': 0.46,
-      'severity': 'critical',
+      'acRate': 45.8,
     },
     {
-      'tag': 'number theory',
-      'totalAttempts': 28,
-      'solvedCount': 17,
-      'unsolvedCount': 11,
-      'acRate': 0.61,
-      'severity': 'moderate',
+      'tag': 'graphs',
+      'totalAttempts': 31,
+      'solvedCount': 16,
+      'unsolvedCount': 15,
+      'acRate': 51.6,
     },
     {
       'tag': 'greedy',
       'totalAttempts': 38,
       'solvedCount': 22,
       'unsolvedCount': 16,
-      'acRate': 0.58,
-      'severity': 'high',
+      'acRate': 57.9,
+    },
+    {
+      'tag': 'number theory',
+      'totalAttempts': 28,
+      'solvedCount': 17,
+      'unsolvedCount': 11,
+      'acRate': 60.7,
     },
   ];
 
@@ -479,6 +543,10 @@ abstract class MockData {
     },
   ];
 
+  // FIXED: removed 'isWeakTopic' (not in contract — derive in
+  // UI by cross-referencing tags against weakTopicsResponse
+  // instead of trusting a backend-provided flag that doesn't
+  // exist)
   static const Map<String, dynamic> upsolveResponse = {
     '1991': [
       {
@@ -489,7 +557,6 @@ abstract class MockData {
         'tags': ['dp', 'greedy'],
         'bestVerdict': 'WRONG_ANSWER',
         'url': 'https://codeforces.com/contest/1991/problem/D',
-        'isWeakTopic': true,
       },
       {
         'contestId': 1991,
@@ -499,7 +566,6 @@ abstract class MockData {
         'tags': ['constructive algorithms', 'greedy'],
         'bestVerdict': 'TIME_LIMIT_EXCEEDED',
         'url': 'https://codeforces.com/contest/1991/problem/E',
-        'isWeakTopic': false,
       },
     ],
     '1981': [
@@ -511,7 +577,6 @@ abstract class MockData {
         'tags': ['binary search', 'greedy'],
         'bestVerdict': 'WRONG_ANSWER',
         'url': 'https://codeforces.com/contest/1981/problem/C',
-        'isWeakTopic': true,
       },
     ],
     '1960': [
@@ -523,13 +588,14 @@ abstract class MockData {
         'tags': ['graphs', 'dfs and similar'],
         'bestVerdict': 'TIME_LIMIT_EXCEEDED',
         'url': 'https://codeforces.com/contest/1960/problem/D',
-        'isWeakTopic': true,
       },
     ],
   };
 
   // ────────────────────────────
   // ANALYSIS (AI — Groq)
+  // Already matched contract —
+  // untouched
   // ────────────────────────────
 
   static const Map<String, dynamic> analysisResponse = {

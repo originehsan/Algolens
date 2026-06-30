@@ -8,7 +8,7 @@ import 'package:algolens/features/profile/data/repositories/profile_repository.d
 
 // ─────────────────────────────────
 // CF HANDLE PROVIDER
-// Reads own handle from
+// Reads own handle fromc
 // SecureStorage
 // Used by profile_screen to
 // auto-load own profile
